@@ -1,8 +1,0 @@
-//
-// Created by jordan on 2021-12-08.
-//
-
-#ifndef CLIENT_SERVER_PRACTICE_ECHO_H
-#define CLIENT_SERVER_PRACTICE_ECHO_H
-
-#endif //CLIENT_SERVER_PRACTICE_ECHO_H
