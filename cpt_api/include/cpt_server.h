@@ -7,18 +7,26 @@
 
 #include "linked_list.h"
 
+#define CHANNEL_ZERO 0
 #define MAX_NAME_SIZE 12
 #define DEFAULT_NAME "anonymous"
+#define ACCESS_PRIVATE "PRIVATE"
+#define ACCESS_PUBLIC "PUBLIC"
 
 typedef struct user_struct User;
 typedef struct channel_struct Channel;
-
 typedef Node UserNode;
 typedef Node ChannelNode;
-typedef LinkedList * Channels;
 typedef LinkedList * Users;
+typedef LinkedList * Channels;
 
 
+/**
+ * A user Object.
+ *
+ * Contains data members useful for
+ * handling user in the CPT environment.
+ */
 struct user_struct
 {
     uint8_t id;
@@ -26,18 +34,27 @@ struct user_struct
     char *  name;
 };
 
+
+/**
+ * A Channel object.
+ *
+ * Contains useful data members, as
+ * well as a LinkedList of User objects.
+ */
 struct channel_struct /* may consider adding a fd to this object... */
 {
     uint16_t id;
     Users    users;
     bool     is_private;
     char *   name;
-
 };
 
+
+/**
+ * LinkedList of Channel objects.
+ */
 struct channel_directory
 {
-    uint16_t channel_count;
     Channels channels;
 };
 
@@ -54,31 +71,7 @@ struct channel_directory
  * @param name  User name.
  * @return Pointer to a User object.
  */
-User * init_user(int id, int fd, char * name)
-{
-    User * user;
-
-    if ( !(name) ) { name = DEFAULT_NAME; }
-    else if (strlen(name) > MAX_NAME_SIZE)
-    {
-        write(STDERR_FILENO, "Name exceeds max of %d characters...\n", MAX_NAME_SIZE);
-        return NULL;
-    }
-
-    if ( !(user = malloc(sizeof(User))) )
-    {
-        printf("Failed to allocate memory of size %lud\n", sizeof(User));
-        return NULL;
-    }
-
-
-    memset(user, 0, sizeof(User));
-    user->fd = fd;
-    user->id = id;
-    user->name = strdup(name);
-
-    return user;
-}
+User * init_user(int id, int fd, char * name);
 
 
 /**
@@ -89,18 +82,7 @@ User * init_user(int id, int fd, char * name)
  *
  * @param user A pointer to a User object.
  */
-void destroy_user(User * user)
-{
-    if (user)
-    {
-        if (user->name)
-        {
-            free(user->name);
-            user->name = NULL;
-        }
-        free(user); user = NULL;
-    }
-}
+void destroy_user(User * user);
 
 
 /**
@@ -114,13 +96,7 @@ void destroy_user(User * user)
  * @param user A pointer to a User object.
  * @return     A pointer to a UserNode object.
  */
-UserNode * user_node(User * user)
-{
-    UserNode * user_node;
-
-    user_node = create_node(user, sizeof(struct user_struct));
-    return (user_node) ? user_node : NULL;
-}
+UserNode * user_node(User * user);
 
 
 /**
@@ -132,15 +108,16 @@ UserNode * user_node(User * user)
  * @param user      A pointer to a User object.
  * @return Pointer to Users LinkedList object.
  */
-Users init_users(User * user)
-{
-    Users users;
+Users init_users(User * user);
 
-    if (!user) { return NULL; }
 
-    users = init_list(user, sizeof(struct user_struct));
-    return (users) ? users : NULL;
-}
+/**
+ * Push a user onto a Users list.
+ *
+ * @param users Pointer to a linked list of User objects.
+ * @param user  New user to add.
+ */
+void push_user(Users users, User * user);
 
 
 /**
@@ -156,31 +133,30 @@ Users init_users(User * user)
  * @param is_private Privacy setting of channel.
  * @return Pointer to a Channel object.
  */
-Channel * init_channel(uint16_t id, Users users, char * name, bool is_private)
-{
+Channel * init_channel(uint16_t id, Users users, char * name, bool is_private);
 
-    Channel * channel;
 
-    if (strlen(name) > MAX_NAME_SIZE)
-    {
-        write(STDERR_FILENO, "Name exceeds max of %d characters...\n", MAX_NAME_SIZE);
-        return NULL;
-    }
+/**
+ * Push a user onto a Users list.
+ *
+ * @param users Pointer to a linked list of User objects.
+ * @param user  New user to add.
+ */
+void push_channel(Channels channels, Channel * channel);
 
-    if ( !(channel = malloc(sizeof(struct channel_struct))) )
-    {
-        printf("Failed to allocate memory of size %lud\n", sizeof(User));
-        return NULL;
-    }
 
-    memset(channel, 0, sizeof(struct channel_struct));
-    channel->id = id;
-    channel->users = users;
-    channel->name = strdup(name);
-    channel->is_private = is_private;
-
-    return channel;
-}
+/**
+ * Create a ChannelNode object.
+ *
+ * Creates a ChannelNode object which can be added
+ * to a LinkedList. This function mostly provides
+ * a wrapper for the Node object, with additional
+ * semantic meaning.
+ *
+ * @param user A pointer to a Channel object.
+ * @return     A pointer to a ChannelNode object.
+ */
+ChannelNode * channel_node(Channel * channel);
 
 
 /**
@@ -192,14 +168,45 @@ Channel * init_channel(uint16_t id, Users users, char * name, bool is_private)
  * @param channel A pointer to a Channel object.
  * @return a Channels object (Pointer to a LinkedList).
  */
-Channels init_channels(Channel * channel)
-{
-    Channels channels;
+Channels init_channels(Channel * channel);
 
-    if (!channel) { return NULL; }
 
-    channels = init_list(channel, sizeof(struct channel_struct));
-    return (channels) ? channels : NULL;
-}
+// ===================
+// P R E D I C A T E S
+// ===================
+
+bool find_user_id(User * user, const int * id);
+bool find_user_name(User * user, char * name);
+bool filter_user_id(User * user, FilterQuery * filter_query);
+bool filter_user_name(User * user, FilterQuery * filter_query);
+
+bool find_channel_id(Channel * channel, int * id);
+bool find_channel_name(Channel * channel, int * id);
+bool filter_channels_public(Channel * channel, FilterQuery * filter_query);
+bool filter_channels_private(Channel * channel, FilterQuery * filter_query);
+
+// =================
+// C O N S U M E R S
+// =================
+/**
+ * Print Details about the channel.
+ *
+ * @param channel The target channel.
+ */
+void user_to_string(User * user);
+
+
+/**
+ * Print details about the Channel object.
+ *
+ * @param channel A Channel object.
+ */
+void channel_to_string(Channel * channel);
+
+
+// =================
+// S U P P L I E R S
+// =================
+
 
 #endif //CPT_CPT_SERVER_H

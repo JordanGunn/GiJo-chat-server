@@ -7,19 +7,6 @@
 
 #include "../include/cpt_server.h"
 
-
-/**
- * Initialize a User object.
- *
- * Creates a User object, intialiazing any
- * data members and allocating the necessary
- * memory.
- *
- * @param id    User id.
- * @param fd    File descriptor for the user socket.
- * @param name  User name.
- * @return Pointer to a User object.
- */
 User * init_user(int id, int fd, char * name)
 {
     User * user;
@@ -37,7 +24,6 @@ User * init_user(int id, int fd, char * name)
         return NULL;
     }
 
-
     memset(user, 0, sizeof(User));
     user->fd = fd;
     user->id = id;
@@ -47,14 +33,6 @@ User * init_user(int id, int fd, char * name)
 }
 
 
-/**
- * Destroy User object.
- *
- * Destroys a User object, freeing any memory
- * and setting necessary values to NULL.
- *
- * @param user A pointer to a User object.
- */
 void destroy_user(User * user)
 {
     if (user)
@@ -69,17 +47,6 @@ void destroy_user(User * user)
 }
 
 
-/**
- * Create a UserNode object.
- *
- * Creates a UserNode object which can be added
- * to a LinkedList. This function mostly provides
- * a wrapper for the Node object, with additional
- * semantic meaning.
- *
- * @param user A pointer to a User object.
- * @return     A pointer to a UserNode object.
- */
 UserNode * user_node(User * user)
 {
     UserNode * user_node;
@@ -89,15 +56,39 @@ UserNode * user_node(User * user)
 }
 
 
-/**
- * Initialize Users object.
- *
- * Initialize a Users object, allocating any
- * necessary memory and initializing data members.
- *
- * @param user      A pointer to a User object.
- * @return Pointer to Users LinkedList object.
- */
+void push_user(Users users, User * user)
+{
+    UserNode * new_user;
+    UserNode * next_user;
+
+    new_user = create_node(user, sizeof(struct user_struct));
+    next_user = *(users->head);
+    (*users->head) = new_user;
+    (*users->head)->next = next_user;
+
+    if ( users->length == 1 )
+    {
+        (*users->tail) = next_user;   // set the first tail
+    }
+
+    users->length++;
+}
+
+
+void user_to_string(User * user)
+{
+    char buffer[MD_BUFF_SIZE] = {0};
+
+    sprintf(buffer,
+        "ID: %d\t"    \
+        "NAME: %s\n", \
+        user->id, user->name
+    );
+
+    printf("%s\n", buffer);
+}
+
+
 Users init_users(User * user)
 {
     Users users;
@@ -109,27 +100,19 @@ Users init_users(User * user)
 }
 
 
-/**
- * Initialize Channel object.
- *
- * Initialize a Channel object, allocating
- * any necessary memory and initializing data
- * members.
- *
- * @param id         The channel id.
- * @param users      A Users object (pointer to a LinkedList).
- * @param name       Name of the channel.
- * @param is_private Privacy setting of channel.
- * @return Pointer to a Channel object.
- */
 Channel * init_channel(uint16_t id, Users users, char * name, bool is_private)
 {
-
     Channel * channel;
+
+    if (id == CHANNEL_ZERO)
+    {
+        write(STDERR_FILENO, "Channel 0 (zero) creation forbidden\n", SM_BUFF_SIZE);
+        return NULL;
+    }
 
     if (strlen(name) > MAX_NAME_SIZE)
     {
-        write(STDERR_FILENO, "Name exceeds max of %d characters...\n", MAX_NAME_SIZE);
+        write(STDERR_FILENO, "Name exceeds max name length...\n", SM_BUFF_SIZE);
         return NULL;
     }
 
@@ -149,15 +132,68 @@ Channel * init_channel(uint16_t id, Users users, char * name, bool is_private)
 }
 
 
+void push_channel(Channels channels, Channel * channel)
+{
+    UserNode * new_user;
+    UserNode * next_user;
+
+    new_user = create_node(channel, sizeof(struct user_struct));
+    next_user = *(channels->head);
+    (*channels->head) = new_user;
+    (*channels->head)->next = next_user;
+
+    if ( channels->length == 1 )
+    {
+        (*channels->tail) = next_user;   // set the first tail
+    }
+
+    channels->length++;
+}
+
+
+void destroy_channel(Channel * channel)
+{
+    if (channel)
+    {
+        if (channel->name)
+        {
+            free(channel->name);
+            channel->name = NULL;
+        }
+
+        if (channel->users)
+        {
+            destroy_list(channel->users);
+        }
+
+        free(channel); channel = NULL;
+    }
+}
+
+
 /**
- * Initialize Channels object.
+ * Print details about the Channel object.
  *
- * A wrapper for the LinkedList object
- * that mainly provides semantics.
- *
- * @param channel A pointer to a Channel object.
- * @return a Channels object (Pointer to a LinkedList).
+ * @param channel A Channel object.
  */
+void channel_to_string(Channel * channel)
+{
+    char buffer[MD_BUFF_SIZE] = {0};
+    char * channel_access;
+
+    channel_access = (channel->is_private) ? ACCESS_PRIVATE : ACCESS_PUBLIC;
+
+    sprintf(buffer,
+        "ID: %d\t"          \
+        "NAME: %s\t"        \
+        "ACCESS: %s\n",     \
+        channel->id, channel->name, channel_access
+    );
+    printf("%s\n", buffer);
+    for_each(channel->users, (Consumer) user_to_string); // !!!!!!!!!!!!!!!!!!
+}
+
+
 Channels init_channels(Channel * channel)
 {
     Channels channels;
@@ -169,6 +205,55 @@ Channels init_channels(Channel * channel)
 }
 
 
+void destroy_channels(Channels channels)
+{
+    if (channels)
+    {
+        destroy_list(channels);
+    }
 
+    free(channels); channels = NULL;
+}
+
+
+// ===================
+// P R E D I C A T E S
+// ===================
+//bool find_id_equal(void * data, void * param)
+//{
+//    test_data * td;
+//    td = (test_data *)data;
+//
+//    return td->id == *( (int *)param );
+//}
+
+bool find_user_id(User * user, const int * id)
+{
+    return user->id == *id;
+}
+
+
+bool find_user_name(User * user, char * name)
+{
+    return !strcmp(user->name, name);
+}
+
+
+bool filter_user_id(User * user, FilterQuery * filter_query)
+{
+    int i, * num_crawler;
+    int * IDs, num_IDs;
+
+    IDs = (int *)filter_query->params;
+    num_IDs = filter_query->num_params;
+
+    num_crawler = IDs;
+    for (i = 0; i < num_IDs; i++)
+    {
+        if ( user->id == *(num_crawler) ) { return true; }
+        num_crawler++;
+    }
+    return false;
+}
 
 #endif //GIJO_CPT_SERVER_H

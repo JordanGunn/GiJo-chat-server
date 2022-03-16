@@ -84,7 +84,6 @@ LinkedList * init_list(void * data, size_t data_size)
     if ( !(list->tail = (Node **)malloc(sizeof(Node *))) ) { return NULL; }
 
     list->node_size = data_size;
-    list->current_node = NULL;
     (*list->head) = head;
     (*list->tail) = head;
     list->length++;
