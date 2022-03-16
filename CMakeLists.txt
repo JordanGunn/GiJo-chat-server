@@ -8,12 +8,9 @@ project(CPT
         LANGUAGES C)
 
 # add all relevant subdirectories with other CMakeList files
-add_subdirectory(${CPT_SOURCE_DIR}/src/app)
-add_subdirectory(${CPT_SOURCE_DIR}/include/app)
-add_subdirectory(${CPT_SOURCE_DIR}/src/cpt_api)
-add_subdirectory(${CPT_SOURCE_DIR}/include/cpt_api)
-add_subdirectory(${CPT_SOURCE_DIR}/src/tcp_networking)
-add_subdirectory(${CPT_SOURCE_DIR}/include/tcp_networking)
+add_subdirectory(app)
+add_subdirectory(cpt_api)
+add_subdirectory(tcp_networking)
 
 # To be honest I have no idea what this does
 add_compile_definitions(_POSIX_C_SOURCE=200809L _XOPEN_SOURCE=700)
@@ -29,13 +26,10 @@ IF(LINT)
     set(CMAKE_C_CLANG_TIDY "clang-tidy;-checks=*,-llvmlibc-restrict-system-libc-headers,-cppcoreguidelines-init-variables,-clang-analyzer-security.insecureAPI.strcpy,-concurrency-mt-unsafe,-android-cloexec-accept,-android-cloexec-dup,-google-readability-todo,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers,-cert-dcl03-c,-hicpp-static-assert,-misc-static-assert,-altera-struct-pack-align,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling;--quiet")
 ENDIF()
 
-
 # Make a executables
-add_executable(cpt_chat_server src/app/cpt_chat_server.c ${SERVER_SRC_LIST})
-add_executable(cpt_chat_client src/app/cpt_chat_client.c ${CLIENT_SRC_LIST})
-
-target_include_directories(cpt_chat_server PUBLIC ${SERVER_HEADER_LIST})
-target_include_directories(cpt_chat_server PUBLIC ${CLIENT_HEADER_LIST})
+add_executable(cpt_chat_server ${CHAT_SERVER_TARGETS} ${CPT_API_TARGETS} ${TCP_SERVER_TARGETS}  common.h cpt_api/src/GlobalUserTable.c cpt_api/include/GlobalUserTable.h)
+add_executable(cpt_chat_client ${CHAT_CLIENT_TARGETS} ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS}  common.h)
+add_executable(sandbox ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS} ${TCP_SERVER_TARGETS} ${SANDBOX_TARGETS}  common.h app/sandbox.h)
 
 # =========================================
 # Directory inclusion for server executable
@@ -61,15 +55,27 @@ target_include_directories(cpt_chat_client PRIVATE /usr/local/include)
 target_link_directories(cpt_chat_client PRIVATE /usr/lib)
 target_link_directories(cpt_chat_client PRIVATE /usr/local/lib)
 
-SET(COMPILE_OPTIONS
-    -Wdouble-promotion -Wformat-nonliteral
-    -Wformat-security -Wformat-y2k -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default
-    -Wswitch-enum -Wunused-local-typedefs -Wstrict-overflow=5 -Wmissing-noreturn -Walloca -Wfloat-equal
-    -Wdeclaration-after-statement -Wshadow -Wpointer-arith -Wabsolute-value -Wundef -Wexpansion-to-defined
-    -Wunused-macros -Wno-endif-labels -Wbad-function-cast -Wcast-qual -Wwrite-strings -Wconversion -Wstrict-prototypes
-    -Wdangling-else -Wdate-time -Wempty-body -Wsign-conversion -Wfloat-conversion -Waggregate-return -Winline
-    -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wpacked -Wredundant-decls -Wnested-externs
-    -Winvalid-pch -Wlong-long -Wvariadic-macros -Wdisabled-optimization -Wstack-protector -Woverlength-strings )
+# ==========================================
+# Directory inclusion for sandbox executable
+# ==========================================
+# Tell the compiler to check these dirs for any header files
+target_include_directories(sandbox PRIVATE ./include)
+target_include_directories(sandbox PRIVATE /usr/include)
+target_include_directories(sandbox PRIVATE /usr/local/include)
+
+# tell the compiler to check here for 3rd party source files
+target_link_directories(sandbox PRIVATE /usr/lib)
+target_link_directories(sandbox PRIVATE /usr/local/lib)
+
+#SET(COMPILE_OPTIONS
+#    -Wdouble-promotion -Wformat-nonliteral
+#    -Wformat-security -Wformat-y2k -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default
+#    -Wswitch-enum -Wunused-local-typedefs -Wstrict-overflow=5 -Wmissing-noreturn -Walloca -Wfloat-equal
+#    -Wdeclaration-after-statement -Wshadow -Wpointer-arith -Wabsolute-value -Wundef -Wexpansion-to-defined
+#    -Wunused-macros -Wno-endif-labels -Wbad-function-cast -Wcast-qual -Wwrite-strings -Wconversion -Wstrict-prototypes
+#    -Wdangling-else -Wdate-time -Wempty-body -Wsign-conversion -Wfloat-conversion -Waggregate-return -Winline
+#    -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wpacked -Wredundant-decls -Wnested-externs
+#    -Winvalid-pch -Wlong-long -Wvariadic-macros -Wdisabled-optimization -Wstack-protector -Woverlength-strings )
 
 # =========================================
 # Additional compile options for server
@@ -78,7 +84,7 @@ target_compile_features(cpt_chat_server PUBLIC c_std_11)
 target_compile_options(cpt_chat_server PRIVATE -g)
 target_compile_options(cpt_chat_server PRIVATE -fstack-protector-all -ftrapv)
 target_compile_options(cpt_chat_server PRIVATE -Wpedantic -Wall -Wextra)
-target_compile_options(cpt_chat_server PRIVATE "${COMPILE_OPTIONS}")
+#target_compile_options(cpt_chat_server PRIVATE "${COMPILE_OPTIONS}")
 
 # =========================================
 # Additional compile options for client
@@ -87,7 +93,16 @@ target_compile_features(cpt_chat_client PUBLIC c_std_11)
 target_compile_options(cpt_chat_client PRIVATE -g)
 target_compile_options(cpt_chat_client PRIVATE -fstack-protector-all -ftrapv)
 target_compile_options(cpt_chat_client PRIVATE -Wpedantic -Wall -Wextra)
-target_compile_options(cpt_chat_client PRIVATE ${COMPILE_OPTIONS})
+#target_compile_options(cpt_chat_client PRIVATE ${COMPILE_OPTIONS})
+
+# =========================================
+# Additional compile options for sandbox
+# =========================================
+target_compile_features(sandbox PUBLIC c_std_11)
+target_compile_options(sandbox PRIVATE -g)
+target_compile_options(sandbox PRIVATE -fstack-protector-all -ftrapv)
+target_compile_options(sandbox PRIVATE -Wpedantic -Wall -Wextra)
+#target_compile_options(cpt_chat_client PRIVATE ${COMPILE_OPTIONS})
 
 
 # =========================================
@@ -123,3 +138,15 @@ target_link_libraries(cpt_chat_client ${LIBDC_FSM})
 target_link_libraries(cpt_chat_client ${LIBDC_NETWORK})
 target_link_libraries(cpt_chat_client ${LIBDC_APPLICATION})
 target_link_libraries(cpt_chat_client ${LIBCONFIG})
+
+# =========================================
+# Link the libraries for sandbox executable
+# =========================================
+target_link_libraries(sandbox ${LIBDC_ERROR})
+target_link_libraries(sandbox ${LIBDC_POSIX})
+target_link_libraries(sandbox ${LIBDC_UTIL})
+target_link_libraries(sandbox ${LIBDC_FSM})
+target_link_libraries(sandbox ${LIBDC_NETWORK})
+target_link_libraries(sandbox ${LIBDC_APPLICATION})
+target_link_libraries(sandbox ${LIBCONFIG})
+

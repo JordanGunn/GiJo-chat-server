@@ -2,8 +2,8 @@
 // Created by jordan on 2022-03-08.
 //
 
-#ifndef GIJO_CPT_CLIENT_H
-#define GIJO_CPT_CLIENT_H
+#ifndef CPT_CPT_CLIENT_H
+#define CPT_CPT_CLIENT_H
 
 /**
 * Send client information to the server.
@@ -147,4 +147,4 @@ int cpt_create_channel(void * cpt, void * members, bool is_private);
 int cpt_leave_channel(void * cpt, int channel_id);
 
 
-#endif //GIJO_CPT_CLIENT_H
+#endif //CPT_CPT_CLIENT_H

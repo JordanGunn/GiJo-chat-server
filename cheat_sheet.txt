@@ -273,6 +273,26 @@ int poll(struct pollfd *fdarray, unsigned long nfds, int timeout);
 
 
 
+    link_directories(${CPT_SOURCE_DIR}/include/app)
+
+    set(APP_CLIENT_SRC
+            ${CPT_SOURCE_DIR}/app/src/cpt_chat_client.c
+            PARENT_SCOPE)
+
+    set(APP_SERVER_SRC
+            ${CPT_SOURCE_DIR}/app/src/cpt_chat_server.c
+            PARENT_SCOPE)
+
+    set(APP_CLIENT_HEADERS
+            ${CPT_SOURCE_DIR}/app/include/cpt_chat_client.h
+            PARENT_SCOPE)
+
+    set(APP_SERVER_HEADERS
+            ${CPT_SOURCE_DIR}/app/include/cpt_chat_server.h
+            PARENT_SCOPE)
+
+
+
 
 
 

@@ -2,39 +2,11 @@
 // Created by jordan on 2022-03-08.
 //
 
-#ifndef GIJO_CPT_BUILDER_H
-#define GIJO_CPT_BUILDER_H
 
-enum msg_type {
-    CPT_TEXT,
-    CPT_VOICE,
-    CPT_IMG
-};
-
-enum commands {
-    SEND,
-    LOGOUT,
-    LOGIN,
-    GET_USERS,
-    CREATE_CHANNEL,
-    JOIN_CHANNEL,
-    LEAVE_CHANNEL
-};
-
-enum version {
-    MAJOR_1 = 1,
-    MINOR_0 = 0,
-    MINOR_1 = 1
-};
-
-struct cpt_builder {
-    uint8_t  version;
-    uint8_t  command ;
-    uint16_t channel_id;
-    uint8_t  msg_len;
-    char *   msg;
-};
-
+#ifndef CPT_CPT_BUILDER_H
+#define CPT_CPT_BUILDER_H
+#include "../../common.h"
+#include "cpt_types.h"
 
 /**
 * Initialize cpt struct.
@@ -44,7 +16,7 @@ struct cpt_builder {
 *
 * @return Pointer to cpt struct.
 */
-struct cpt * cpt_builder_init(void);
+cpt_builder * cpt_builder_init(void);
 
 
 /**
@@ -52,7 +24,7 @@ struct cpt * cpt_builder_init(void);
 *
 * @param cpt   Pointer to a cpt structure.
 */
-void cpt_builder_destroy(struct cpt * cpt);
+void cpt_builder_destroy(cpt_builder * cpt);
 
 
 /**
@@ -61,7 +33,7 @@ void cpt_builder_destroy(struct cpt * cpt);
 * @param cpt   Pointer to a cpt structure.
 * @param cmd   From enum commands.
 */
-void cpt_builder_cmd(struct cpt * cpt, commands_client cmd);
+void cpt_builder_cmd(cpt_builder * cpt, uint8_t cmd);
 
 
 /**
@@ -71,7 +43,7 @@ void cpt_builder_cmd(struct cpt * cpt, commands_client cmd);
 * @param version_major From enum version.
 * @param version_minor From enum version.
 */
-void cpt_builder_version(struct cpt * cpt, version version_major, version version_minor);
+void cpt_builder_version(cpt_builder * cpt, uint8_t version_major, uint8_t version_minor);
 
 
 /**
@@ -80,7 +52,7 @@ void cpt_builder_version(struct cpt * cpt, version version_major, version versio
 * @param cpt       Pointer to a cpt structure.
 * @param msg_len   An 8-bit integer.
 */
-void cpt_builder_len(struct cpt * cpt, uint8_t msg_len);
+void cpt_builder_len(cpt_builder * cpt, uint8_t msg_len);
 
 
 /**
@@ -89,7 +61,7 @@ void cpt_builder_len(struct cpt * cpt, uint8_t msg_len);
 * @param cpt           Pointer to a cpt structure.
 * @param channel_id    A 16-bit integer.
 */
-void cpt_builder_chan(struct cpt * cpt, uint16_t channel_id);
+void cpt_builder_chan(cpt_builder * cpt, uint16_t channel_id);
 
 
 /**
@@ -99,7 +71,7 @@ void cpt_builder_chan(struct cpt * cpt, uint16_t channel_id);
 * @param cpt  Pointer to a cpt structure.
 * @param msg  Pointer to an array of characters.
 */
-void cpt_builder_msg(struct cpt * cpt, char * msg);
+void cpt_builder_msg(cpt_builder * cpt, const char * msg);
 
 
 /**
@@ -108,7 +80,7 @@ void cpt_builder_msg(struct cpt * cpt, char * msg);
 * @param packet    A serialized cpt protocol message.
 * @return          A pointer to a cpt struct.
 */
-struct cpt * cpt_builder_parse(void * packet);
+cpt_builder * cpt_builder_parse(void * packet);
 
 
 /**
@@ -117,7 +89,7 @@ struct cpt * cpt_builder_parse(void * packet);
 * @param packet    A serialized cpt protocol message.
 * @return          A pointer to a cpt struct.
 */
-void * cpt_builder_serialize(struct cpt * cpt);
+size_t cpt_builder_serialize(cpt_builder * cpt, uint8_t * buffer);
 
 
 /**
@@ -128,4 +100,19 @@ void * cpt_builder_serialize(struct cpt * cpt);
 */
 int cpt_validate(void * packet);
 
-#endif //GIJO_CPT_BUILDER_H
+
+/**
+* Check serialized cpt to see if it is a valid cpt block.
+*
+* @param packet    A serialized cpt protocol message.
+* @return          0 if no issues, otherwise CPT error code.
+*/
+void cpt_to_string(cpt_builder * cpt);
+
+
+static uint16_t serialize(uint8_t * buffer, const char * format, ...);
+static void parse(uint8_t * buffer, const char * format, ...);
+static uint16_t unpack_uint16t(const uint8_t * serial_buffer);
+static void pack_uint16(uint8_t * serial_buffer, uint16_t int_16);
+
+#endif //CPT_CPT_BUILDER_H

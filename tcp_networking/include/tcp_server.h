@@ -12,7 +12,7 @@
 #ifndef UDP_TESTER_TCP_INIT_SERVER_H
 #define UDP_TESTER_TCP_INIT_SERVER_H
 
-#include "common.h"
+#include "../../common.h"
 
 
 /**
