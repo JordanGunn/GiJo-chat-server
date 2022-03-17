@@ -5,7 +5,6 @@
 #include "../include/cpt_client.h"
 #include "../../tcp_networking/include/tcp_client.h"
 
-
 int cpt_login(void * cpt, char * name)
 {
     uint8_t serial_buffer[LG_BUFF_SIZE];
@@ -25,6 +24,7 @@ int cpt_login(void * cpt, char * name)
         : cpt_builder_msg(packet_info->builder, DEFAULT_NAME);
 
     cpt_builder_serialize(packet_info->builder, packet_info->serial_buffer);
+    tcp_init_client()
 
 }
 
@@ -46,3 +46,28 @@ int cpt_create_channel(void * cpt, void * members, bool is_private);
 
 
 int cpt_leave_channel(void * cpt, int channel_id);
+
+
+CptPacketInfo * cpt_init_packet_info(char * port, char * ip)
+{
+    CptPacketInfo * packet_info;
+
+    packet_info = malloc_safely(sizeof(struct cpt_packet_info), STDERR_FILENO); // !
+    if ( !(packet_info->builder = cpt_builder_init()) ) { return NULL; }
+    packet_info->port = strdup(port); // !
+    packet_info->ip = strdup(ip);
+
+    return packet_info;
+}
+
+void cpt_destroy_packet_info(CptPacketInfo * packet_info)
+{
+    if ( packet_info )
+    {
+        if ( packet_info->builder ) { cpt_builder_destroy(packet_info->builder); }
+        if ( packet_info->ip ) { free(packet_info->ip); packet_info->ip = NULL;  }
+        if ( packet_info->ip ) { free(packet_info->port); packet_info->port = NULL; }
+        free(packet_info);
+        packet_info = NULL;
+    }
+}

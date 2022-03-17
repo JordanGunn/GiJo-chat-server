@@ -9,6 +9,9 @@
 /**
  * @brief Get client/server address information for network data transfer.
  *
+ * A wrapper for posix setsockopt() system call
+ * that includes some minor error handling.
+ *
  * @param host  IP or url of target destination.
  * @param port  Port of target destination.
  * @return      Pointer to addrinfo struct or NULL if failure.
@@ -19,6 +22,9 @@ struct addrinfo * tcp_client_addr(const char * host, const char * port);
 /**
  * @brief Create a socket to write to server.
  *
+ * A wrapper for posix socket() system call
+ * that includes some minor error handling.
+ *
  * @param serv_info Result returned from setup_client_addr().
  * @return          Socket file descriptor.
  */
@@ -26,7 +32,10 @@ int tcp_client_socket(struct addrinfo * serv_info);
 
 
 /**
- * Set custom socket options.
+ * @brief Set custom socket options.
+ *
+ * A wrapper for posix setsockopt() system call
+ * that includes some minor error handling.
  *
  * @param sock_fd   Socket file descriptor.
  * @param sock_opt  Socket option to set (see Posix Manual for details.)
@@ -38,6 +47,9 @@ int tcp_client_sock_opt(int sock_fd, int sock_opt);
 /**
  * @brief Establish TCP connection to server.
  *
+ * A wrapper for posix connect() system call
+ * that includes some minor error handling.
+ *
  * @param sock_fd   Socket file descriptor.
  * @param serv_info Return value from tcp_init_addr().
  * @return          0 if successful, -1 if failure.
@@ -46,24 +58,26 @@ int tcp_client_connect(int sock_fd, struct addrinfo * serv_info);
 
 
 /**
- * @brief Send init params to the server.
+ * @brief Send a message over TCP connection.
  *
  * @param sock_fd   Socket file descriptor.
- * @param msg       Initialization param(s).
+ * @param msg       Data to send.
  */
 void tcp_client_send(int sock_fd, uint8_t * data);
 
 
 /**
- * @brief Drive the TCP client init functions.
+ * @brief Initialize a TCP connection.
  *
- * Calls all tcp client init functions to send params to server.
+ * Makes all necessary TCP posix system calls and
+ * returns a file descriptor for writing to the
+ * connected socket.
  *
- * @param host  IP or url of target destination.
+ * @param host  IP or URL of target destination.
  * @param port  Port of target destination.
  * @return      0 if successful, -1 if failure.
  */
-int init_send(const char * host, const char * port, char * init);
+int tcp_init_client(const char * host, const char * port);
 
 
 /**

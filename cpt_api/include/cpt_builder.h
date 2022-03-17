@@ -17,7 +17,7 @@
 *
 * @return Pointer to cpt struct.
 */
-cpt_builder * cpt_builder_init(void);
+CptBuilder * cpt_builder_init(void);
 
 
 /**
@@ -25,7 +25,7 @@ cpt_builder * cpt_builder_init(void);
 *
 * @param cpt   Pointer to a cpt structure.
 */
-void cpt_builder_destroy(cpt_builder * cpt);
+void cpt_builder_destroy(CptBuilder * cpt);
 
 
 /**
@@ -34,7 +34,7 @@ void cpt_builder_destroy(cpt_builder * cpt);
 * @param cpt   Pointer to a cpt structure.
 * @param cmd   From enum commands.
 */
-void cpt_builder_cmd(cpt_builder * cpt, uint8_t cmd);
+void cpt_builder_cmd(CptBuilder * cpt, uint8_t cmd);
 
 
 /**
@@ -44,7 +44,7 @@ void cpt_builder_cmd(cpt_builder * cpt, uint8_t cmd);
 * @param version_major From enum version.
 * @param version_minor From enum version.
 */
-void cpt_builder_version(cpt_builder * cpt, uint8_t version_major, uint8_t version_minor);
+void cpt_builder_version(CptBuilder * cpt, uint8_t version_major, uint8_t version_minor);
 
 
 /**
@@ -53,7 +53,7 @@ void cpt_builder_version(cpt_builder * cpt, uint8_t version_major, uint8_t versi
 * @param cpt       Pointer to a cpt structure.
 * @param msg_len   An 8-bit integer.
 */
-void cpt_builder_len(cpt_builder * cpt, uint8_t msg_len);
+void cpt_builder_len(CptBuilder * cpt, uint8_t msg_len);
 
 
 /**
@@ -62,7 +62,7 @@ void cpt_builder_len(cpt_builder * cpt, uint8_t msg_len);
 * @param cpt           Pointer to a cpt structure.
 * @param channel_id    A 16-bit integer.
 */
-void cpt_builder_chan(cpt_builder * cpt, uint16_t channel_id);
+void cpt_builder_chan(CptBuilder * cpt, uint16_t channel_id);
 
 
 /**
@@ -72,7 +72,7 @@ void cpt_builder_chan(cpt_builder * cpt, uint16_t channel_id);
 * @param cpt  Pointer to a cpt structure.
 * @param msg  Pointer to an array of characters.
 */
-void cpt_builder_msg(cpt_builder * cpt, char * msg);
+void cpt_builder_msg(CptBuilder * cpt, char * msg);
 
 /**
 * Create a cpt struct from a cpt packet.
@@ -80,7 +80,7 @@ void cpt_builder_msg(cpt_builder * cpt, char * msg);
 * @param packet    A serialized cpt protocol message.
 * @return          A pointer to a cpt struct.
 */
-cpt_builder * cpt_builder_parse(uint8_t * packet);
+CptBuilder * cpt_builder_parse(uint8_t * packet);
 
 
 /**
@@ -89,7 +89,7 @@ cpt_builder * cpt_builder_parse(uint8_t * packet);
 * @param packet    A serialized cpt protocol message.
 * @return          A pointer to a cpt struct.
 */
-size_t cpt_builder_serialize(cpt_builder * cpt, uint8_t * buffer);
+size_t cpt_builder_serialize(CptBuilder * cpt, uint8_t * buffer);
 
 
 /**
@@ -107,7 +107,7 @@ int cpt_validate(void * packet);
 * @param packet    A serialized cpt protocol message.
 * @return          0 if no issues, otherwise CPT error code.
 */
-char * cpt_to_string(cpt_builder * cpt);
+char * cpt_to_string(CptBuilder * cpt);
 
 unsigned int serialize(unsigned char * buf, char * format, ...);
 

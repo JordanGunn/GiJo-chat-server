@@ -21,6 +21,8 @@
 #include <sys/socket.h>
 #include <poll.h>
 
+void * malloc_safely(size_t target_size, int stream_fd);
+
 #endif //CPT_CPT_CHAT_CLIENT_H
 
 #ifndef CPT_CPT_CHAT_SERVER_H
@@ -38,6 +40,8 @@
 #include <netdb.h>
 #include <poll.h>
 #include <sys/socket.h>
+
+
 
 
 #endif // CPT_CPT_CHAT_SERVER_H

@@ -12,10 +12,10 @@
 *
 * @return Pointer to cpt struct.
 */
-cpt_builder * cpt_builder_init()
+CptBuilder * cpt_builder_init()
 {
-    cpt_builder * cpt_builder;
-    if ( (cpt_builder = malloc(sizeof(struct cpt_builder))) )
+    CptBuilder * cpt_builder;
+    if ( (cpt_builder = malloc(sizeof(struct CptBuilder))) )
     {
         cpt_builder->msg = NULL;
     }
@@ -30,7 +30,7 @@ cpt_builder * cpt_builder_init()
 *
 * @param cpt   Pointer to a cpt structure.
 */
-void cpt_builder_destroy(cpt_builder * cpt)
+void cpt_builder_destroy(CptBuilder * cpt)
 {
     if (cpt)
     {
@@ -51,7 +51,7 @@ void cpt_builder_destroy(cpt_builder * cpt)
 * @param cpt   Pointer to a cpt structure.
 * @param cmd   From enum commands.
 */
-void cpt_builder_cmd(cpt_builder * cpt, uint8_t cmd)
+void cpt_builder_cmd(CptBuilder * cpt, uint8_t cmd)
 {
     if ( (cmd < SEND) || (cmd > LEAVE_CHANNEL) )
     {
@@ -67,7 +67,7 @@ void cpt_builder_cmd(cpt_builder * cpt, uint8_t cmd)
 * @param version_major From enum version.
 * @param version_minor From enum version.
 */
-void cpt_builder_version(cpt_builder * cpt, uint8_t version_major, uint8_t version_minor)
+void cpt_builder_version(CptBuilder * cpt, uint8_t version_major, uint8_t version_minor)
 {
     bool exceeds_major;
     bool exceeds_minor;
@@ -89,7 +89,7 @@ void cpt_builder_version(cpt_builder * cpt, uint8_t version_major, uint8_t versi
 * @param cpt       Pointer to a cpt structure.
 * @param msg_len   An 8-bit integer.
 */
-void cpt_builder_len(cpt_builder * cpt, uint8_t msg_len)
+void cpt_builder_len(CptBuilder * cpt, uint8_t msg_len)
 {
     cpt->msg_len = msg_len;
 }
@@ -101,7 +101,7 @@ void cpt_builder_len(cpt_builder * cpt, uint8_t msg_len)
 * @param cpt           Pointer to a cpt structure.
 * @param channel_id    A 16-bit integer.
 */
-void cpt_builder_chan(cpt_builder * cpt, uint16_t channel_id)
+void cpt_builder_chan(CptBuilder * cpt, uint16_t channel_id)
 {
     cpt->channel_id = channel_id;
 }
@@ -114,7 +114,7 @@ void cpt_builder_chan(cpt_builder * cpt, uint16_t channel_id)
 * @param cpt  Pointer to a cpt structure.
 * @param msg  Pointer to an array of characters.
 */
-void cpt_builder_msg(cpt_builder * cpt, char * msg)
+void cpt_builder_msg(CptBuilder * cpt, char * msg)
 {
     char * msg_field;
 
@@ -138,11 +138,11 @@ void cpt_builder_msg(cpt_builder * cpt, char * msg)
 * @param packet    A serialized cpt protocol message.
 * @return          A pointer to a cpt struct.
 */
-cpt_builder * cpt_builder_parse(uint8_t * packet)
+CptBuilder * cpt_builder_parse(uint8_t * packet)
 {
-    cpt_builder * cpt;
+    CptBuilder * cpt;
     cpt = cpt_builder_init();
-    memset(cpt, 0, sizeof(struct cpt_builder));
+    memset(cpt, 0, sizeof(struct CptBuilder));
     char msg_buff[SM_BUFF_SIZE];
 
 
@@ -159,12 +159,12 @@ cpt_builder * cpt_builder_parse(uint8_t * packet)
 
 
 /**
-* Serialize a cpt_builder struct for transmission.
+* Serialize a CptBuilder struct for transmission.
 *
-* @param cpt    A cpt_builder struct.
+* @param cpt    A CptBuilder struct.
 * @return       Size of the serialized packet.
 */
-size_t cpt_builder_serialize(cpt_builder * cpt, uint8_t * buffer)
+size_t cpt_builder_serialize(CptBuilder * cpt, uint8_t * buffer)
 {
     size_t serial_size;
 
@@ -183,7 +183,7 @@ size_t cpt_builder_serialize(cpt_builder * cpt, uint8_t * buffer)
  *
  * @param cpt
  */
-char * cpt_to_string(cpt_builder * cpt)
+char * cpt_to_string(CptBuilder * cpt)
 {
     char buffer[MD_BUFF_SIZE] = {0};
     uint8_t version_minor, version_major;

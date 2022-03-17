@@ -134,7 +134,7 @@ void tcp_client_send(int sock_fd, uint8_t * data);
 }
 
 
-int init_send(const char * host, const char * port, char * init)
+int tcp_init_client(const char * host, const char * port);
 {
     int sock_fd;
     struct addrinfo * addr;
@@ -143,7 +143,6 @@ int init_send(const char * host, const char * port, char * init)
     sock_fd = tcp_client_socket(addr);
     if ( (tcp_client_sock_opt(sock_fd, SO_REUSEADDR)) == -1 ) { sock_fd = -1; }
     tcp_client_connect(sock_fd, addr);
-    tcp_client_send_init(sock_fd, init);
 
     return sock_fd;
 }

@@ -11,7 +11,7 @@ User * init_user(int id, int fd, char * name)
 {
     User * user;
 
-    if ( !(name) ) { name = DEFAULT_NAME; }
+    if ( !(name) ) { name = DEFAULT_USER_NAME; }
     else if (strlen(name) > MAX_NAME_SIZE)
     {
         write(STDERR_FILENO, "Name exceeds max of %d characters...\n", MAX_NAME_SIZE);

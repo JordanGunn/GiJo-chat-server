@@ -6,12 +6,13 @@
 #define CPT_CPT_TYPES_H
 
 #define CHANNEL_ZERO 0
-#define DEFAULT_NAME "anonymous"
 #define MAX_NAME_SIZE 12
-#define ACCESS_PRIVATE "PRIVATE"
 #define ACCESS_PUBLIC "PUBLIC"
+#define ACCESS_PRIVATE "PRIVATE"
+#define DEFAULT_USER_NAME "anonymous"
 
-typedef struct cpt_builder cpt_builder;
+typedef struct CptBuilder CptBuilder;
+typedef struct cpt_packet_info CptPacketInfo;
 
 struct cpt_builder {
     uint8_t   version;
@@ -19,6 +20,14 @@ struct cpt_builder {
     uint16_t  channel_id;
     uint8_t   msg_len;
     uint8_t * msg;
+};
+
+struct cpt_packet_info {
+    int fd;
+    char * ip;
+    char * port;
+    CptBuilder * builder;
+    uint8_t * serial_buffer;
 };
 
 enum {

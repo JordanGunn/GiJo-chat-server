@@ -7,14 +7,7 @@
 
 #include "../include/cpt_builder.h"
 #include "../../tcp_networking/include/tcp_client.h"
-
-typedef struct cpt_packet_info CptPacketInfo;
-
-struct cpt_packet_info {
-    int fd;
-    cpt_builder * builder;
-    uint8_t * serial_buffer;
-};
+#include "../../tcp_networking/include/tcp_client_config.h"
 
 /**
 * Send client information to the server.
@@ -156,6 +149,35 @@ int cpt_create_channel(void * cpt, void * members, bool is_private);
  * @return A status code. Either from server, or user defined.
  */
 int cpt_leave_channel(void * cpt, int channel_id);
+
+
+/**
+ * Create a CptPacketInfo object.
+ *
+ * Contains necessary information to
+ * to create a TCP connection with the
+ * server and send data back and forth.
+ *
+ * Initializes all necessary fields and
+ * allocates any memory necessary for the
+ * object.
+ *
+ * @param port  Server port number.
+ * @param ip    Server IP or URL.
+ * @return CptPacketInfo object.
+ */
+CptPacketInfo * cpt_init_packet_info(char * port, char * ip);
+
+
+/**
+ * Destroy CptPacketInfo object.
+ *
+ * Frees any memory necessary for the
+ * object and set all pointers to NULL.
+ *
+ * @param packet_info CptPacketInfo object.
+ */
+void cpt_destroy_packet_info(CptPacketInfo * packet_info);
 
 
 #endif //CPT_CPT_CLIENT_H

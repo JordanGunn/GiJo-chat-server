@@ -34,7 +34,7 @@ void test_linked_list_find(LinkedList *linked_list);
 void test_linked_list_filter(LinkedList *linked_list);
 
 // CPT BUILDER
-cpt_builder * test_create_cpt_builder();
+CptBuilder * test_create_cpt_builder();
 
 
 

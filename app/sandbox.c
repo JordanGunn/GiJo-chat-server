@@ -172,14 +172,14 @@ bool filter_IDs(void * data, void * params)
 //  C P T   B U I L D E R   T E S T I N G    F U N C T I O N S
 // ============================================================
 
-cpt_builder * test_create_cpt_builder()
+CptBuilder * test_create_cpt_builder()
 {
     uint8_t serial_buffer[LG_BUFF_SIZE];
     uint8_t  version_major, version_minor;
     uint8_t  command;
     uint16_t channel_id;
     char * msg, * first_cpt, * second_cpt;
-    cpt_builder * cpt_parsed;
+    CptBuilder * cpt_parsed;
 
     command = SEND;
     channel_id = 3;
@@ -188,7 +188,7 @@ cpt_builder * test_create_cpt_builder()
     msg = "Hello, World!";
 
     // build the stupid thing
-    cpt_builder * cpt;
+    CptBuilder * cpt;
     cpt = cpt_builder_init();
     cpt_builder_chan(cpt, channel_id);
     cpt_builder_cmd(cpt, command);
