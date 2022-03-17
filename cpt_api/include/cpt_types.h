@@ -11,7 +11,7 @@
 #define ACCESS_PRIVATE "PRIVATE"
 #define DEFAULT_USER_NAME "anonymous"
 
-typedef struct CptBuilder CptBuilder;
+typedef struct cpt_builder CptBuilder;
 typedef struct cpt_packet_info CptPacketInfo;
 
 struct cpt_builder {
@@ -27,7 +27,6 @@ struct cpt_packet_info {
     char * ip;
     char * port;
     CptBuilder * builder;
-    uint8_t * serial_buffer;
 };
 
 enum {

@@ -10,6 +10,7 @@
 typedef Channel * GlobalChannel;
 typedef Channels ChannelDirectory;
 
+
 /**
  * Initialize the GlobalChannel object.
  *
@@ -20,6 +21,7 @@ typedef Channels ChannelDirectory;
  * @return Pointer to GlobalChannel object.
  */
 GlobalChannel init_global_channel();
+
 
 /**
  * Initialize channel directory object.

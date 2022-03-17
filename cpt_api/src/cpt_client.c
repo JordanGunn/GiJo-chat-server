@@ -7,25 +7,35 @@
 
 int cpt_login(void * cpt, char * name)
 {
+    int fd;
     uint8_t serial_buffer[LG_BUFF_SIZE];
     CptPacketInfo * packet_info;
 
-    packet_info = (CptPacketInfo *)cpt;
+    packet_info = (CptPacketInfo *)cpt;                  // initial setup
+    packet_info->builder = cpt_builder_init();           // initial setup
+    packet_info->builder->channel_id = CHANNEL_ZERO;     // initial setup
 
-    packet_info->serial_buffer = serial_buffer;
-    packet_info = (CptPacketInfo *) packet_info;
-    packet_info->builder = cpt_builder_init();
-    packet_info->builder->channel_id = CHANNEL_ZERO;
+    cpt_builder_version(packet_info->builder,
+            VERSION_MAJOR_LATEST, VERSION_MINOR_LATEST);
 
-    cpt_builder_version(packet_info->builder, VERSION_MAJOR_LATEST, VERSION_MINOR_LATEST);
-    cpt_builder_cmd(packet_info->builder, (uint8_t)LOGOUT);
+    cpt_builder_cmd(packet_info->builder,(uint8_t) LOGIN);
+
     ( name )
         ? cpt_builder_msg(packet_info->builder, name)
-        : cpt_builder_msg(packet_info->builder, DEFAULT_NAME);
+        : cpt_builder_msg(packet_info->builder, DEFAULT_USER_NAME);
 
-    cpt_builder_serialize(packet_info->builder, packet_info->serial_buffer);
-    tcp_init_client()
+    cpt_builder_serialize(packet_info->builder, serial_buffer);
+    fd = tcp_init_client(packet_info->ip, packet_info->port);
 
+    if ( fd < 0 )
+    {
+        const char * message = "Failed to Login to chat...";
+        write(STDERR_FILENO, message, strlen(message));
+        return EXIT_FAILURE;
+    } else { packet_info->fd = fd; }
+
+    tcp_client_send(fd, serial_buffer);
+    return 0;
 }
 
 
