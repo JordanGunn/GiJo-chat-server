@@ -27,8 +27,8 @@ IF(LINT)
 ENDIF()
 
 # Make a executables
-add_executable(cpt_chat_server ${CHAT_SERVER_TARGETS} ${CPT_API_TARGETS} ${TCP_SERVER_TARGETS}  common.h cpt_api/src/GlobalChannel.c cpt_api/include/GlobalChannel.h cpt_api/include/global_config.h)
-add_executable(cpt_chat_client ${CHAT_CLIENT_TARGETS} ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS}  common.h app/server_config.h app/client_config.h)
+add_executable(cpt_chat_server ${CHAT_SERVER_TARGETS} ${CPT_API_TARGETS} ${TCP_SERVER_TARGETS}  common.h cpt_api/src/GlobalChannel.c cpt_api/include/GlobalChannel.h cpt_api/include/global_config.h cpt_api/src/serialize.c cpt_api/include/serialize.h)
+add_executable(cpt_chat_client ${CHAT_CLIENT_TARGETS} ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS}  common.h app/server_config.h app/client_config.h cpt_api/src/serialize.c cpt_api/include/serialize.h)
 add_executable(sandbox ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS} ${TCP_SERVER_TARGETS} ${SANDBOX_TARGETS}  common.h app/sandbox.h)
 
 # =========================================

@@ -6,6 +6,7 @@
 #define CPT_CPT_BUILDER_H
 #include "../../common.h"
 #include "cpt_types.h"
+#include "serialize.h"
 
 
 /**
@@ -71,8 +72,7 @@ void cpt_builder_chan(cpt_builder * cpt, uint16_t channel_id);
 * @param cpt  Pointer to a cpt structure.
 * @param msg  Pointer to an array of characters.
 */
-void cpt_builder_msg(cpt_builder * cpt, const char * msg);
-
+void cpt_builder_msg(cpt_builder * cpt, char * msg);
 
 /**
 * Create a cpt struct from a cpt packet.
@@ -107,12 +107,17 @@ int cpt_validate(void * packet);
 * @param packet    A serialized cpt protocol message.
 * @return          0 if no issues, otherwise CPT error code.
 */
-void cpt_to_string(cpt_builder * cpt);
+char * cpt_to_string(cpt_builder * cpt);
+
+unsigned int serialize(unsigned char * buf, char * format, ...);
 
 
-uint16_t serialize(uint8_t * buffer, const char * format, ...);
-void parse(unsigned char * buffer, char * format, ...);
-uint16_t unpack_uint16t(const uint8_t * serial_buffer);
-void pack_uint16(uint8_t * serial_buffer, uint16_t int_16);
+//uint16_t serialize(uint8_t * buffer, const char * format, ...);
+void parse(uint8_t * buffer, char * format, ...);
+int pack(uint8_t * buffer, char * fmt, ...);
+void packi16(unsigned char *buf, unsigned int i);
+unsigned int unpacku16(unsigned char *buf);
+int unpacki16(unsigned char *buf);
+
 
 #endif //CPT_CPT_BUILDER_H

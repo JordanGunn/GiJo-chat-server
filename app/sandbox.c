@@ -178,7 +178,7 @@ cpt_builder * test_create_cpt_builder()
     uint8_t  version_major, version_minor;
     uint8_t  command;
     uint16_t channel_id;
-    char *   msg;
+    char * msg, * first_cpt, * second_cpt;
     cpt_builder * cpt_parsed;
 
     command = SEND;
@@ -196,13 +196,19 @@ cpt_builder * test_create_cpt_builder()
     cpt_builder_msg(cpt, msg);
 
     // print the stupid thing
-    cpt_to_string(cpt);
+    first_cpt = cpt_to_string(cpt);
+    puts(first_cpt);
+    free(first_cpt);
 
     // test serialization
     cpt_builder_serialize(cpt, serial_buffer);
 
     // convert back to unpacked serial
     cpt_parsed = cpt_builder_parse(serial_buffer);
+    second_cpt = cpt_to_string(cpt_parsed);
+    puts(second_cpt);
+    free(second_cpt);
+
 
     return cpt;
 }

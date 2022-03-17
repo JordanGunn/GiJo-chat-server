@@ -4,8 +4,6 @@
 
 #include "../include/cpt_builder.h"
 
-
-
 /**
 * Initialize cpt struct.
 *
@@ -116,7 +114,7 @@ void cpt_builder_chan(cpt_builder * cpt, uint16_t channel_id)
 * @param cpt  Pointer to a cpt structure.
 * @param msg  Pointer to an array of characters.
 */
-void cpt_builder_msg(cpt_builder * cpt, const char * msg)
+void cpt_builder_msg(cpt_builder * cpt, char * msg)
 {
     char * msg_field;
 
@@ -145,14 +143,16 @@ cpt_builder * cpt_builder_parse(uint8_t * packet)
     cpt_builder * cpt;
     cpt = cpt_builder_init();
     memset(cpt, 0, sizeof(struct cpt_builder));
-    uint8_t msg_buff[96];
-    cpt->msg = msg_buff;
+    char msg_buff[SM_BUFF_SIZE];
+
 
     parse(
-        packet, "cclc96s",
+        packet, "CCHC256s",
             &cpt->version, &cpt->command, &cpt->channel_id,
-            &cpt->msg_len, &cpt->msg
+            &cpt->msg_len, msg_buff
         );
+
+    cpt->msg = (uint8_t *)strdup(msg_buff);
 
     return cpt;
 }
@@ -167,22 +167,23 @@ cpt_builder * cpt_builder_parse(uint8_t * packet)
 size_t cpt_builder_serialize(cpt_builder * cpt, uint8_t * buffer)
 {
     size_t serial_size;
-    const char * format_spec;
-
-    format_spec = "cclcs";
-    printf("packet size before serialization: %zu\n", sizeof(*cpt));
 
     serial_size = serialize(
-          buffer, format_spec,
+          buffer, "CCHCs",
           (uint8_t)cpt->version, (uint8_t)cpt->command, (uint16_t)cpt->channel_id,
           (uint8_t)cpt->msg_len, cpt->msg
         );
 
-    printf("packet size after serialization: %zu\n", serial_size);
     return serial_size;
 }
 
-void cpt_to_string(cpt_builder * cpt)
+
+/**
+ * Print out the contents of a CPT packet
+ *
+ * @param cpt
+ */
+char * cpt_to_string(cpt_builder * cpt)
 {
     char buffer[MD_BUFF_SIZE] = {0};
     uint8_t version_minor, version_major;
@@ -190,118 +191,27 @@ void cpt_to_string(cpt_builder * cpt)
     version_minor = cpt->version;
     version_major >>= 4;
     version_minor &= 15;
+    int cmd, msg_len, chan_id;
+    char * msg;
+    char * cpt_str;
+
+    cmd     = (cpt->command >= 0   ) ? cpt->command              : -1;
+    chan_id = (cpt->channel_id >= 0) ? cpt->channel_id           : -1;
+    msg_len = (cpt->msg_len >= 0   ) ? cpt->msg_len              : -1;
+    msg     = (cpt->msg            ) ? strdup((char *)cpt->msg)  : strdup("(empty)");
 
     sprintf(buffer,
         "VERSION: %d.%d\n"  \
         "COMMAND: %d\n"     \
         "CHAN ID: %d\n"     \
         "MSG LEN: %d\n"     \
-        "MSG: \"%s\"\n\n",     \
+        "MSG: \"%s\"\n\n",  \
         version_major, version_minor,
-        cpt->command, cpt->channel_id,
-        cpt->msg_len, cpt->msg
+        cmd, chan_id, msg_len, msg
     );
 
-    printf("%s\n", buffer);
+    cpt_str = strdup(buffer);
+    return cpt_str;
 }
 
 
-void pack_uint16(uint8_t * serial_buffer, uint16_t int_16)
-{
-    *serial_buffer++ = int_16 >> 8;
-    *serial_buffer++ = int_16;
-}
-
-uint16_t unpack_uint16t(const uint8_t * serial_buffer)
-{
-   uint16_t unpacked;
-
-   unpacked = (serial_buffer[0] << 8) | serial_buffer[1];
-   return unpacked;
-}
-
-
-uint16_t serialize(uint8_t * buffer, const char * format, ...)
-{
-    va_list argv;           // variable argument list
-    unsigned char c;              // char
-    unsigned int l;             // long (not actually... don't @ me)
-    char * s;               // for strings
-    unsigned int str_len;       // for strings
-    unsigned int size = 0;      // for strings
-    va_start(argv, format);
-
-    for (; *format != '\0'; format++)
-    {
-        switch (*format) /* map variable arg format specifiers */
-        {
-            case 'c':
-                size += 1;
-                c = (unsigned char) va_arg(argv, unsigned int);
-                *buffer++ = c;
-            break;
-            case 'l':
-                size += 2;
-                l = va_arg(argv, unsigned int);
-                pack_uint16(buffer, l);
-                buffer += 2;
-            break;
-            case 's':
-                s = va_arg(argv, char*);
-                str_len = strlen(s);
-                size += str_len + 2;
-                pack_uint16(buffer, str_len);
-                buffer += 2;
-                memcpy(buffer, s, str_len);
-                buffer += str_len;
-            break;
-        }
-    }
-    va_end(argv);
-    return size;
-}
-
-
-void parse(unsigned char * buffer, char * format, ...)
-{
-    va_list argv;
-    unsigned char * uint8; // uint8_t
-    unsigned int *  uint16; // uint16_t
-    char * str;
-    unsigned int str_len, count, max_len;
-
-    max_len = 0;
-    va_start(argv, format);
-    for(; * format != '\0'; format++)
-    {
-        switch(*format)
-        {
-            case 'c': // 8-bit unsigned
-                uint8 = va_arg(argv, unsigned char*);
-                *uint8 = *buffer++;
-            break;
-            case 'l': // 16-bit unsigned
-                uint16 = va_arg(argv, unsigned int*);
-                *uint16 = unpack_uint16t(buffer);
-                buffer += 2;
-            break;
-            case 's': // string
-                str = va_arg(argv, char*);
-                str_len = unpack_uint16t(buffer);
-                buffer += 2;
-                count = ( (max_len > 0) && (str_len >= max_len) )
-                    ? max_len - 1 : str_len;
-                memcpy(str, buffer, count);
-                str[count] = '\0';
-                buffer += str_len;
-            break;
-            default:
-                if ( isdigit(*format) )
-                {
-                    max_len = max_len * 10 + (*format - '0');
-                }
-        }
-        if ( !isdigit(*format) ) { max_len = 0 ;}
-    }
-    va_end(argv);
-}
