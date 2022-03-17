@@ -5,14 +5,20 @@
 #ifndef CPT_CPT_TYPES_H
 #define CPT_CPT_TYPES_H
 
+#define CHANNEL_ZERO 0
+#define DEFAULT_NAME "anonymous"
+#define MAX_NAME_SIZE 12
+#define ACCESS_PRIVATE "PRIVATE"
+#define ACCESS_PUBLIC "PUBLIC"
+
 typedef struct cpt_builder cpt_builder;
 
 struct cpt_builder {
-    uint8_t  version;
-    uint8_t  command ;
-    uint16_t channel_id;
-    uint8_t  msg_len;
-    char *   msg;
+    uint8_t   version;
+    uint8_t   command ;
+    uint16_t  channel_id;
+    uint8_t   msg_len;
+    uint8_t * msg;
 };
 
 enum {

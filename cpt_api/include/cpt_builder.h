@@ -2,11 +2,11 @@
 // Created by jordan on 2022-03-08.
 //
 
-
 #ifndef CPT_CPT_BUILDER_H
 #define CPT_CPT_BUILDER_H
 #include "../../common.h"
 #include "cpt_types.h"
+
 
 /**
 * Initialize cpt struct.
@@ -80,7 +80,7 @@ void cpt_builder_msg(cpt_builder * cpt, const char * msg);
 * @param packet    A serialized cpt protocol message.
 * @return          A pointer to a cpt struct.
 */
-cpt_builder * cpt_builder_parse(void * packet);
+cpt_builder * cpt_builder_parse(uint8_t * packet);
 
 
 /**
@@ -110,9 +110,9 @@ int cpt_validate(void * packet);
 void cpt_to_string(cpt_builder * cpt);
 
 
-static uint16_t serialize(uint8_t * buffer, const char * format, ...);
-static void parse(uint8_t * buffer, const char * format, ...);
-static uint16_t unpack_uint16t(const uint8_t * serial_buffer);
-static void pack_uint16(uint8_t * serial_buffer, uint16_t int_16);
+uint16_t serialize(uint8_t * buffer, const char * format, ...);
+void parse(unsigned char * buffer, char * format, ...);
+uint16_t unpack_uint16t(const uint8_t * serial_buffer);
+void pack_uint16(uint8_t * serial_buffer, uint16_t int_16);
 
 #endif //CPT_CPT_BUILDER_H

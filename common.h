@@ -6,9 +6,6 @@
 #define LG_BUFF_SIZE 1024
 #define XL_BUFF_SIZE 2048
 
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -18,7 +15,11 @@
 #include <bits/stdint-uintn.h>
 #include <stdarg.h>
 #include <ctype.h>
-
+#include <stdbool.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <poll.h>
 
 #endif //CPT_CPT_CHAT_CLIENT_H
 
@@ -32,6 +33,12 @@
 #include <bits/stdint-uintn.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <stdbool.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <poll.h>
+#include <sys/socket.h>
+
 
 #endif // CPT_CPT_CHAT_SERVER_H
 

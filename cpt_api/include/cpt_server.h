@@ -6,12 +6,8 @@
 #define CPT_CPT_SERVER_H
 
 #include "linked_list.h"
-
-#define CHANNEL_ZERO 0
-#define MAX_NAME_SIZE 12
-#define DEFAULT_NAME "anonymous"
-#define ACCESS_PRIVATE "PRIVATE"
-#define ACCESS_PUBLIC "PUBLIC"
+#include "cpt_types.h"
+#include "../../tcp_networking/include/tcp_server.h"
 
 typedef struct user_struct User;
 typedef struct channel_struct Channel;

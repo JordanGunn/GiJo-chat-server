@@ -5,6 +5,17 @@
 #ifndef CPT_CPT_CLIENT_H
 #define CPT_CPT_CLIENT_H
 
+#include "../include/cpt_builder.h"
+#include "../../tcp_networking/include/tcp_client.h"
+
+typedef struct cpt_packet_info CptPacketInfo;
+
+struct cpt_packet_info {
+    int fd;
+    cpt_builder * builder;
+    uint8_t * serial_buffer;
+};
+
 /**
 * Send client information to the server.
 *
@@ -16,7 +27,7 @@
 * @param cpt   CPT packet and any additional information.
 * @return      A status code. Either from server, or user defined.
 */
-int cpt_login(void * cpt);
+int cpt_login(void * cpt, char * name);
 
 
 /**

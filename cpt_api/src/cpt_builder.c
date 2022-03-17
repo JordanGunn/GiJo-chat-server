@@ -128,8 +128,8 @@ void cpt_builder_msg(cpt_builder * cpt, const char * msg)
 
     if (msg_field)
     {
-        cpt->msg = msg_field;
-        cpt->msg_len = strlen(cpt->msg);
+        cpt->msg = (uint8_t *)msg_field;
+        cpt->msg_len = strlen((char *)cpt->msg);
     }
 }
 
@@ -140,23 +140,20 @@ void cpt_builder_msg(cpt_builder * cpt, const char * msg)
 * @param packet    A serialized cpt protocol message.
 * @return          A pointer to a cpt struct.
 */
-cpt_builder * cpt_builder_parse(void * packet)
+cpt_builder * cpt_builder_parse(uint8_t * packet)
 {
-    uint8_t * to_parse;
     cpt_builder * cpt;
     cpt = cpt_builder_init();
-    const char * format_spec;
-
-    format_spec = "cls";
-    to_parse = (uint8_t *)packet;
+    memset(cpt, 0, sizeof(struct cpt_builder));
+    uint8_t msg_buff[96];
+    cpt->msg = msg_buff;
 
     parse(
-        to_parse, format_spec,
-            cpt->version, cpt->command, cpt->channel_id,
-            cpt->msg_len, cpt->msg
+        packet, "cclc96s",
+            &cpt->version, &cpt->command, &cpt->channel_id,
+            &cpt->msg_len, &cpt->msg
         );
 
-    puts("fuck yeah");
     return cpt;
 }
 
@@ -172,13 +169,13 @@ size_t cpt_builder_serialize(cpt_builder * cpt, uint8_t * buffer)
     size_t serial_size;
     const char * format_spec;
 
-    format_spec = "cls";
+    format_spec = "cclcs";
     printf("packet size before serialization: %zu\n", sizeof(*cpt));
 
     serial_size = serialize(
           buffer, format_spec,
-              cpt->version, cpt->command, cpt->channel_id,
-              cpt->msg_len, cpt->msg
+          (uint8_t)cpt->version, (uint8_t)cpt->command, (uint16_t)cpt->channel_id,
+          (uint8_t)cpt->msg_len, cpt->msg
         );
 
     printf("packet size after serialization: %zu\n", serial_size);
@@ -209,13 +206,13 @@ void cpt_to_string(cpt_builder * cpt)
 }
 
 
-static void pack_uint16(uint8_t * serial_buffer, uint16_t int_16)
+void pack_uint16(uint8_t * serial_buffer, uint16_t int_16)
 {
     *serial_buffer++ = int_16 >> 8;
     *serial_buffer++ = int_16;
 }
 
-static uint16_t unpack_uint16t(const uint8_t * serial_buffer)
+uint16_t unpack_uint16t(const uint8_t * serial_buffer)
 {
    uint16_t unpacked;
 
@@ -223,14 +220,15 @@ static uint16_t unpack_uint16t(const uint8_t * serial_buffer)
    return unpacked;
 }
 
-static uint16_t serialize(uint8_t * buffer, const char * format, ...)
+
+uint16_t serialize(uint8_t * buffer, const char * format, ...)
 {
     va_list argv;           // variable argument list
-    uint8_t c;              // char
-    uint16_t l;             // long (not actually... don't @ me)
+    unsigned char c;              // char
+    unsigned int l;             // long (not actually... don't @ me)
     char * s;               // for strings
-    uint16_t str_len;       // for strings
-    uint16_t size = 0;      // for strings
+    unsigned int str_len;       // for strings
+    unsigned int size = 0;      // for strings
     va_start(argv, format);
 
     for (; *format != '\0'; format++)
@@ -263,13 +261,14 @@ static uint16_t serialize(uint8_t * buffer, const char * format, ...)
     return size;
 }
 
-static void parse(uint8_t * buffer, const char * format, ...)
+
+void parse(unsigned char * buffer, char * format, ...)
 {
     va_list argv;
     unsigned char * uint8; // uint8_t
     unsigned int *  uint16; // uint16_t
     char * str;
-    uint16_t str_len, count, max_len;
+    unsigned int str_len, count, max_len;
 
     max_len = 0;
     va_start(argv, format);
@@ -306,16 +305,3 @@ static void parse(uint8_t * buffer, const char * format, ...)
     }
     va_end(argv);
 }
-
-//
-//
-///**
-//* Check serialized cpt to see if it is a valid cpt block.
-//*
-//* @param packet    A serialized cpt protocol message.
-//* @return          0 if no issues, otherwise CPT error code.
-//*/
-//int cpt_validate(void * packet)
-//{
-//
-//}

@@ -4,7 +4,6 @@
 
 #include "../include/linked_list.h"
 #include "../../common.h"
-#include "../../app/sandbox.h"
 
 void for_each(LinkedList * list, Consumer consumer)
 {
@@ -150,10 +149,6 @@ LinkedList * filter(LinkedList * list, Predicate predicate, void * params, size_
             {
                 push_node(filtered, node_iterator->data, list->node_size);
             }
-            printf("filter find %zu:\n", found);
-            for_each(filtered, test_data_to_string);
-            printf("\n");
-
             found++;
         }
 

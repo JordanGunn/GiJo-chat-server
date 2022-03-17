@@ -174,10 +174,12 @@ bool filter_IDs(void * data, void * params)
 
 cpt_builder * test_create_cpt_builder()
 {
+    uint8_t serial_buffer[LG_BUFF_SIZE];
     uint8_t  version_major, version_minor;
     uint8_t  command;
     uint16_t channel_id;
     char *   msg;
+    cpt_builder * cpt_parsed;
 
     command = SEND;
     channel_id = 3;
@@ -195,6 +197,12 @@ cpt_builder * test_create_cpt_builder()
 
     // print the stupid thing
     cpt_to_string(cpt);
+
+    // test serialization
+    cpt_builder_serialize(cpt, serial_buffer);
+
+    // convert back to unpacked serial
+    cpt_parsed = cpt_builder_parse(serial_buffer);
 
     return cpt;
 }
