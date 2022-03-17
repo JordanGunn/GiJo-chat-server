@@ -24,6 +24,7 @@ void for_each(LinkedList * list, Consumer consumer)
     }
 }
 
+
 Node * create_node(void * data, size_t data_size)
 {
     Node * node;
@@ -46,6 +47,7 @@ Node * create_node(void * data, size_t data_size)
 
     return node;
 }
+
 
 void destroy_node(Node * node)
 {
@@ -90,6 +92,7 @@ LinkedList * init_list(void * data, size_t data_size)
     return list;
 }
 
+
 void destroy_list(LinkedList * list)
 {
     Node * node_iterator;
@@ -108,6 +111,7 @@ void destroy_list(LinkedList * list)
         list = NULL;
     }
 }
+
 
 void push_node(LinkedList * list, void * data, size_t data_size)
 {
@@ -163,6 +167,7 @@ LinkedList * filter(LinkedList * list, Predicate predicate, void * params, size_
     return filtered;
 }
 
+
 Node * get_head_node(LinkedList * list)
 {
     Node * head_node;
@@ -196,25 +201,16 @@ Node * find_node(LinkedList * list, Predicate predicate, void * test_param)
 
 int delete_node(LinkedList * list, Predicate predicate, void * test_param)
 {
-    // TODO Find a way to write this function without using the stupid flag
     bool found;
     Node * previous, * middle, * next;
 
     previous = (*list->head);
     middle = previous->next;
-
     if (!middle) { return -1; }
 
     while ( (next = middle->next) )
     {
-//        if (supplier)
-//        {
         if (( found = (predicate(middle, test_param)) )) { break; }
-//        }
-//        else
-//        {
-//            if ( (found = (middle == target)) ) { break; }
-//        }
         previous = middle;
         middle = previous->next;
     }
@@ -231,7 +227,3 @@ int delete_node(LinkedList * list, Predicate predicate, void * test_param)
 
     return 0;
 }
-
-
-
-
