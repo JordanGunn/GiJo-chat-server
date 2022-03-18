@@ -5,6 +5,7 @@
 #include "../include/linked_list.h"
 #include "../../common.h"
 
+
 void for_each(LinkedList * list, Consumer consumer)
 {
     Node * node;
@@ -178,6 +179,7 @@ Node * get_head_node(LinkedList * list)
 
     return head_node;
 }
+
 
 Node * find_node(LinkedList * list, Predicate predicate, void * test_param)
 {

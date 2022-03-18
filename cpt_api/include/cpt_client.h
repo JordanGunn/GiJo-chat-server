@@ -64,7 +64,7 @@ int cpt_get_users(void * cpt, char * query_string);
 *             query params to the server.
 * @return A status code. Either from server, or user defined.
 */
-int cpt_send_msg(void * cpt, char * msg, int msg_flag);
+int cpt_send_msg(void * cpt, char * msg);
 
 
 /**
@@ -130,7 +130,7 @@ int cpt_join_channel(void * cpt, int channel_id);
 * @param is_private  Set the created channel to private or public.
 * @return A status code. Either from server, or user defined.
 */
-int cpt_create_channel(void * cpt, void * members, bool is_private);
+int cpt_create_channel(void * cpt, char * members, bool is_private);
 
 
 /**
@@ -166,7 +166,7 @@ int cpt_leave_channel(void * cpt, int channel_id);
  * @param ip    Server IP or URL.
  * @return CptPacketInfo object.
  */
-CptPacketInfo * cpt_init_packet_info(char * port, char * ip);
+CptClientInfo * cpt_init_client_info(char * port, char * ip);
 
 
 /**
@@ -177,7 +177,31 @@ CptPacketInfo * cpt_init_packet_info(char * port, char * ip);
  *
  * @param packet_info CptPacketInfo object.
  */
-void cpt_destroy_packet_info(CptPacketInfo * packet_info);
+void cpt_destroy_client_info(CptClientInfo * client_info);
+
+
+/**
+ * @brief Parse serialized server response.
+ *
+ * @param response  A pointer to a CptResponse object.
+ * @param buffer    Serialized response from server.
+ */
+void cpt_parse_response(CptResponse * response, uint8_t * buffer);
+
+
+/**
+ * A helped for cpt_leave_channel.
+ *
+ * Predicate function pointer that compares
+ * channel IDs in a LinkedList object.
+ *
+ * @param channel_id      A channel ID.
+ * @param target_channel  Another channel ID.
+ * @return
+ */
+bool compare_channels(const uint16_t * channel_id, const uint16_t * target_channel);
+
+
 
 
 #endif //CPT_CPT_CLIENT_H

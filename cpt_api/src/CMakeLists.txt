@@ -1,8 +1,9 @@
 SET(CPT_API_SRC
-    ${CPT_SOURCE_DIR}/cpt_api/src/cpt_builder.c
-    ${CPT_SOURCE_DIR}/cpt_api/src/cpt_client.c
-    ${CPT_SOURCE_DIR}/cpt_api/src/cpt_server.c
-    ${CPT_SOURCE_DIR}/cpt_api/src/linked_list.c
-    ${CPT_SOURCE_DIR}/cpt_api/src/serialize.c
-    PARENT_SCOPE
-    )
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpt_builder.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpt_client.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpt_server.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/linked_list.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/serialize.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/GlobalChannel.c
+
+    PARENT_SCOPE)

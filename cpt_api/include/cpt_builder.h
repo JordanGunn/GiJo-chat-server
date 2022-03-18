@@ -109,15 +109,16 @@ int cpt_validate(void * packet);
 */
 char * cpt_to_string(CptBuilder * cpt);
 
-unsigned int serialize(unsigned char * buf, char * format, ...);
 
-
-//uint16_t serialize(uint8_t * buffer, const char * format, ...);
-void parse(uint8_t * buffer, char * format, ...);
-int pack(uint8_t * buffer, char * fmt, ...);
-void packi16(unsigned char *buf, unsigned int i);
-unsigned int unpacku16(unsigned char *buf);
-int unpacki16(unsigned char *buf);
+/**
+ * Reset builder parameters.
+ *
+ * Reset the builder parameters,
+ * and free memory for certain params.
+ *
+ * @param cpt    A CptBuilder struct.
+*/
+void cpt_builder_reset(CptBuilder * cpt);
 
 
 #endif //CPT_CPT_BUILDER_H

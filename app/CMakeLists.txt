@@ -12,4 +12,4 @@ SET(SANDBOX_TARGETS
         ${CHAT_SERVER_TARGETS}
         ${CHAT_CLIENT_TARGETS}
         ${CPT_SOURCE_DIR}/app/sandbox.c
-    PARENT_SCOPE)
+        PARENT_SCOPE)

@@ -2,9 +2,6 @@
 // Created by jordan on 2022-03-08.
 //
 
-#ifndef GIJO_CPT_SERVER_H
-#define GIJO_CPT_SERVER_H
-
 #include "../include/cpt_server.h"
 
 User * init_user(int id, int fd, char * name)
@@ -219,13 +216,6 @@ void destroy_channels(Channels channels)
 // ===================
 // P R E D I C A T E S
 // ===================
-//bool find_id_equal(void * data, void * param)
-//{
-//    test_data * td;
-//    td = (test_data *)data;
-//
-//    return td->id == *( (int *)param );
-//}
 
 bool find_user_id(User * user, const int * id)
 {
@@ -255,5 +245,3 @@ bool filter_user_id(User * user, FilterQuery * filter_query)
     }
     return false;
 }
-
-#endif //GIJO_CPT_SERVER_H

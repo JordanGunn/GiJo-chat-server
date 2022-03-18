@@ -3,14 +3,13 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(CPT
-        VERSION 0.1
         DESCRIPTION "Project"
         LANGUAGES C)
 
 # add all relevant subdirectories with other CMakeList files
-add_subdirectory(app)
-add_subdirectory(cpt_api)
-add_subdirectory(tcp_networking)
+add_subdirectory(app/)
+add_subdirectory(cpt_api/)
+add_subdirectory(tcp_networking/)
 
 # To be honest I have no idea what this does
 add_compile_definitions(_POSIX_C_SOURCE=200809L _XOPEN_SOURCE=700)
@@ -27,9 +26,9 @@ IF(LINT)
 ENDIF()
 
 # Make a executables
-add_executable(cpt_chat_server ${CHAT_SERVER_TARGETS} ${CPT_API_TARGETS} ${TCP_SERVER_TARGETS}  common.h cpt_api/src/GlobalChannel.c cpt_api/include/GlobalChannel.h cpt_api/include/global_config.h cpt_api/src/serialize.c cpt_api/include/serialize.h common.c)
-add_executable(cpt_chat_client ${CHAT_CLIENT_TARGETS} ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS}  common.h tcp_networking/include/server_config.h app/client_config.h cpt_api/src/serialize.c cpt_api/include/serialize.h tcp_networking/include/tcp_client_config.h tcp_networking/include/tcp_server_config.h common.c)
-add_executable(sandbox ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS} ${TCP_SERVER_TARGETS} ${SANDBOX_TARGETS}  common.h app/sandbox.h common.c)
+add_executable(cpt_chat_server ${CHAT_SERVER_TARGETS} ${CPT_API_TARGETS} ${TCP_SERVER_TARGETS}  common.h common.c)
+add_executable(cpt_chat_client ${CHAT_CLIENT_TARGETS} ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS}  common.h common.c)
+#add_executable(sandbox ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS} ${TCP_SERVER_TARGETS} ${SANDBOX_TARGETS}  common.h app/sandbox.h common.c)
 
 # =========================================
 # Directory inclusion for server executable
@@ -58,14 +57,14 @@ target_link_directories(cpt_chat_client PRIVATE /usr/local/lib)
 # ==========================================
 # Directory inclusion for sandbox executable
 # ==========================================
-# Tell the compiler to check these dirs for any header files
-target_include_directories(sandbox PRIVATE ./include)
-target_include_directories(sandbox PRIVATE /usr/include)
-target_include_directories(sandbox PRIVATE /usr/local/include)
-
-# tell the compiler to check here for 3rd party source files
-target_link_directories(sandbox PRIVATE /usr/lib)
-target_link_directories(sandbox PRIVATE /usr/local/lib)
+## Tell the compiler to check these dirs for any header files
+#target_include_directories(sandbox PRIVATE ./include)
+#target_include_directories(sandbox PRIVATE /usr/include)
+#target_include_directories(sandbox PRIVATE /usr/local/include)
+#
+## tell the compiler to check here for 3rd party source files
+#target_link_directories(sandbox PRIVATE /usr/lib)
+#target_link_directories(sandbox PRIVATE /usr/local/lib)
 
 #SET(COMPILE_OPTIONS
 #    -Wdouble-promotion -Wformat-nonliteral
@@ -97,56 +96,9 @@ target_compile_options(cpt_chat_client PRIVATE -Wpedantic -Wall -Wextra)
 
 # =========================================
 # Additional compile options for sandbox
-# =========================================
-target_compile_features(sandbox PUBLIC c_std_11)
-target_compile_options(sandbox PRIVATE -g)
-target_compile_options(sandbox PRIVATE -fstack-protector-all -ftrapv)
-target_compile_options(sandbox PRIVATE -Wpedantic -Wall -Wextra)
+## =========================================
+#target_compile_features(sandbox PUBLIC c_std_11)
+#target_compile_options(sandbox PRIVATE -g)
+#target_compile_options(sandbox PRIVATE -fstack-protector-all -ftrapv)
+#target_compile_options(sandbox PRIVATE -Wpedantic -Wall -Wextra)
 #target_compile_options(cpt_chat_client PRIVATE ${COMPILE_OPTIONS})
-
-
-# =========================================
-# All necessary libraries for executables
-# =========================================
-find_library(LIBDC_ERROR dc_error REQUIRED)
-find_library(LIBDC_POSIX dc_posix REQUIRED)
-find_library(LIBDC_UTIL dc_util REQUIRED)
-find_library(LIBDC_FSM dc_fsm REQUIRED)
-find_library(LIBDC_NETWORK dc_network REQUIRED)
-find_library(LIBDC_APPLICATION dc_application REQUIRED)
-find_library(LIBCONFIG config REQUIRED)
-
-
-# =========================================
-# Link the libraries for client executable
-# =========================================
-target_link_libraries(cpt_chat_server ${LIBDC_ERROR})
-target_link_libraries(cpt_chat_server ${LIBDC_POSIX})
-target_link_libraries(cpt_chat_server ${LIBDC_UTIL})
-target_link_libraries(cpt_chat_server ${LIBDC_FSM})
-target_link_libraries(cpt_chat_server ${LIBDC_NETWORK})
-target_link_libraries(cpt_chat_server ${LIBDC_APPLICATION})
-target_link_libraries(cpt_chat_server ${LIBCONFIG})
-
-# =========================================
-# Link the libraries for server executable
-# =========================================
-target_link_libraries(cpt_chat_client ${LIBDC_ERROR})
-target_link_libraries(cpt_chat_client ${LIBDC_POSIX})
-target_link_libraries(cpt_chat_client ${LIBDC_UTIL})
-target_link_libraries(cpt_chat_client ${LIBDC_FSM})
-target_link_libraries(cpt_chat_client ${LIBDC_NETWORK})
-target_link_libraries(cpt_chat_client ${LIBDC_APPLICATION})
-target_link_libraries(cpt_chat_client ${LIBCONFIG})
-
-# =========================================
-# Link the libraries for sandbox executable
-# =========================================
-target_link_libraries(sandbox ${LIBDC_ERROR})
-target_link_libraries(sandbox ${LIBDC_POSIX})
-target_link_libraries(sandbox ${LIBDC_UTIL})
-target_link_libraries(sandbox ${LIBDC_FSM})
-target_link_libraries(sandbox ${LIBDC_NETWORK})
-target_link_libraries(sandbox ${LIBDC_APPLICATION})
-target_link_libraries(sandbox ${LIBCONFIG})
-

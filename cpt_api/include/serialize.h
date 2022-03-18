@@ -19,6 +19,8 @@
 #define CPT_SERIALIZE_H
 
 #include <stdarg.h>
+#include <string.h>
+#include <ctype.h>
 
 void packi16(unsigned char *buf, unsigned int i);
 unsigned int unpacku16(unsigned char *buf);

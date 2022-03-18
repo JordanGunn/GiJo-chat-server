@@ -5,14 +5,22 @@
 #ifndef CPT_CPT_TYPES_H
 #define CPT_CPT_TYPES_H
 
-#define CHANNEL_ZERO 0
+#define VERSION_MINOR_MAX 15
+#define VERSION_MAJOR_MAX 15
+#define VER_MAJOR_LATEST 1
+#define VER_MINOR_LATEST 1
 #define MAX_NAME_SIZE 12
+#define CHANNEL_ZERO 0
+
 #define ACCESS_PUBLIC "PUBLIC"
 #define ACCESS_PRIVATE "PRIVATE"
 #define DEFAULT_USER_NAME "anonymous"
 
+#include "linked_list.h"
+
 typedef struct cpt_builder CptBuilder;
-typedef struct cpt_packet_info CptPacketInfo;
+typedef struct cpt_response CptResponse;
+typedef struct cpt_client_info CptClientInfo;
 
 struct cpt_builder {
     uint8_t   version;
@@ -22,12 +30,23 @@ struct cpt_builder {
     uint8_t * msg;
 };
 
-struct cpt_packet_info {
+
+struct cpt_client_info {
     int fd;
     char * ip;
     char * port;
+    char * name;
+    uint16_t channel;
     CptBuilder * builder;
+    LinkedList * channels;
 };
+
+
+struct cpt_response {
+    uint8_t code;
+    uint8_t * buffer;
+};
+
 
 enum {
     CPT_TEXT,
@@ -67,14 +86,5 @@ enum {
 #define INVALID_ID       11
 #define UNAUTH_ACCESS    12
 #define SERVER_FULL      13
-
-#define VERSION_MINOR_MAX 15
-#define VERSION_MAJOR_MAX 15
-#define VERSION_MAJOR_LATEST 1
-#define VERSION_MINOR_LATEST 1
-
-
-
-
 
 #endif //CPT_CPT_TYPES_H

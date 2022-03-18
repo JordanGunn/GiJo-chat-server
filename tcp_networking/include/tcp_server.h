@@ -2,10 +2,11 @@
 // Created by jordan on 2022-03-08.
 //
 
-#ifndef GIJO_TCP_SERVER_H
-#define GIJO_TCP_SERVER_H
+#ifndef CPT_TCP_SERVER_H
+#define CPT_TCP_SERVER_H
 
 #include "../../common.h"
+#include "server_config.h"
 
 
 /**
@@ -68,7 +69,6 @@ int tcp_server_listen(int listen_fd);
 int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd);
 
 
-
 /**
  * @brief Receive data from tcp client.
  *
@@ -90,4 +90,4 @@ char * tcp_server_recv(int sock_fd);
  */
 char *init_recv(char *ip, const char *port, int *listen_fd);
 
-#endif //GIJO_TCP_SERVER_H
+#endif //CPT_TCP_SERVER_H

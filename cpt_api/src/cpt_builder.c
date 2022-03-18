@@ -15,7 +15,7 @@
 CptBuilder * cpt_builder_init()
 {
     CptBuilder * cpt_builder;
-    if ( (cpt_builder = malloc(sizeof(struct CptBuilder))) )
+    if ( (cpt_builder = malloc(sizeof(struct cpt_builder))) )
     {
         cpt_builder->msg = NULL;
     }
@@ -84,18 +84,6 @@ void cpt_builder_version(CptBuilder * cpt, uint8_t version_major, uint8_t versio
 
 
 /**
-* Set the message length for the cpt header block.
-*
-* @param cpt       Pointer to a cpt structure.
-* @param msg_len   An 8-bit integer.
-*/
-void cpt_builder_len(CptBuilder * cpt, uint8_t msg_len)
-{
-    cpt->msg_len = msg_len;
-}
-
-
-/**
 * Set the channel id for the cpt header block.
 *
 * @param cpt           Pointer to a cpt structure.
@@ -142,7 +130,7 @@ CptBuilder * cpt_builder_parse(uint8_t * packet)
 {
     CptBuilder * cpt;
     cpt = cpt_builder_init();
-    memset(cpt, 0, sizeof(struct CptBuilder));
+    memset(cpt, 0, sizeof(struct cpt_builder));
     char msg_buff[SM_BUFF_SIZE];
 
 
@@ -175,6 +163,22 @@ size_t cpt_builder_serialize(CptBuilder * cpt, uint8_t * buffer)
         );
 
     return serial_size;
+}
+
+
+/**
+ * Reset builder parameters.
+ *
+ * Reset the builder parameters,
+ * and free memory for certain params.
+ *
+ * @param cpt    A CptBuilder struct.
+*/
+void cpt_builder_reset(CptBuilder * cpt)
+{
+    if ( cpt->msg ) { free(cpt->msg); cpt->msg = NULL; }
+    cpt->msg_len = 0;
+    cpt->command = 0;
 }
 
 

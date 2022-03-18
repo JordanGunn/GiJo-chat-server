@@ -1,9 +1,9 @@
 set(CPT_API_HEADERS
-    ${CPT_SOURCE_DIR}/cpt_api/include/cpt_builder.h
-    ${CPT_SOURCE_DIR}/cpt_api/include/cpt_client.h
-    ${CPT_SOURCE_DIR}/cpt_api/include/cpt_server.h
-    ${CPT_SOURCE_DIR}/cpt_api/include/cpt_types.h
-    ${CPT_SOURCE_DIR}/cpt_api/include/linked_list.h
-    ${CPT_SOURCE_DIR}/cpt_api/include/linked_list_types.h
-    ${CPT_SOURCE_DIR}/cpt_api/include/serialize.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpt_builder.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpt_client.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpt_server.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpt_types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/linked_list.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/linked_list_types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/serialize.h
     PARENT_SCOPE)

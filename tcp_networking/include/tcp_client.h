@@ -2,9 +2,11 @@
 // Created by jordan on 2022-03-08.
 //
 
-#ifndef GIJO_TCP_CLIENT_H
-#define GIJO_TCP_CLIENT_H
+#ifndef CPT_TCP_CLIENT_H
+#define CPT_TCP_CLIENT_H
 
+#include "../../common.h"
+#include "tcp_client_config.h"
 
 /**
  * @brief Get client/server address information for network data transfer.
@@ -97,4 +99,13 @@ void countdown(long time_point);
 long time_in_sec(char * client_time);
 
 
-#endif //GIJO_TCP_CLIENT_H
+/**
+ * @brief Receive data from tcp client.
+ *
+ * @param sock_fd   Socket file descriptor.
+ * @return          Pointer to received data.
+ */
+char * tcp_client_recv(int sock_fd);
+
+
+#endif //CPT_TCP_CLIENT_H

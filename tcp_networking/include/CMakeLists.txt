@@ -1,9 +1,12 @@
 set(TCP_CLIENT_HEADERS
-        ${CPT_SOURCE_DIR}/tcp_networking/include/tcp_client.h
-        ${CPT_SOURCE_DIR}/tcp_networking/include/tcp_client.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/tcp_client.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/tcp_client_config.h
         PARENT_SCOPE)
 
 set(TCP_SERVER_HEADERS
-        ${CPT_SOURCE_DIR}/tcp_networking/include/tcp_server.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/tcp_server.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/tcp_server_config.h
         PARENT_SCOPE)
+
+
 
