@@ -5,9 +5,12 @@
 #ifndef CPT_CPT_CLIENT_H
 #define CPT_CPT_CLIENT_H
 
-#include "../include/cpt_builder.h"
-#include "../../tcp_networking/include/tcp_client.h"
-#include "../../tcp_networking/include/tcp_client_config.h"
+#include "tcp_client.h"
+#include "cpt_parse.h"
+#include "cpt_serialize.h"
+#include "cpt_definitions.h"
+#include "cpt_packet_builder.h"
+
 
 /**
 * Send client information to the server.
@@ -152,7 +155,7 @@ int cpt_leave_channel(void * cpt, int channel_id);
 
 
 /**
- * Create a CptPacketInfo object.
+ * Create a CptClientInfo object.
  *
  * Contains necessary information to
  * to create a TCP connection with the
@@ -164,7 +167,7 @@ int cpt_leave_channel(void * cpt, int channel_id);
  *
  * @param port  Server port number.
  * @param ip    Server IP or URL.
- * @return CptPacketInfo object.
+ * @return CptClientInfo object.
  */
 CptClientInfo * cpt_init_client_info(char * port, char * ip);
 
@@ -181,18 +184,9 @@ void cpt_destroy_client_info(CptClientInfo * client_info);
 
 
 /**
- * @brief Parse serialized server response.
- *
- * @param response  A pointer to a CptResponse object.
- * @param buffer    Serialized response from server.
- */
-void cpt_parse_response(CptResponse * response, uint8_t * buffer);
-
-
-/**
  * A helped for cpt_leave_channel.
  *
- * Predicate function pointer that compares
+ * comparator function pointer that compares
  * channel IDs in a LinkedList object.
  *
  * @param channel_id      A channel ID.

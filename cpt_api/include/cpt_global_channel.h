@@ -2,13 +2,13 @@
 // Created by jordan on 2022-03-16.
 //
 
-#ifndef CPT_GLOBALCHANNEL_H
-#define CPT_GLOBALCHANNEL_H
+#ifndef CPT_CPT_GLOBAL_CHANNEL_H
+#define CPT_CPT_GLOBAL_CHANNEL_H
 
+#include "cpt_gc_config.h"
+#include "cpt_channel.h"
+#include "cpt_user.h"
 #include "cpt_server.h"
-
-typedef Channel * GlobalChannel;
-typedef Channels ChannelDirectory;
 
 
 /**
@@ -20,7 +20,7 @@ typedef Channels ChannelDirectory;
  *
  * @return Pointer to GlobalChannel object.
  */
-GlobalChannel init_global_channel();
+Channel * init_global_channel();
 
 
 /**
@@ -29,11 +29,11 @@ GlobalChannel init_global_channel();
  * Creates a ChannelDirectory object, i.e.
  * A LinkedList of Channel objects.
  *
- * @param global_channel Global Channel object.
+ * @param gc Global Channel object.
  * @return ChannelDirectory object.
  */
-ChannelDirectory init_channel_directory(GlobalChannel global_channel);
+Channels init_channel_directory(Channel * gc);
 
 
 
-#endif //CPT_GLOBALCHANNEL_H
+#endif //CPT_CPT_GLOBAL_CHANNEL_H

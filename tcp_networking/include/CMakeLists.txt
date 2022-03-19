@@ -7,6 +7,3 @@ set(TCP_SERVER_HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/tcp_server.h
         ${CMAKE_CURRENT_SOURCE_DIR}/tcp_server_config.h
         PARENT_SCOPE)
-
-
-

@@ -37,7 +37,7 @@ struct linked_list
 /**
  * A FilterQuery object.\n\n
  *
- * Can be passed to a Predicate
+ * Can be passed to a comparator
  * when used in conjunction with
  * filter() to test multiple parameters.
  *
@@ -52,7 +52,7 @@ struct filter_query {
 
 
 /**
- * A Predicate function pointer.\n\n
+ * A comparator function pointer.\n\n
  *
  * A generic function pointer that
  * accepts two arguments and returns
@@ -62,7 +62,7 @@ struct filter_query {
  * @param2  Additional 'test' params.
  * @return true or false.
  */
-typedef bool (*Predicate)(void *, void *);
+typedef bool (*Comparator)(void *, void *);
 
 
 /**

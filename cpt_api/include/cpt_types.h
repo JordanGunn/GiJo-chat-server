@@ -5,24 +5,26 @@
 #ifndef CPT_CPT_TYPES_H
 #define CPT_CPT_TYPES_H
 
-#define VERSION_MINOR_MAX 15
-#define VERSION_MAJOR_MAX 15
-#define VER_MAJOR_LATEST 1
-#define VER_MINOR_LATEST 1
-#define MAX_NAME_SIZE 12
-#define CHANNEL_ZERO 0
-
-#define ACCESS_PUBLIC "PUBLIC"
-#define ACCESS_PRIVATE "PRIVATE"
-#define DEFAULT_USER_NAME "anonymous"
-
 #include "linked_list.h"
 
-typedef struct cpt_builder CptBuilder;
+typedef struct cpt_packet CptPacket;
 typedef struct cpt_response CptResponse;
 typedef struct cpt_client_info CptClientInfo;
+typedef struct cpt_server_info CptServerInfo;
+typedef struct cpt_msg_response CptMsgResponse;
+typedef struct username_id_pair UserNameIdPair;
 
-struct cpt_builder {
+
+/**
+ * Cpt packet object.
+ *
+ * Used to assign the properties
+ * of a cpt packet. Can be passed
+ * to cpt_serialize() for transmission
+ * to a cpt server.
+ *
+ */
+struct cpt_packet {
     uint8_t   version;
     uint8_t   command ;
     uint16_t  channel_id;
@@ -31,20 +33,63 @@ struct cpt_builder {
 };
 
 
+/**
+ * Client info object.
+ *
+ * Holds all useful or relevant information for
+ * client side application programming. This
+ * includes sending/receiving messages, storing
+ * active user channels, etc.
+ *
+ */
 struct cpt_client_info {
     int fd;
     char * ip;
     char * port;
     char * name;
     uint16_t channel;
-    CptBuilder * builder;
+    CptPacket * packet;
     LinkedList * channels;
 };
 
 
+/**
+ * Cpt response object.
+ *
+ * Contains properties for preparing cpt response packets.
+ * When ready, can be passed to cpt_parse_response() or
+ * cpt_serialize_response()/
+ *
+ */
 struct cpt_response {
     uint8_t code;
     uint8_t * buffer;
+};
+
+
+/**
+ * Message response sub-packet.
+ *
+ * Valid pre-serialized format for server
+ * transmission of SEND cpt packets.
+ */
+struct cpt_msg_response {
+    uint16_t channel_id;
+    uint16_t user_id;
+    uint16_t msg_len;
+    uint8_t * msg;
+};
+
+
+/**
+ * Username-ID pair format.
+ *
+ * Valid format for USER_LIST server
+ * response sub-packet.
+ */
+struct username_id_pair {
+    uint16_t id;
+    uint8_t * username;
 };
 
 
@@ -54,6 +99,10 @@ enum {
     CPT_IMG
 } msg_type;
 
+
+/**
+ * Valid cpt protocol packet commands.
+ */
 enum {
     SEND,
     LOGOUT,
@@ -64,27 +113,16 @@ enum {
     LEAVE_CHANNEL
 } commands;
 
+
+/**
+ * Valid major and minor numbers for
+ * cpt protocol versioning.
+ */
 enum {
     MAJOR_2 = 2,
     MAJOR_1 = 1,
     MINOR_1 = 1,
     MINOR_0 = 0
 } version;
-
-/* SERVER RESPONSE CODES */
-#define SUCCESS          0
-#define UKNOWN_CMD       1
-#define LOGIN_FAIL       2
-#define UKNOWN_CHANNEL   3
-#define BAD_VERSION      4
-#define SEND_FAILED      5
-#define CHAN_ID_OVERFLOW 6
-#define MSG_OVERFLOW     7
-#define MSG_LEN_OVERFLOW 8
-#define CHAN_EMPTY       9
-#define USER_LEFT_CHAN   10
-#define INVALID_ID       11
-#define UNAUTH_ACCESS    12
-#define SERVER_FULL      13
 
 #endif //CPT_CPT_TYPES_H

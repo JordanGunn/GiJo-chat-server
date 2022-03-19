@@ -2,7 +2,8 @@
 // Created by jordan on 2022-02-19.
 //
 
-#include "../include/tcp_server.h"
+#include "tcp_server.h"
+#include "tcp_server_config.h"
 
 
 struct addrinfo * tcp_server_addr(const char * ip, const char * port)
@@ -138,6 +139,22 @@ char * tcp_server_recv(int sock_fd)
     received[msg_len] = '\0';
 
     return received;
+}
+
+
+int tcp_server_send(int sock_fd, uint8_t * data)
+{
+    ssize_t bytes_sent;
+
+    bytes_sent = send(sock_fd, data, strlen((char *)data), 0);
+    if (bytes_sent < 0)
+    {
+        const char * err_msg = "Failed to send bytes to server...";
+        write(STDERR_FILENO, err_msg, strlen(err_msg));
+        exit(EXIT_FAILURE);
+    }
+
+    return (bytes_sent) ? 0 : -1;
 }
 
 

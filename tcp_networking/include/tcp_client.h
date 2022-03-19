@@ -5,7 +5,7 @@
 #ifndef CPT_TCP_CLIENT_H
 #define CPT_TCP_CLIENT_H
 
-#include "../../common.h"
+#include "common.h"
 #include "tcp_client_config.h"
 
 /**

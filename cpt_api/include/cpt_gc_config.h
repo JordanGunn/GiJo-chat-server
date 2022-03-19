@@ -2,8 +2,8 @@
 // Created by jordan on 2022-03-16.
 //
 
-#ifndef CPT_GLOBAL_CONFIG_H
-#define CPT_GLOBAL_CONFIG_H
+#ifndef CPT_CPT_GC_CONFIG_H
+#define CPT_CPT_GC_CONFIG_H
 
 #define GC_ROOT_USER_ID 0
 #define GC_ROOT_USER_FD 16383
@@ -13,7 +13,4 @@
 #define GC_ACCESS 0
 #define GC_ID 0
 
-
-Users users;
-
-#endif //CPT_GLOBAL_CONFIG_H
+#endif //CPT_CPT_GC_CONFIG_H

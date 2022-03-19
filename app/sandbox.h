@@ -4,8 +4,8 @@
 
 #ifndef CPT_SANDBOX_H
 #define CPT_SANDBOX_H
-#include "../cpt_api/include/linked_list.h"
-#include "../cpt_api/include/cpt_builder.h"
+#include "../common/include/linked_list.h"
+#include "../cpt_api/include/cpt_packet.h"
 
 // ==================================
 // T E S T I N G    F U N C T I O N S
@@ -33,8 +33,8 @@ bool find_id_equal(void * data, void * param);
 void test_linked_list_find(LinkedList *linked_list);
 void test_linked_list_filter(LinkedList *linked_list);
 
-// CPT BUILDER
-CptBuilder * test_create_cpt_builder();
+// CPT packet
+CptPacket * test_create_cpt_packet();
 
 
 

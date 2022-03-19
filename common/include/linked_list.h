@@ -5,8 +5,8 @@
 #ifndef CPT_LINKED_LIST_H
 #define CPT_LINKED_LIST_H
 
-#include "../../common.h"
-#include "linked_list_types.h"
+#include "../include/common.h"
+#include "../include/linked_list_types.h"
 
 
 /**
@@ -94,18 +94,18 @@ void push_node(LinkedList * list, void * data, size_t data_size);
 /**
  * Filter linked list based on input parameters.
  *
- * Filters a LinkedList object based on the <Predicate>
+ * Filters a LinkedList object based on the <comparator>
  * and <params> given to the function. Returns a new
  * LinkedList list with matches on success. If no
  * matches are found, the function returns NULL.
  *
  * @param list       A LinkedList object.
- * @param predicate  A Predicate function pointer.
- * @param params     The search params for Predicate.
+ * @param comparator  A comparator function pointer.
+ * @param params     The search params for comparator.
  * @param num_params The number of params in params.
  * @return A LinkedList or NULL.
  */
-LinkedList * filter(LinkedList * list, Predicate predicate, void * params, size_t num_params);
+LinkedList * filter(LinkedList * list, Comparator comparator, void * params, size_t num_params);
 
 
 /**
@@ -126,17 +126,17 @@ LinkedList * filter(LinkedList * list, Predicate predicate, void * params, size_
  * @param supplier A supplier function pointer.
  * @return 0 on success, -1 on failure.
  */
-int delete_node(LinkedList * list, Predicate predicate, void * test_param);
+int delete_node(LinkedList * list, Comparator comparator, void * test_param);
 
 
 /**
  * Find a node in the LinkedList.
  *
  * @param list        A LinkedList object.
- * @param predicate   Predicate function pointer.
- * @param test_param  Test parameter for Predicate.
+ * @param comparator   comparator function pointer.
+ * @param test_param  Test parameter for comparator.
  * @return Pointer to Node or NULL on failure.
  */
-Node * find_node(LinkedList * list, Predicate predicate, void * test_param);
+Node * find_node(LinkedList * list, Comparator comparator, void * test_param);
 
 #endif //CPT_LINKED_LIST_H

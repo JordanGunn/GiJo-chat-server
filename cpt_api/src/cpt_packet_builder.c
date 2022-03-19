@@ -2,7 +2,7 @@
 // Created by jordan on 2022-03-08.
 //
 
-#include "../include/cpt_builder.h"
+#include "cpt_packet_builder.h"
 
 /**
 * Initialize cpt struct.
@@ -12,15 +12,15 @@
 *
 * @return Pointer to cpt struct.
 */
-CptBuilder * cpt_builder_init()
+CptPacket * cpt_packet_init()
 {
-    CptBuilder * cpt_builder;
-    if ( (cpt_builder = malloc(sizeof(struct cpt_builder))) )
+    CptPacket * cpt_packet;
+    if ( (cpt_packet = malloc(sizeof(struct cpt_packet))) )
     {
-        cpt_builder->msg = NULL;
+        cpt_packet->msg = NULL;
     }
 
-    return cpt_builder;
+    return cpt_packet;
 }
 
 
@@ -30,7 +30,7 @@ CptBuilder * cpt_builder_init()
 *
 * @param cpt   Pointer to a cpt structure.
 */
-void cpt_builder_destroy(CptBuilder * cpt)
+void cpt_packet_destroy(CptPacket * cpt)
 {
     if (cpt)
     {
@@ -51,7 +51,7 @@ void cpt_builder_destroy(CptBuilder * cpt)
 * @param cpt   Pointer to a cpt structure.
 * @param cmd   From enum commands.
 */
-void cpt_builder_cmd(CptBuilder * cpt, uint8_t cmd)
+void cpt_packet_cmd(CptPacket * cpt, uint8_t cmd)
 {
     if ( (cmd < SEND) || (cmd > LEAVE_CHANNEL) )
     {
@@ -67,7 +67,7 @@ void cpt_builder_cmd(CptBuilder * cpt, uint8_t cmd)
 * @param version_major From enum version.
 * @param version_minor From enum version.
 */
-void cpt_builder_version(CptBuilder * cpt, uint8_t version_major, uint8_t version_minor)
+void cpt_packet_version(CptPacket * cpt, uint8_t version_major, uint8_t version_minor)
 {
     bool exceeds_major;
     bool exceeds_minor;
@@ -89,7 +89,7 @@ void cpt_builder_version(CptBuilder * cpt, uint8_t version_major, uint8_t versio
 * @param cpt           Pointer to a cpt structure.
 * @param channel_id    A 16-bit integer.
 */
-void cpt_builder_chan(CptBuilder * cpt, uint16_t channel_id)
+void cpt_packet_chan(CptPacket * cpt, uint16_t channel_id)
 {
     cpt->channel_id = channel_id;
 }
@@ -102,7 +102,7 @@ void cpt_builder_chan(CptBuilder * cpt, uint16_t channel_id)
 * @param cpt  Pointer to a cpt structure.
 * @param msg  Pointer to an array of characters.
 */
-void cpt_builder_msg(CptBuilder * cpt, char * msg)
+void cpt_packet_msg(CptPacket * cpt, char * msg)
 {
     char * msg_field;
 
@@ -121,60 +121,14 @@ void cpt_builder_msg(CptBuilder * cpt, char * msg)
 
 
 /**
-* Create a cpt struct from a cpt packet.
-*
-* @param packet    A serialized cpt protocol message.
-* @return          A pointer to a cpt struct.
-*/
-CptBuilder * cpt_builder_parse(uint8_t * packet)
-{
-    CptBuilder * cpt;
-    cpt = cpt_builder_init();
-    memset(cpt, 0, sizeof(struct cpt_builder));
-    char msg_buff[SM_BUFF_SIZE];
-
-
-    parse(
-        packet, "CCHC256s",
-            &cpt->version, &cpt->command, &cpt->channel_id,
-            &cpt->msg_len, msg_buff
-        );
-
-    cpt->msg = (uint8_t *)strdup(msg_buff);
-
-    return cpt;
-}
-
-
-/**
-* Serialize a CptBuilder struct for transmission.
-*
-* @param cpt    A CptBuilder struct.
-* @return       Size of the serialized packet.
-*/
-size_t cpt_builder_serialize(CptBuilder * cpt, uint8_t * buffer)
-{
-    size_t serial_size;
-
-    serial_size = serialize(
-          buffer, "CCHCs",
-          (uint8_t)cpt->version, (uint8_t)cpt->command, (uint16_t)cpt->channel_id,
-          (uint8_t)cpt->msg_len, cpt->msg
-        );
-
-    return serial_size;
-}
-
-
-/**
- * Reset builder parameters.
+ * Reset packet parameters.
  *
- * Reset the builder parameters,
+ * Reset the packet parameters,
  * and free memory for certain params.
  *
- * @param cpt    A CptBuilder struct.
+ * @param cpt    A CptPacket struct.
 */
-void cpt_builder_reset(CptBuilder * cpt)
+void cpt_packet_reset(CptPacket * cpt)
 {
     if ( cpt->msg ) { free(cpt->msg); cpt->msg = NULL; }
     cpt->msg_len = 0;
@@ -187,7 +141,7 @@ void cpt_builder_reset(CptBuilder * cpt)
  *
  * @param cpt
  */
-char * cpt_to_string(CptBuilder * cpt)
+char * cpt_to_string(CptPacket * cpt)
 {
     char buffer[MD_BUFF_SIZE] = {0};
     uint8_t version_minor, version_major;
@@ -216,6 +170,76 @@ char * cpt_to_string(CptBuilder * cpt)
 
     cpt_str = strdup(buffer);
     return cpt_str;
+}
+
+
+// ==================================
+// C P T   S E R V E R  P A C K E T S
+// ==================================
+
+
+CptResponse * cpt_response_init(uint16_t res_code, uint8_t * data)
+{
+    CptResponse * res;
+
+    if ( !(res = malloc(sizeof(struct cpt_response))) ) { return NULL; }
+    if ( !data ) { return NULL; }
+
+    res->buffer = (uint8_t *) strdup((char *) data);
+    res->code = res_code;
+
+    return res;
+}
+
+
+void cpt_response_destroy(CptResponse * res)
+{
+    if ( res )
+    {
+        if ( res->buffer )
+        {
+            free(res->buffer);
+            res->buffer = NULL;
+        }
+        free(res);
+        res = NULL;
+    }
+}
+
+
+
+// ============================
+// C P T   S U B - P A CK E T S
+// ============================
+
+
+CptMsgResponse * cpt_msg_response_init(uint8_t * msg, uint16_t chan_id, uint16_t user_id)
+{
+    CptMsgResponse * msg_res;
+
+    if ( !(msg_res = malloc(sizeof(struct cpt_msg_response))) ) { return NULL; }
+    if ( !msg ) { return NULL; }
+
+    msg_res->msg = (uint8_t *) strdup((char *) msg);
+    msg_res->channel_id = chan_id;
+    msg_res->channel_id = user_id;
+
+    return msg_res;
+}
+
+
+void cpt_msg_response_destroy(CptMsgResponse * msg_res)
+{
+    if ( msg_res )
+    {
+        if ( msg_res->msg )
+        {
+            free(msg_res->msg);
+            msg_res->msg = NULL;
+        }
+        free(msg_res);
+        msg_res = NULL;
+    }
 }
 
 

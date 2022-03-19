@@ -7,9 +7,11 @@ project(CPT
         LANGUAGES C)
 
 # add all relevant subdirectories with other CMakeList files
-add_subdirectory(app/)
-add_subdirectory(cpt_api/)
-add_subdirectory(tcp_networking/)
+add_subdirectory(common)
+add_subdirectory(tcp_networking)
+add_subdirectory(cpt_api)
+add_subdirectory(app)
+
 
 # To be honest I have no idea what this does
 add_compile_definitions(_POSIX_C_SOURCE=200809L _XOPEN_SOURCE=700)
@@ -26,8 +28,8 @@ IF(LINT)
 ENDIF()
 
 # Make a executables
-add_executable(cpt_chat_server ${CHAT_SERVER_TARGETS} ${CPT_API_TARGETS} ${TCP_SERVER_TARGETS}  common.h common.c)
-add_executable(cpt_chat_client ${CHAT_CLIENT_TARGETS} ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS}  common.h common.c)
+add_executable(cpt_chat_server ${CHAT_SERVER_TARGETS} ${TCP_SERVER_TARGETS} ${CPT_API_TARGETS} ${CPT_COMMON_TARGET})
+add_executable(cpt_chat_client ${CHAT_CLIENT_TARGETS}  ${TCP_CLIENT_TARGETS}  ${CPT_API_TARGETS} ${CPT_COMMON_TARGET})
 #add_executable(sandbox ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS} ${TCP_SERVER_TARGETS} ${SANDBOX_TARGETS}  common.h app/sandbox.h common.c)
 
 # =========================================
@@ -42,6 +44,19 @@ target_include_directories(cpt_chat_server PRIVATE /usr/local/include)
 target_link_directories(cpt_chat_server PRIVATE /usr/lib)
 target_link_directories(cpt_chat_server PRIVATE /usr/local/lib)
 
+# tell the compiler where local header files are
+target_include_directories(cpt_chat_server PRIVATE common/include/)
+target_include_directories(cpt_chat_server PRIVATE cpt_api/include/)
+target_include_directories(cpt_chat_server PRIVATE tcp_networking/include/)
+target_include_directories(cpt_chat_server PRIVATE app/include/)
+
+# link the local source files
+target_link_directories(cpt_chat_server PRIVATE common/src/)
+target_link_directories(cpt_chat_server PRIVATE cpt_api/src/)
+target_link_directories(cpt_chat_server PRIVATE tcp_networking/src/)
+target_link_directories(cpt_chat_server PRIVATE app/)
+
+
 # =========================================
 # Directory inclusion for client executable
 # =========================================
@@ -53,6 +68,18 @@ target_include_directories(cpt_chat_client PRIVATE /usr/local/include)
 # tell the compiler to check here for 3rd party source files
 target_link_directories(cpt_chat_client PRIVATE /usr/lib)
 target_link_directories(cpt_chat_client PRIVATE /usr/local/lib)
+
+# tell the compiler where local header files are
+target_include_directories(cpt_chat_client PRIVATE common/include/)
+target_include_directories(cpt_chat_client PRIVATE cpt_api/include/)
+target_include_directories(cpt_chat_client PRIVATE tcp_networking/include/)
+target_include_directories(cpt_chat_client PRIVATE app/)
+
+# link the local source files
+target_link_directories(cpt_chat_client PRIVATE common/src/)
+target_link_directories(cpt_chat_client PRIVATE cpt_api/src/)
+target_link_directories(cpt_chat_client PRIVATE tcp_networking/src/)
+target_link_directories(cpt_chat_client PRIVATE app/)
 
 # ==========================================
 # Directory inclusion for sandbox executable

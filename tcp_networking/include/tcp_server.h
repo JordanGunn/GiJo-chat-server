@@ -5,12 +5,12 @@
 #ifndef CPT_TCP_SERVER_H
 #define CPT_TCP_SERVER_H
 
-#include "../../common.h"
-#include "server_config.h"
+#include "common.h"
+#include "tcp_server_config.h"
 
 
 /**
- * @brief Get client/server address information for network data transfer.
+ * @brief Get client/server address information for network data transfer.\n\n
  *
  * @param host  IP or url of target destination.
  * @param port  Port of target destination.
@@ -20,7 +20,7 @@ struct addrinfo * tcp_server_addr(const char * ip, const char * port);
 
 
 /**
- * @brief Create a socket to write to server.
+ * @brief Create a socket to write to server.\n\n
  *
  * @param serv_info Result returned from setup_client_addr().
  * @return          Socket file descriptor.
@@ -29,7 +29,7 @@ int tcp_listen_socket(struct addrinfo * serv_info);
 
 
 /**
- * Set custom socket options.
+ * Set custom socket options.\n\n
  *
  * @param sock_fd   Socket file descriptor.
  * @param serv_info Return value from tcp_server_addr().
@@ -40,7 +40,7 @@ int tcp_server_sock_opt(int sock_fd, int sock_opt);
 
 
 /**
- * @brief Bind server address to listener socket.
+ * @brief Bind server address to listener socket.\n\n
  *
  * @param listen_fd Listener socket file descriptor.
  * @param serv_info Result returned from setup_client_addr().
@@ -50,7 +50,7 @@ int tcp_server_bind(struct addrinfo * serv_info, int listen_fd);
 
 
 /**
- * @brief Bind server address to listener socket.
+ * @brief Bind server address to listener socket.\n\n
  *
  * @param listen_fd Listener socket file descriptor.
  * @param serv_info Result returned from setup_client_addr().
@@ -60,7 +60,7 @@ int tcp_server_listen(int listen_fd);
 
 
 /**
- * @brief Accept incoming tcp connection.
+ * @brief Accept incoming tcp connection.\n\n
  *
  * @param listen_fd Listener socket file descriptor.
  * @param serv_info Result returned from setup_client_addr().
@@ -70,7 +70,7 @@ int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd);
 
 
 /**
- * @brief Receive data from tcp client.
+ * @brief Receive data from tcp client.\n\n
  *
  * @param sock_fd   Socket file descriptor.
  * @return          Pointer to received data.
@@ -79,7 +79,7 @@ char * tcp_server_recv(int sock_fd);
 
 
 /**
- * @brief Drive the TCP init functions.
+ * @brief Drive the TCP init functions.\n\n
  *
  * Calls all tcp server init functions and returns the init params
  * received from the client.
@@ -89,5 +89,17 @@ char * tcp_server_recv(int sock_fd);
  * @return      Pointer to received.
  */
 char *init_recv(char *ip, const char *port, int *listen_fd);
+
+
+/**
+ * @brief Send data to connected client.\n\n
+ *
+ * Sends data a TCP connected client.
+ *
+ * @param sock_fd   Client socket file descriptor.
+ * @param data      Data being sent.
+ * @return          0 if success, -1 if failure.
+ */
+int tcp_server_send(int sock_fd, uint8_t * data);
 
 #endif //CPT_TCP_SERVER_H

@@ -2,17 +2,15 @@
 // Created by jordan on 2022-03-16.
 //
 
-#include "../include/GlobalChannel.h"
-#include "../include/global_config.h"
+#include "cpt_global_channel.h"
 
-
-GlobalChannel init_global_channel()
+Channel * init_global_channel()
 {
-    GlobalChannel gc;
+    Channel * gc;
     User * root_user;
     Users gc_users;
 
-    root_user = init_user(GC_ROOT_USER_ID, GC_ROOT_USER_FD, GC_ROOT_USER_NAME);
+    root_user = user_init(GC_ROOT_USER_ID, GC_ROOT_USER_FD, GC_ROOT_USER_NAME);
     if (!root_user) { return NULL ;}
     gc_users = init_list(root_user, sizeof(struct user_struct));
 
@@ -32,13 +30,13 @@ GlobalChannel init_global_channel()
 }
 
 
-ChannelDirectory init_channel_directory(GlobalChannel gc)
+Channels init_channel_directory(Channel * gc)
 {
-    ChannelDirectory channel_directory;
+    Channels channel_directory;
 
     if ( gc )
     {
-        channel_directory = init_channels(gc) ;
+        channel_directory = channels_init(gc) ;
         return (channel_directory) ? channel_directory : NULL;
     }
 

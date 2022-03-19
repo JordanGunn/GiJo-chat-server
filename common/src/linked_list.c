@@ -3,7 +3,7 @@
 //
 
 #include "../include/linked_list.h"
-#include "../../common.h"
+#include "../include/common.h"
 
 
 void for_each(LinkedList * list, Consumer consumer)
@@ -133,7 +133,7 @@ void push_node(LinkedList * list, void * data, size_t data_size)
 }
 
 
-LinkedList * filter(LinkedList * list, Predicate predicate, void * params, size_t num_params)
+LinkedList * filter(LinkedList * list, Comparator comparator, void * params, size_t num_params)
 {
     size_t passes, found;
     Node * node_iterator;
@@ -144,7 +144,7 @@ LinkedList * filter(LinkedList * list, Predicate predicate, void * params, size_
     while (passes < num_params)
     {
         if (found == num_params) { break; } /* if we have everything, let's blow this popsicle stand */
-        if ( predicate(node_iterator->data, params) ) /* found a match */
+        if ( comparator(node_iterator->data, params) ) /* found a match */
         {
             if (!filtered) /* check for first find */
             {
@@ -181,7 +181,7 @@ Node * get_head_node(LinkedList * list)
 }
 
 
-Node * find_node(LinkedList * list, Predicate predicate, void * test_param)
+Node * find_node(LinkedList * list, Comparator comparator, void * test_param)
 {
     Node * node_iterator;
     Node * next_iterator;
@@ -189,7 +189,7 @@ Node * find_node(LinkedList * list, Predicate predicate, void * test_param)
     node_iterator = get_head_node(list);
     while ( (next_iterator = node_iterator->next) )
     {
-        if ( predicate(node_iterator->data, test_param) )
+        if ( comparator(node_iterator->data, test_param) )
         {
             return node_iterator;
         }
@@ -201,7 +201,7 @@ Node * find_node(LinkedList * list, Predicate predicate, void * test_param)
 }
 
 
-int delete_node(LinkedList * list, Predicate predicate, void * test_param)
+int delete_node(LinkedList * list, Comparator comparator, void * test_param)
 {
     bool found;
     Node * previous, * middle, * next;
@@ -212,7 +212,7 @@ int delete_node(LinkedList * list, Predicate predicate, void * test_param)
 
     while ( (next = middle->next) )
     {
-        if (( found = (predicate(middle, test_param)) )) { break; }
+        if (( found = (comparator(middle, test_param)) )) { break; }
         previous = middle;
         middle = previous->next;
     }

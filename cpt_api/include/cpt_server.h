@@ -5,204 +5,161 @@
 #ifndef CPT_CPT_SERVER_H
 #define CPT_CPT_SERVER_H
 
-#include "linked_list.h"
-#include "cpt_types.h"
-#include "../../tcp_networking/include/tcp_server.h"
+#include "tcp_server.h"
 
-typedef struct user_struct User;
-typedef struct channel_struct Channel;
-typedef Node UserNode;
-typedef Node ChannelNode;
-typedef LinkedList * Users;
-typedef LinkedList * Channels;
+#include "cpt_packet_builder.h"
+#include "cpt_serialize.h"
+#include "cpt_channel.h"
+#include "cpt_parse.h"
+#include "cpt_user.h"
 
 
-/**
- * A user Object.
- *
- * Contains data members useful for
- * handling user in the CPT environment.
- */
-struct user_struct
+typedef struct send_msg_params SendMsgParams;
+
+struct send_msg_params
 {
-    uint8_t id;
-    uint8_t fd;
-    char *  name;
+    User * user;
+    CptMsgResponse msg_res;
 };
 
 
-/**
- * A Channel object.
- *
- * Contains useful data members, as
- * well as a LinkedList of User objects.
- */
-struct channel_struct /* may consider adding a fd to this object... */
-{
-    uint16_t id;
-    Users    users;
-    bool     is_private;
-    char *   name;
-};
+
+
+
+
+
 
 
 /**
- * LinkedList of Channel objects.
+ * Receive serialized packet from client.
+ *
+ * Receives a serialized packet from a connected
+ * client, parses it, and returns a CptPacket object.
+ *
+ * @param data  Data received from client.
+ * @return      Pointer to a CptPacket object.
  */
-struct channel_directory
-{
-    Channels channels;
-};
+CptPacket * cpt_recv_packet(uint8_t * data);
 
 
 /**
- * Initialize a User object.
+ * Send serialized server response to client.
  *
- * Creates a User object, intialiazing any
- * data members and allocating the necessary
- * memory.
+ * Serializes a CptResponse object and sends
+ * it to a connected client.
  *
- * @param id    User id.
- * @param fd    File descriptor for the user socket.
- * @param name  User name.
- * @return Pointer to a User object.
+ * @param user      Pointer to a User object.
+ * @param response  Pointer to a CptResponse object.
+ * @return          0 if successful, error code on failure.
  */
-User * init_user(int id, int fd, char * name);
+int cpt_send_response(User * user, CptResponse * response);
 
 
 /**
- * Destroy User object.
+ * Handle a received 'LOGIN' protocol message.
  *
- * Destroys a User object, freeing any memory
- * and setting necessary values to NULL.
+ * Use information in the CptPacket to handle
+ * a LOGIN protocol message from a connected client.
+ * If successful, will accept the tcp connection and
+ * push a new User object into the GlobalChannel.
  *
- * @param user A pointer to a User object.
+ * @param gc            The GlobalChannel (pointer to a Channel)
+ * @param cpt_packet    Pointer to a CptPacket object.
+ * @return              0 if successful, error code on failure.
  */
-void destroy_user(User * user);
+int cpt_handle_login(Channel * gc, CptPacket * packet, int fd);
 
 
 /**
- * Create a UserNode object.
+ * Handle a received 'SEND' protocol message.
  *
- * Creates a UserNode object which can be added
- * to a LinkedList. This function mostly provides
- * a wrapper for the Node object, with additional
- * semantic meaning.
+ * Uses information in the CptPacket to handle
+ * a SEND protocol message from a connected client.
+ * If successful, will accept the tcp connection and
+ * push a new User object into the GlobalChannel.
  *
- * @param user A pointer to a User object.
- * @return     A pointer to a UserNode object.
+ * @param gc            The GlobalChannel (pointer to a Channel)
+ * @param cpt_packet    Pointer to a CptPacket object.
+ * @return              0 if successful, error code on failure.
  */
-UserNode * user_node(User * user);
+int cpt_handle_send(Channel * channel, User * sender, CptPacket * packet);
 
 
 /**
- * Initialize Users object.
+ * Handle a received 'GET_USERS' protocol message.
  *
- * Initialize a Users object, allocating any
- * necessary memory and initializing data members.
+ * Uses information in the CptPacket to handle
+ * a SEND a list of users back to the requesting
+ * client in the format:
+ *      < user_id >< whitespace >< username >< newline >
  *
- * @param user      A pointer to a User object.
- * @return Pointer to Users LinkedList object.
+ * Example given:
+ *      1 'Clark Kent'
+ *      2 'Bruce Wayne'
+ *      3 'Fakey McFakerson'
+ *
+ * @param dir       A linked list of Channel objects.
+ * @param user      User making request.
+ * @param packet    Packet sent by requesting user.
+ * @return 0 on success, error code on failure.
  */
-Users init_users(User * user);
+int cpt_handle_get_users(Channels dir, User * user, CptPacket * packet);
 
 
 /**
- * Push a user onto a Users list.
+ * Handle a received 'CREATE_CHANNEL' protocol message.
  *
- * @param users Pointer to a linked list of User objects.
- * @param user  New user to add.
+ * Handles a CREATE_CHANNEL protocol message from a connected
+ * client. Will check the CptPacket msg body for a list of
+ * requested user IDs. If no User IDs have been requested,
+ * A new channel is created containing only the client user
+ * that made the request.
+ *
+ * @param gc        The GlobalChannel.
+ * @param dir       The ChannelDirectory (Pointer to a LinkedList of Channel(s))
+ * @param user      The client User object who made the request.
+ * @param packet    The Received client packet.
+ * @return 0 on success, error code on failure.
  */
-void push_user(Users users, User * user);
+int cpt_handle_create_channel(Channel * gc, Channels dir, User * user, CptPacket * packet);
 
 
 /**
- * Initialize Channel object.
+ * Handle a received 'JOIN_CHANNEL' protocol message.
  *
- * Initialize a Channel object, allocating
- * any necessary memory and initializing data
- * members.
+ * Handles a JOIN_CHANNEL request, pushing the requesting
+ * user into the channel specified by the CHANNEL_ID
+ * in the CptPacket.
  *
- * @param id         The channel id.
- * @param users      A Users object (pointer to a LinkedList).
- * @param name       Name of the channel.
- * @param is_private Privacy setting of channel.
- * @return Pointer to a Channel object.
+ * @param dir       The ChannelDirectory (Pointer to a LinkedList of Channel(s))
+ * @param user      The client User object who made the request.
+ * @param packet    The Received client packet.
+ * @return 0 on success, error code on failure.
  */
-Channel * init_channel(uint16_t id, Users users, char * name, bool is_private);
+int cpt_handle_join_channel(Channels dir, User * user, CptPacket * packet);
 
 
 /**
- * Push a user onto a Users list.
+ * Handle a received 'LEAVE_CHANNEL' protocol message.
  *
- * @param users Pointer to a linked list of User objects.
- * @param user  New user to add.
+ * Handles a LEAVE_CHANNEL request, checking if the requesting user
+ * exists, in the channel, before deleting the corresponding UserNode
+ * in the channel.
+ *
+ * @param dir       The ChannelDirectory (Pointer to a LinkedList of Channel(s))
+ * @param user      The client User object who made the request.
+ * @param packet    The Received client packet.
+ * @return 0 on success, error code on failure.
  */
-void push_channel(Channels channels, Channel * channel);
+int cpt_handle_leave_channel(Channels dir, User * user, CptPacket * packet);
 
 
-/**
- * Create a ChannelNode object.
- *
- * Creates a ChannelNode object which can be added
- * to a LinkedList. This function mostly provides
- * a wrapper for the Node object, with additional
- * semantic meaning.
- *
- * @param user A pointer to a Channel object.
- * @return     A pointer to a ChannelNode object.
- */
-ChannelNode * channel_node(Channel * channel);
 
-
-/**
- * Initialize Channels object.
- *
- * A wrapper for the LinkedList object
- * that mainly provides semantics.
- *
- * @param channel A pointer to a Channel object.
- * @return a Channels object (Pointer to a LinkedList).
- */
-Channels init_channels(Channel * channel);
-
-
-// ===================
-// P R E D I C A T E S
-// ===================
-
-bool find_user_id(User * user, const int * id);
-bool find_user_name(User * user, char * name);
-bool filter_user_id(User * user, FilterQuery * filter_query);
-bool filter_user_name(User * user, FilterQuery * filter_query);
-
-bool find_channel_id(Channel * channel, int * id);
-bool find_channel_name(Channel * channel, int * id);
-bool filter_channels_public(Channel * channel, FilterQuery * filter_query);
-bool filter_channels_private(Channel * channel, FilterQuery * filter_query);
-
-// =================
+// ==================
 // C O N S U M E R S
-// =================
-/**
- * Print Details about the channel.
- *
- * @param channel The target channel.
- */
-void user_to_string(User * user);
+// ==================
 
 
-/**
- * Print details about the Channel object.
- *
- * @param channel A Channel object.
- */
-void channel_to_string(Channel * channel);
-
-
-// =================
-// S U P P L I E R S
-// =================
 
 
 #endif //CPT_CPT_SERVER_H

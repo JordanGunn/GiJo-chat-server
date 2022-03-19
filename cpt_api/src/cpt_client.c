@@ -2,27 +2,27 @@
 // Created by jordan on 2022-03-08.
 //
 
-#include "../include/cpt_client.h"
+#include "cpt_client.h"
 
 int cpt_login(void * cpt, char * name)
 {
     int fd;
     uint8_t buffer[LG_BUFF_SIZE];
-    CptBuilder * builder;
+    CptPacket * packet;
     CptClientInfo * client_info;
     client_info = (CptClientInfo *)cpt;
     client_info->fd = -1;                           // if user connects this will overwrite
 
-    builder = cpt_builder_init();
-    builder->channel_id = CHANNEL_ZERO;
-    cpt_builder_version(builder, VER_MAJOR_LATEST, VER_MINOR_LATEST);
-    cpt_builder_cmd(builder, (uint8_t)LOGIN);
+    packet = cpt_packet_init();
+    packet->channel_id = CHANNEL_ZERO;
+    cpt_packet_version(packet, VER_MAJOR_LATEST, VER_MINOR_LATEST);
+    cpt_packet_cmd(packet, (uint8_t)LOGIN);
 
     ( name )
-        ? cpt_builder_msg(builder, name)
-        : cpt_builder_msg(builder, DEFAULT_USER_NAME);
+        ? cpt_packet_msg(packet, name)
+        : cpt_packet_msg(packet, DEFAULT_USER_NAME);
 
-    cpt_builder_serialize(builder, buffer);
+    cpt_serialize_packet(packet, buffer);
     fd = tcp_init_client(client_info->ip, client_info->port);
 
     if ( fd < 0 )
@@ -33,21 +33,21 @@ int cpt_login(void * cpt, char * name)
     } else { client_info->fd = fd; }
 
     tcp_client_send(fd, buffer);
-    cpt_builder_reset(builder);
+    cpt_packet_reset(packet);
 
-    client_info->builder = builder; // save the builder for later.
+    client_info->packet = packet; // save the packet for later.
     return 0;
 }
 
 
 int cpt_get_users(void * cpt, char * query_string)
 {
-    CptBuilder * builder;
+    CptPacket * packet;
     CptClientInfo * client_info;
     uint8_t buffer[LG_BUFF_SIZE];
 
     client_info = (CptClientInfo *)cpt;
-    builder = client_info->builder;
+    packet = client_info->packet;
 
     if ( !(client_info->fd) )
     {
@@ -56,12 +56,12 @@ int cpt_get_users(void * cpt, char * query_string)
         return EXIT_FAILURE;
     }
 
-    cpt_builder_cmd(builder, (uint8_t) GET_USERS);
-    if (query_string) { cpt_builder_msg(builder, query_string); }
-    cpt_builder_serialize(builder, buffer);
+    cpt_packet_cmd(packet, (uint8_t) GET_USERS);
+    if (query_string) { cpt_packet_msg(packet, query_string); }
+    cpt_serialize_packet(packet, buffer);
 
     tcp_client_send(client_info->fd, buffer);
-    cpt_builder_reset(builder);
+    cpt_packet_reset(packet);
     return 0;
 }
 
@@ -69,12 +69,12 @@ int cpt_get_users(void * cpt, char * query_string)
 
 int cpt_send_msg(void * cpt, char * msg)
 {
-    CptBuilder * builder;
+    CptPacket * packet;
     CptClientInfo * client_info;
     uint8_t buffer[LG_BUFF_SIZE];
 
     client_info = (CptClientInfo *)cpt;
-    builder = client_info->builder;
+    packet = client_info->packet;
 
     if ( !(client_info->fd) )
     {
@@ -83,14 +83,14 @@ int cpt_send_msg(void * cpt, char * msg)
         return EXIT_FAILURE;
     }
 
-    cpt_builder_cmd(builder, (uint8_t) SEND);
-    cpt_builder_msg(builder, msg);
-    cpt_builder_serialize(builder, buffer);
+    cpt_packet_cmd(packet, (uint8_t) SEND);
+    cpt_packet_msg(packet, msg);
+    cpt_serialize_packet(packet, buffer);
 
     tcp_client_send(client_info->fd, buffer);
-    cpt_builder_reset(builder);
+    cpt_packet_reset(packet);
 
-    cpt_builder_reset(builder);
+    cpt_packet_reset(packet);
 
     return 0;
 }
@@ -98,12 +98,12 @@ int cpt_send_msg(void * cpt, char * msg)
 
 int cpt_logout(void * cpt)
 {
-    CptBuilder * builder;
+    CptPacket * packet;
     CptClientInfo * client_info;
     uint8_t buffer[LG_BUFF_SIZE];
 
     client_info = (CptClientInfo *)cpt;
-    builder = client_info->builder;
+    packet = client_info->packet;
 
     if ( !(client_info->fd) )
     {
@@ -112,11 +112,11 @@ int cpt_logout(void * cpt)
         return EXIT_FAILURE;
     }
 
-    cpt_builder_cmd(builder, (uint8_t) LOGOUT);
-    cpt_builder_serialize(builder, buffer);
+    cpt_packet_cmd(packet, (uint8_t) LOGOUT);
+    cpt_serialize_packet(packet, buffer);
 
     tcp_client_send(client_info->fd, buffer);
-    cpt_builder_reset(builder);
+    cpt_packet_reset(packet);
 
     return 0;
 }
@@ -125,13 +125,13 @@ int cpt_logout(void * cpt)
 int cpt_join_channel(void * cpt, int channel_id)
 {
     CptResponse response;
-    CptBuilder * builder;
+    CptPacket * packet;
     uint8_t * response_msg;
     CptClientInfo * client_info;
     uint8_t req_buffer[LG_BUFF_SIZE];
 
     client_info = (CptClientInfo *)cpt;
-    builder = client_info->builder;
+    packet = client_info->packet;
     if ( !(client_info->fd) )
     {
         const char * message = "Not connected!";
@@ -139,14 +139,14 @@ int cpt_join_channel(void * cpt, int channel_id)
         return EXIT_FAILURE;
     }
 
-    cpt_builder_cmd(builder, (uint8_t) JOIN_CHANNEL);
-    cpt_builder_serialize(builder, req_buffer);
+    cpt_packet_cmd(packet, (uint8_t) JOIN_CHANNEL);
+    cpt_serialize_packet(packet, req_buffer);
 
     tcp_client_send(client_info->fd, req_buffer);
     response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
     cpt_parse_response(&response, response_msg);
 
-    cpt_builder_reset(builder);
+    cpt_packet_reset(packet);
     if (response.code == (uint8_t)SUCCESS)
     {
         client_info->channel = channel_id;
@@ -159,7 +159,7 @@ int cpt_join_channel(void * cpt, int channel_id)
 int cpt_create_channel(void * cpt, char * members, bool is_private)
 {
     CptResponse response;
-    CptBuilder * builder;
+    CptPacket * packet;
     LinkedList * channels;
     uint8_t * response_msg;
     CptClientInfo * client_info;
@@ -168,7 +168,7 @@ int cpt_create_channel(void * cpt, char * members, bool is_private)
     if ( is_private ) { puts("Handle private channel"); } // !
     client_info = (CptClientInfo *)cpt;
     channels = client_info->channels;
-    builder = client_info->builder;
+    packet = client_info->packet;
     if ( !(client_info->fd) )
     {
         const char * message = "Not connected!";
@@ -176,15 +176,15 @@ int cpt_create_channel(void * cpt, char * members, bool is_private)
         return EXIT_FAILURE;
     }
 
-    cpt_builder_cmd(builder, (uint8_t) CREATE_CHANNEL);
-    if ( members ) { cpt_builder_msg(builder, members); }
-    cpt_builder_serialize(builder, req_buffer);
+    cpt_packet_cmd(packet, (uint8_t) CREATE_CHANNEL);
+    if ( members ) { cpt_packet_msg(packet, members); }
+    cpt_serialize_packet(packet, req_buffer);
 
     tcp_client_send(client_info->fd, req_buffer);
     response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
     cpt_parse_response(&response, response_msg);
 
-    cpt_builder_reset(builder);
+    cpt_packet_reset(packet);
     if ( response.code == (uint8_t) SUCCESS )
     {
         uint16_t _id = strtol( // !
@@ -201,13 +201,13 @@ int cpt_create_channel(void * cpt, char * members, bool is_private)
 int cpt_leave_channel(void * cpt, int channel_id)
 {
     CptResponse response;
-    CptBuilder * builder;
+    CptPacket * packet;
     uint8_t * response_msg;
     CptClientInfo * client_info;
     uint8_t req_buffer[LG_BUFF_SIZE];
 
     client_info = (CptClientInfo *)cpt;
-    builder = client_info->builder;
+    packet = client_info->packet;
     if ( !(client_info->fd) )
     {
         const char * message = "Not connected!";
@@ -215,17 +215,17 @@ int cpt_leave_channel(void * cpt, int channel_id)
         return EXIT_FAILURE;
     }
 
-    cpt_builder_cmd(builder, (uint8_t) LEAVE_CHANNEL);
-    cpt_builder_serialize(builder, req_buffer);
+    cpt_packet_cmd(packet, (uint8_t) LEAVE_CHANNEL);
+    cpt_serialize_packet(packet, req_buffer);
 
     tcp_client_send(client_info->fd, req_buffer);
     response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
     cpt_parse_response(&response, response_msg);
 
-    cpt_builder_reset(builder);
+    cpt_packet_reset(packet);
     delete_node(
             client_info->channels,
-            (Predicate) compare_channels,
+            (Comparator) compare_channels,
             &channel_id
         ); // !
 
@@ -240,8 +240,15 @@ CptClientInfo * cpt_init_client_info(char * port, char * ip)
     CptClientInfo * client_info;
 
     global_id = CHANNEL_ZERO;
-    client_info = malloc_safely(sizeof(struct cpt_client_info), STDERR_FILENO); // !
-    if ( !(client_info->builder = cpt_builder_init()) ) { return NULL; }
+    if ( !(client_info = malloc(sizeof(struct cpt_client_info))) )
+    {
+        char buf[SM_BUFF_SIZE];
+        snprintf(buf, SM_BUFF_SIZE, "Failed to allocate %zu bytes...", sizeof(struct cpt_client_info));
+        write(STDERR_FILENO, buf, strlen(buf));
+        return NULL;
+    }
+
+    if ( !(client_info->packet = cpt_packet_init()) ) { return NULL; }
     client_info->channel = global_id;
     client_info->port = strdup(port); // !
     client_info->ip = strdup(ip);
@@ -257,21 +264,12 @@ void cpt_destroy_client_info(CptClientInfo * client_info)
 {
     if ( client_info )
     {
-        if ( client_info->builder ) { cpt_builder_destroy(client_info->builder);    }
+        if ( client_info->packet ) { cpt_packet_destroy(client_info->packet);    }
         if ( client_info->ip ) { free(client_info->ip); client_info->ip = NULL;     }
         if ( client_info->ip ) { free(client_info->port); client_info->port = NULL; }
         free(client_info);
         client_info = NULL;
     }
-}
-
-
-void cpt_parse_response(CptResponse * response, uint8_t * buffer)
-{
-    parse( // !
-        buffer, "C512s",
-        &response->code, &response->buffer
-    );
 }
 
 
