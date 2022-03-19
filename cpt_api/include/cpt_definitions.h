@@ -15,6 +15,7 @@
 #define ACCESS_PUBLIC "PUBLIC"
 #define VERSION_MINOR_MAX 15
 #define VERSION_MAJOR_MAX 15
+#define MAX_SERVER_FDS 2048
 #define VER_MAJOR_LATEST 1
 #define VER_MINOR_LATEST 1
 #define MAX_NAME_SIZE 12
@@ -61,6 +62,7 @@
 #define SERVER_ERROR     19
 #define MSG_RESPONSE     20
 #define MSG_EMPTY        21
+#define SERV_FATAL       666
 /* ===================== */
 
 #endif //CPT_CPT_DEFINITIONS_H

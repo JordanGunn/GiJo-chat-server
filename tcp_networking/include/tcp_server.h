@@ -81,14 +81,14 @@ char * tcp_server_recv(int sock_fd);
 /**
  * @brief Drive the TCP init functions.\n\n
  *
- * Calls all tcp server init functions and returns the init params
- * received from the client.
+ * Calls all tcp server init functions and returns file
+ * descriptor for te listener socket.
  *
  * @param host  IP or url of target destination.
  * @param port  Port of target destination.
  * @return      Pointer to received.
  */
-char *init_recv(char *ip, const char *port, int *listen_fd);
+int tcp_server_init(char * host, const char *port);
 
 
 /**

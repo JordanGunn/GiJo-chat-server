@@ -59,7 +59,6 @@ int cpt_handle_send(Channel * channel, User * sender, CptPacket * packet)
     CptResponse * res;
     CptMsgResponse * msg_res;
     UserNode * user_iterator;
-    uint8_t res_buf[LG_BUFF_SIZE];
     uint8_t res_msg_buf[LG_BUFF_SIZE];
 
     if ( !channel )     { return BAD_CHANNEL; }

@@ -158,27 +158,21 @@ int tcp_server_send(int sock_fd, uint8_t * data)
 }
 
 
-char *init_recv(char *ip, const char *port, int *listen_fd)
+int tcp_server_init(char * host, const char *port)
 {
-    char * init;
-    int sock_fd;
+    int fd;
     struct addrinfo * addr;
-    struct sockaddr_storage client_addr;
 
     port = (port) ? port : PORT_8080;
-    ip = (ip) ? ip : IP_LOCAL_INET;
+    host = (host) ? host : IP_LOCAL_LB;
 
-    addr = tcp_server_addr(ip, port);
-    *listen_fd = tcp_listen_socket(addr);
-    tcp_server_sock_opt(*listen_fd, SO_REUSEADDR);
-    tcp_server_bind(addr, *listen_fd);
-    tcp_server_listen(*listen_fd);
-    sock_fd = tcp_server_accept(&client_addr, *listen_fd);
-    if (sock_fd != -1)
+    addr = tcp_server_addr(host, port);
+    if ( ((fd = tcp_listen_socket(addr)) >= 0) )
     {
-        init = tcp_server_recv(sock_fd);
-        return init;
+        tcp_server_sock_opt(fd, SO_REUSEADDR);
+        tcp_server_bind(addr, fd);
+        tcp_server_listen(fd);
     }
 
-    return NULL;
+    return fd;
 }
