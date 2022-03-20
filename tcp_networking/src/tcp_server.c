@@ -120,7 +120,8 @@ int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd)
 
 char * tcp_server_recv(int sock_fd, int * result)
 {
-    char buff[LG_BUFF_SIZE];
+    char * received;
+    char buff[SM_BUFF_SIZE] = {0};
 
     *result = (int) recv(sock_fd, buff, sizeof(buff), 0);
     if ( *result < 0 )
@@ -131,15 +132,18 @@ char * tcp_server_recv(int sock_fd, int * result)
         return NULL;
     }
 
-    return strdup(buff);
+    received = malloc(*result);
+    memset(received, 0, *result);
+    memmove(received, buff, *result);
+    return received;
 }
 
 
-int tcp_server_send(int sock_fd, uint8_t * data)
+int tcp_server_send(int sock_fd, uint8_t * data, size_t data_size)
 {
     ssize_t bytes_sent;
 
-    bytes_sent = send(sock_fd, data, strlen((char *)data), 0);
+    bytes_sent = send(sock_fd, data, data_size, 0);
     if (bytes_sent < 0)
     {
         const char * err_msg = "Failed to send bytes to server...";

@@ -4,46 +4,39 @@
 
 #include "cpt_client.h"
 
-int cpt_login(void * cpt, char * name)
+uint8_t * cpt_login(void * cpt, char * name)
 {
-    int fd;
-    uint8_t buffer[LG_BUFF_SIZE];
-    CptPacket * packet;
+    uint8_t * serial;
+    uint8_t serial_size;
+    uint8_t buffer[LG_BUFF_SIZE] = {0};
     CptClientInfo * client_info;
     client_info = (CptClientInfo *)cpt;
-    client_info->fd = -1;                           // if user connects this will overwrite
 
-    packet = cpt_packet_init();
-    packet->channel_id = CHANNEL_ZERO;
-    cpt_packet_version(packet, VER_MAJOR_LATEST, VER_MINOR_LATEST);
-    cpt_packet_cmd(packet, (uint8_t)LOGIN);
+    client_info->packet = cpt_packet_init();
+    cpt_packet_chan(client_info->packet, (uint16_t) CHANNEL_ZERO);
+    cpt_packet_version(client_info->packet, VER_MAJOR_LATEST, VER_MINOR_LATEST);
+    cpt_packet_cmd(client_info->packet, (uint8_t)LOGIN);
 
     ( name )
-        ? cpt_packet_msg(packet, name)
-        : cpt_packet_msg(packet, DEFAULT_USER_NAME);
+        ? cpt_packet_msg(client_info->packet, name)
+        : cpt_packet_msg(client_info->packet, DEFAULT_USER_NAME);
 
-    cpt_serialize_packet(packet, buffer);
-    CptPacket * p = cpt_parse_packet(buffer);
-    fd = tcp_init_client(client_info->ip, client_info->port);
-
-    if ( fd < 0 )
+    serial_size = cpt_serialize_packet(client_info->packet, buffer);
+    serial = malloc(serial_size);
+    if ( serial )
     {
-        const char * message = "Failed to Login to chat...";
-        write(STDERR_FILENO, message, strlen(message));
-        return EXIT_FAILURE;
-    } else { client_info->fd = fd; }
+        memset(serial, 0 , serial_size);
+        memmove(serial, buffer, serial_size);
+    }
 
-    tcp_client_send(fd, buffer);
-    cpt_packet_reset(packet);
-
-    client_info->packet = packet; // save the packet for later.
-    return 0;
+    return serial;
 }
 
 
 int cpt_get_users(void * cpt, char * query_string)
 {
     CptPacket * packet;
+    size_t serial_size;
     CptClientInfo * client_info;
     uint8_t buffer[LG_BUFF_SIZE];
 
@@ -59,9 +52,9 @@ int cpt_get_users(void * cpt, char * query_string)
 
     cpt_packet_cmd(packet, (uint8_t) GET_USERS);
     if (query_string) { cpt_packet_msg(packet, query_string); }
-    cpt_serialize_packet(packet, buffer);
+    serial_size = cpt_serialize_packet(packet, buffer);
 
-    tcp_client_send(client_info->fd, buffer);
+    tcp_client_send(client_info->fd, buffer, serial_size);
     cpt_packet_reset(packet);
     return 0;
 }
@@ -70,6 +63,7 @@ int cpt_get_users(void * cpt, char * query_string)
 
 int cpt_send_msg(void * cpt, char * msg)
 {
+    size_t serial_size;
     CptPacket * packet;
     CptClientInfo * client_info;
     uint8_t buffer[LG_BUFF_SIZE];
@@ -86,9 +80,9 @@ int cpt_send_msg(void * cpt, char * msg)
 
     cpt_packet_cmd(packet, (uint8_t) SEND);
     cpt_packet_msg(packet, msg);
-    cpt_serialize_packet(packet, buffer);
+    serial_size = cpt_serialize_packet(packet, buffer);
 
-    tcp_client_send(client_info->fd, buffer);
+    tcp_client_send(client_info->fd, buffer, serial_size);
     cpt_packet_reset(packet);
 
     cpt_packet_reset(packet);
@@ -99,6 +93,7 @@ int cpt_send_msg(void * cpt, char * msg)
 
 int cpt_logout(void * cpt)
 {
+
     CptPacket * packet;
     CptClientInfo * client_info;
     uint8_t buffer[LG_BUFF_SIZE];
@@ -114,9 +109,10 @@ int cpt_logout(void * cpt)
     }
 
     cpt_packet_cmd(packet, (uint8_t) LOGOUT);
-    cpt_serialize_packet(packet, buffer);
+    size_t serial_size;
+    serial_size = cpt_serialize_packet(packet, buffer);
 
-    tcp_client_send(client_info->fd, buffer);
+    tcp_client_send(client_info->fd, buffer, serial_size);
     cpt_packet_reset(packet);
 
     return 0;
@@ -141,9 +137,10 @@ int cpt_join_channel(void * cpt, int channel_id)
     }
 
     cpt_packet_cmd(packet, (uint8_t) JOIN_CHANNEL);
-    cpt_serialize_packet(packet, req_buffer);
+    size_t serial_size;
+    serial_size = cpt_serialize_packet(packet, req_buffer);
 
-    tcp_client_send(client_info->fd, req_buffer);
+    tcp_client_send(client_info->fd, req_buffer, serial_size);
     response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
     cpt_parse_response(&response, response_msg);
 
@@ -159,6 +156,7 @@ int cpt_join_channel(void * cpt, int channel_id)
 
 int cpt_create_channel(void * cpt, char * members, bool is_private)
 {
+    size_t serial_size;
     CptResponse response;
     CptPacket * packet;
     LinkedList * channels;
@@ -179,9 +177,9 @@ int cpt_create_channel(void * cpt, char * members, bool is_private)
 
     cpt_packet_cmd(packet, (uint8_t) CREATE_CHANNEL);
     if ( members ) { cpt_packet_msg(packet, members); }
-    cpt_serialize_packet(packet, req_buffer);
+    serial_size = cpt_serialize_packet(packet, req_buffer);
 
-    tcp_client_send(client_info->fd, req_buffer);
+    tcp_client_send(client_info->fd, req_buffer, serial_size);
     response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
     cpt_parse_response(&response, response_msg);
 
@@ -201,6 +199,7 @@ int cpt_create_channel(void * cpt, char * members, bool is_private)
 
 int cpt_leave_channel(void * cpt, int channel_id)
 {
+    size_t serial_size;
     CptResponse response;
     CptPacket * packet;
     uint8_t * response_msg;
@@ -217,9 +216,9 @@ int cpt_leave_channel(void * cpt, int channel_id)
     }
 
     cpt_packet_cmd(packet, (uint8_t) LEAVE_CHANNEL);
-    cpt_serialize_packet(packet, req_buffer);
+    serial_size = cpt_serialize_packet(packet, req_buffer);
 
-    tcp_client_send(client_info->fd, req_buffer);
+    tcp_client_send(client_info->fd, req_buffer, serial_size);
     response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
     cpt_parse_response(&response, response_msg);
 

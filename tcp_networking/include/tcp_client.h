@@ -65,7 +65,7 @@ int tcp_client_connect(int sock_fd, struct addrinfo * serv_info);
  * @param sock_fd   Socket file descriptor.
  * @param msg       Data to send.
  */
-void tcp_client_send(int sock_fd, uint8_t * data);
+int tcp_client_send(int sock_fd, uint8_t * data, size_t data_size);
 
 
 /**

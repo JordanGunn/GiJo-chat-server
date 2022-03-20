@@ -100,6 +100,6 @@ int tcp_server_init(char * host, const char *port);
  * @param data      Data being sent.
  * @return          0 if success, -1 if failure.
  */
-int tcp_server_send(int sock_fd, uint8_t * data);
+int tcp_server_send(int sock_fd, uint8_t * data, size_t data_size);
 
 #endif //CPT_TCP_SERVER_H

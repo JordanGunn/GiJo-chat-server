@@ -123,24 +123,42 @@ int destroy_settings(const struct dc_posix_env *env,
 
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
+    int fd, result;
+    char * name, * host, * port;
+
+    CptPacket * packet;
     CptClientInfo * client_info;
 
-    char * name, * host, * port;
+    uint8_t * serial_recv, * serial;
     struct application_settings * app_settings;
     app_settings = (struct application_settings *) settings;
+
     host  = dc_setting_string_get(env, app_settings->host);
     port  = dc_setting_string_get(env, app_settings->port);
     name  = dc_setting_string_get(env, app_settings->login);
 
+    // initialization
+    serial_recv = NULL;
     client_info = cpt_init_client_info(port, host);
+    fd = tcp_init_client(client_info->ip, client_info->port);
+    client_info->fd = fd;
 
-    cpt_login(client_info, name);
+    // send data to server
+    serial = cpt_login(client_info, name);
+    result = tcp_client_send(client_info->fd, serial, sizeof(serial));
 
-    close(client_info->fd);
+    // collect echo from server
+    if (result != -1)
+    {
+        serial_recv = (uint8_t *) tcp_client_recv(client_info->fd);
+        packet = cpt_parse_packet(serial_recv);
+        if ( packet )
+        {
+            cpt_packet_destroy(packet);
+        }
+    }
 
-
-    DC_TRACE(env);
-
+    close(client_info->fd);  // close the connection
     return EXIT_SUCCESS;
 }
 

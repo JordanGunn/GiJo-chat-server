@@ -79,17 +79,18 @@ int tcp_client_connect(int sock_fd, struct addrinfo * serv_info)
 }
 
 
-void tcp_client_send(int sock_fd, uint8_t * data)
+int tcp_client_send(int sock_fd, uint8_t * data, size_t data_size)
 {
     ssize_t bytes_sent;
 
-    bytes_sent = send(sock_fd, data, strlen((char *)data), 0);
+    bytes_sent = send(sock_fd, data, data_size, 0);
     if (bytes_sent < 0)
     {
         const char * err_msg = "Failed to send bytes to server...\n";
         write(STDERR_FILENO, err_msg, strlen(err_msg));
-        exit(EXIT_FAILURE);
     }
+
+    return (int) bytes_sent;
 }
 
 
@@ -110,50 +111,20 @@ int tcp_init_client(const char * host, const char * port)
 char * tcp_client_recv(int sock_fd)
 {
     ssize_t bytes_received;
-    char buff[LG_BUFF_SIZE];
     char * received;
+    char buff[LG_BUFF_SIZE] = {0};
 
     bytes_received = recv(sock_fd, buff, sizeof(buff), 0);
     if ( bytes_received < 0 )
     {
-        const char * msg = "Failed to receive data from client...\n";
+        const char * msg = "Failed to receive data from server...\n";
+        printf("  ERROR: %s\n", strerror(errno));
         write(STDERR_FILENO, msg, strlen(msg));
         return NULL;
     }
 
-    received = strdup(buff);
+    received = malloc(bytes_received);
+    memset(received, 0, bytes_received);
+    memmove(received, buff, bytes_received);
     return received;
 }
-
-
-//void countdown(long time_point)
-//{
-//    long hours_to_sec, mins_to_sec;
-//    long now_in_sec, time_left;
-//
-//    time_t now;
-//    struct tm * timeinfo;
-//    now_in_sec = 0;
-//
-//    while ((time_point - now_in_sec) > 0 )
-//    {
-//        time(&now);
-//        timeinfo = localtime(&now);
-//        hours_to_sec = timeinfo->tm_hour * 60 * 60;
-//        mins_to_sec = timeinfo->tm_min * 60;
-//        now_in_sec = (hours_to_sec + mins_to_sec + timeinfo->tm_sec);
-//    }
-//}
-
-
-//long time_in_sec(char * client_time)
-//{
-//    if (!client_time) { return 0; }
-//    long hours, minutes;
-//    long hours_in_sec, mins_in_sec;
-//    sscanf(client_time, "%ld:%ld", &hours, &minutes);
-//    hours_in_sec = hours * 60 * 60;
-//    mins_in_sec = minutes * 60;
-//
-//    return (hours_in_sec + mins_in_sec);
-//}

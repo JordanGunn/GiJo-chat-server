@@ -128,52 +128,8 @@ void parse(unsigned char * buffer, char * format, ...)
     va_end(ap);
 }
 
-///* pack: pack binary items int o buffer, return length */
-//int pack(uint8_t * buffer, char * fmt, ...)
-//{
-//    va_list argv;
-//    uint8_t * bp;
-//    uint16_t l;
-//    bp = buffer;
-//
-//
-//    char * str; // strings
-//    unsigned int len;
-//    unsigned int size = 0;
-//
-//    va_start (argv, fmt) ;
-//    for (char * p = fmt ; *p != '\0'; p++) {
-//        switch (*p) {
-//            case 'c' : /* char */
-//                *bp++ = va_arg(argv, int);
-//                break;
-//            case 'l' : /* short */
-//                l = va_arg(argv, int);
-//                *bp++ = l >> 8;
-//                *bp++ = l;
-//                break;
-//            case 's': // string
-//                str = va_arg(argv, char*);
-//                len = strlen(str);
-//                size += len + 2;
-//                pack_int16(buffer, len);
-//                buffer += 2;
-//                memcpy(buffer, str, len);
-//                buffer += len;
-//                break;
-//            default: /* i l l e g a l type character */
-//                va_end(argv);
-//                return -1;
-//        }
-//    }
-//    va_end(argv);
-//    return (int)(bp - buffer);
-//}
 
-/*
-** unpacki16() -- unpack a 16-bit int from a char buffer (like ntohs())
-*/
-int unpacki16(unsigned char *buf)
+int unpacki16(unsigned char * buf)
 {
     unsigned int i2 = ((unsigned int)buf[0]<<8) | buf[1];
     int i;
@@ -185,11 +141,9 @@ int unpacki16(unsigned char *buf)
     return i;
 }
 
-/*
-** unpacku16() -- unpack a 16-bit unsigned from a char buffer (like ntohs())
-*/
-unsigned int unpacku16(unsigned char *buf)
+
+unsigned int unpacku16(unsigned char * buf)
 {
-    return ((unsigned int)buf[0]<<8) | buf[1];
+    return ((unsigned int)buf[0] << 8) | buf[1];
 }
 

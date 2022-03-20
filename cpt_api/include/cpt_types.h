@@ -45,6 +45,7 @@ struct cpt_packet {
  */
 struct cpt_client_info {
     int fd;
+    int code;
     char * ip;
     char * port;
     char * name;

@@ -23,7 +23,7 @@
 * @param cpt   CPT packet and any additional information.
 * @return      A status code. Either from server, or user defined.
 */
-int cpt_login(void * cpt, char * name);
+uint8_t * cpt_login(void * cpt, char * name);
 
 
 /**

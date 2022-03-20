@@ -111,7 +111,7 @@ void run()
 
                     /* Echo data back to client */
                     printf("  %d bytes received\n", result);
-                    result = tcp_server_send(poll_fds[i].fd, data);
+                    result = tcp_server_send(poll_fds[i].fd, data, 20);
                     if ( (result < 0) )
                     {
                         perror("  send() failed");
@@ -173,6 +173,8 @@ int login_event()
     uint8_t * data;
     CptPacket * packet;
     int login_res, new_fd;
+    uint8_t serial_size;
+    uint8_t serial_buf[MD_BUFF_SIZE];
     struct sockaddr_storage client_addr;
 
     new_fd = tcp_server_accept(&client_addr, poll_fds[CHANNEL_ZERO].fd);
@@ -184,13 +186,15 @@ int login_event()
             return new_fd;
         }
     }
-    data = (uint8_t *)tcp_server_recv(poll_fds[CHANNEL_ZERO].fd, &login_res);
+    data = (uint8_t *)tcp_server_recv(new_fd, &login_res);
     packet = cpt_parse_packet(data);
     login_res = cpt_handle_login(global_channel, packet, new_fd);
     if (login_res == SUCCESS)
     {
         poll_fds[nfds  ].fd = new_fd;
         poll_fds[nfds++].events = POLLIN | POLLOUT;
+        serial_size = cpt_serialize_packet(packet, serial_buf);
+        tcp_server_send(new_fd, serial_buf, serial_size);
     }
     return login_res;
 }

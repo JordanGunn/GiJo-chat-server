@@ -215,9 +215,11 @@ void cpt_response_destroy(CptResponse * res)
 
 CptMsgResponse * cpt_msg_response_init(uint8_t * msg, uint16_t chan_id, uint16_t user_id)
 {
+    size_t num_bytes;
     CptMsgResponse * msg_res;
 
-    if ( !(msg_res = malloc(sizeof(struct cpt_msg_response))) ) { return NULL; }
+    num_bytes = sizeof(struct cpt_msg_response);
+    if ( !(msg_res = malloc(num_bytes)) ) { return NULL; }
     if ( !msg ) { return NULL; }
 
     msg_res->msg = (uint8_t *) strdup((char *) msg);
@@ -241,5 +243,3 @@ void cpt_msg_response_destroy(CptMsgResponse * msg_res)
         msg_res = NULL;
     }
 }
-
-
