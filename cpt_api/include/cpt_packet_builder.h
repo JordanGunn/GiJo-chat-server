@@ -12,9 +12,9 @@
 #include "cpt_definitions.h"
 
 
-// ================================== //
+// ==================================
 // C P T   C L I E N T   P A C K E T
-// ================================== //
+// ==================================
 
 
 /**
@@ -124,7 +124,7 @@ void cpt_packet_reset(CptPacket * cpt);
  * @param data      Data being sent to client.
  * @return          CptResponse object.
  */
-CptResponse * cpt_response_init(uint16_t res_code, uint8_t * data);
+CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code, uint8_t * data);
 
 
 /**

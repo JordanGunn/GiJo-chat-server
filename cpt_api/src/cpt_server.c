@@ -4,33 +4,7 @@
 
 #include "cpt_server.h"
 
-
-CptPacket * cpt_recv_packet(uint8_t * data)
-{
-    CptPacket * packet;
-    if ( !data ) { return NULL; }
-
-    packet = cpt_parse_packet(data);
-    return ( packet ) ? packet : NULL;
-}
-
-
-int cpt_send_response(User * user, CptResponse * response)
-{
-    int result;
-    uint8_t buffer[LG_BUFF_SIZE];
-
-    if ( !user ) { return BAD_USER; }
-    if ( !response ) { return BAD_RESPONSE; }
-
-    cpt_serialize_response(response, buffer);
-    result = tcp_server_send(user->fd, buffer);
-
-    return (result >= 0) ? SUCCESS : SEND_FAILED;
-}
-
-
-int cpt_handle_login(Channel * gc, CptPacket * packet, int fd)
+int cpt_handle_login(Channel * gc, CptPacket * packet, int id)
 {
     char * name;
     User * user;
@@ -44,7 +18,7 @@ int cpt_handle_login(Channel * gc, CptPacket * packet, int fd)
 
     if ( (gc->users) )
     {
-        user = user_init( ++(gc->users->length), fd, name );
+        user = user_init(id, id, name ); // Set ID same as file descriptor.
         push_user(gc->users, user);
     }
 
@@ -52,50 +26,47 @@ int cpt_handle_login(Channel * gc, CptPacket * packet, int fd)
 }
 
 
-int cpt_handle_send(Channel * channel, User * sender, CptPacket * packet)
+uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result)
 {
-    Users users;
-    User * receiver;
-    CptResponse * res;
     CptMsgResponse * msg_res;
-    UserNode * user_iterator;
-    uint8_t res_msg_buf[LG_BUFF_SIZE];
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+    uint8_t res_msg_buf[LG_BUFF_SIZE] = {0};
 
-    if ( !channel )     { return BAD_CHANNEL; }
-    if ( !packet )      { return BAD_PACKET;  }
-    if ( !packet->msg ) { return MSG_EMPTY;   }
-
-    msg_res = cpt_msg_response_init(packet->msg, packet->channel_id, sender->id);
-    cpt_serialize_msg(msg_res, res_msg_buf); // !
-
-    if ( !msg_res ) { return BAD_PACKET; }
-
-    res = cpt_response_init(MSG_RESPONSE, res_msg_buf); // !
-
-    users = channel->users;
-    user_iterator = get_head_node(users); // !
-    while (user_iterator->next)
+    if ( !res ) { *result = BAD_PACKET; return NULL; }
+    if ( res->buffer )
     {
-        receiver = user_iterator->data;
-        cpt_send_response(receiver, res);
+        memset(res->buffer, 0, strlen((char *) res->buffer));
     }
 
-    if ( res ) { cpt_response_destroy(res); }
-    return SUCCESS;
+    msg_res = cpt_msg_response_init(packet->msg, packet->channel_id, res->fd);
+    if ( !msg_res ) { *result = BAD_PACKET; }
+
+    cpt_serialize_msg(msg_res, res_msg_buf); // !
+    if ( strlen((char *)res_msg_buf) > 0 )
+    {
+        res->buffer = (uint8_t *)
+                strdup((char *) res_msg_buf);
+    }
+
+    cpt_serialize_response(res, res_buf);
+    cpt_response_destroy(res);
+    *result = SUCCESS;
+
+    return (uint8_t *) strdup((char *) res_buf);
 }
 
 
-int cpt_handle_logout(Channel * gc, Channels dir, User * user)
+int cpt_logout_response(Channel *gc, Channels dir, CptResponse * res)
 {
     int target_id;
     Channel * channel;
     Comparator find_id;
     ChannelNode * channel_iterator;
 
-    if ( !gc )     { return BAD_CHANNEL; }
-    if ( !user )   { return BAD_USER;    }
+    if ( !gc )  { return BAD_CHANNEL; }
+    if ( !res ) { return BAD_PACKET;  }
 
-    target_id = user->id;
+    target_id = res->fd;
     find_id = (Comparator)find_user_id;
     channel_iterator = get_head_node(dir); // !
 
@@ -109,26 +80,28 @@ int cpt_handle_logout(Channel * gc, Channels dir, User * user)
 }
 
 
-int cpt_handle_get_users(Channels dir, User * user, CptPacket * packet)
+uint8_t * cpt_get_users_response(Channels dir, CptPacket *packet, CptResponse * res)
 {
     char * users_str;
-    CptResponse * res;
     Channel * channel;
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
-    if ( !user )     { return BAD_USER;   }
-    if ( !packet )   { return BAD_PACKET; }
+    if ( !packet )
+    {
+        res->code = (uint8_t) BAD_PACKET;
+        return NULL;
+    }
 
     channel = cpt_find_channel(dir, packet->channel_id);
     users_str = channel_to_string(channel);
-    if ( !users_str ) { return CHAN_EMPTY; }
-
-    res = cpt_response_init((uint16_t) GET_USERS, (uint8_t *) users_str);
-
-    if ( !res ) { return BAD_PACKET; }
-    if ( (cpt_send_response(user, res) < 0) ) { return -1; }
-
+    if ( !users_str )
+    { res->code = (uint8_t) CHAN_EMPTY; }
+    else { res->buffer = (uint8_t *)users_str; }
+    res->code = (uint8_t) SUCCESS;
+    cpt_serialize_response(res, res_buf);
     cpt_response_destroy(res);
-    return SUCCESS;
+
+    return (uint8_t *) strdup((char *) res_buf);
 }
 
 
@@ -184,7 +157,7 @@ int cpt_handle_join_channel(Channels dir, User * user, CptPacket * packet)
     channel = cpt_find_channel(dir, packet->channel_id);
 
     if ( !channel ) { return UKNOWN_CHANNEL; }
-    else { push_user(channel->users, user);  }
+    push_user(channel->users, user);
 
     return SUCCESS;
 }
@@ -207,4 +180,22 @@ int cpt_handle_leave_channel(Channels dir, User * user, CptPacket * packet)
     result = delete_node(channel->users, find_id, &packet->channel_id);
 
     return ( result < 0 ) ? SERVER_ERROR : SUCCESS;
+}
+
+
+uint8_t * cpt_simple_response(CptResponse * res)
+{
+    uint8_t res_buf[SM_BUFF_SIZE];
+    if ( res->code != SUCCESS )
+    {
+        res->code = FAILURE;
+        res->buffer = (uint8_t *) strdup(GENERIC_FAIL_MSG);
+    }
+    else
+    {
+        res->buffer = (uint8_t *) strdup(GENERIC_SUCCESS_MSG);
+    }
+    cpt_serialize_response(res, res_buf);
+
+    return (uint8_t *) strdup((char *) res_buf);
 }

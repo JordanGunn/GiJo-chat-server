@@ -14,34 +14,6 @@
 #include "cpt_user.h"
 
 
-typedef struct send_msg_params SendMsgParams;
-
-struct send_msg_params
-{
-    User * user;
-    CptMsgResponse msg_res;
-};
-
-
-
-
-
-
-
-
-
-/**
- * Receive serialized packet from client.
- *
- * Receives a serialized packet from a connected
- * client, parses it, and returns a CptPacket object.
- *
- * @param data  Data received from client.
- * @return      Pointer to a CptPacket object.
- */
-CptPacket * cpt_recv_packet(uint8_t * data);
-
-
 /**
  * Send serialized server response to client.
  *
@@ -52,7 +24,7 @@ CptPacket * cpt_recv_packet(uint8_t * data);
  * @param response  Pointer to a CptResponse object.
  * @return          0 if successful, error code on failure.
  */
-int cpt_send_response(User * user, CptResponse * response);
+int cpt_send_response(CptResponse * response);
 
 
 /**
@@ -67,7 +39,7 @@ int cpt_send_response(User * user, CptResponse * response);
  * @param cpt_packet    Pointer to a CptPacket object.
  * @return              0 if successful, error code on failure.
  */
-int cpt_handle_login(Channel * gc, CptPacket * packet, int fd);
+int cpt_handle_login(Channel * gc, CptPacket * packet, int id);
 
 
 /**
@@ -82,7 +54,7 @@ int cpt_handle_login(Channel * gc, CptPacket * packet, int fd);
  * @param cpt_packet    Pointer to a CptPacket object.
  * @return              0 if successful, error code on failure.
  */
-int cpt_handle_send(Channel * channel, User * sender, CptPacket * packet);
+uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result);
 
 
 /**
@@ -103,7 +75,7 @@ int cpt_handle_send(Channel * channel, User * sender, CptPacket * packet);
  * @param packet    Packet sent by requesting user.
  * @return 0 on success, error code on failure.
  */
-int cpt_handle_get_users(Channels dir, User * user, CptPacket * packet);
+uint8_t * cpt_get_users_response(Channels dir, CptPacket *packet, CptResponse *res);
 
 
 /**
@@ -154,12 +126,15 @@ int cpt_handle_join_channel(Channels dir, User * user, CptPacket * packet);
 int cpt_handle_leave_channel(Channels dir, User * user, CptPacket * packet);
 
 
-
-// ==================
-// C O N S U M E R S
-// ==================
-
-
-
+/**
+ * Generate a simple response message for client.
+ *
+ * Creates a serialized response packet containing
+ * generic messages for operation success or failure.
+ *
+ * @param res   Pointer to CptResponse object.
+ * @return      Pointer to Serialized CptResponse object.
+ */
+uint8_t * cpt_basic_response(CptResponse * res);
 
 #endif //CPT_CPT_SERVER_H

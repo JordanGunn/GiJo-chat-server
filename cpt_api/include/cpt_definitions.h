@@ -10,6 +10,8 @@
  * CPT constants definitions.
  */
 /* ============================== */
+#define GENERIC_SUCCESS_MSG "Operation successful"
+#define GENERIC_FAIL_MSG "Operation failed"
 #define DEFAULT_USER_NAME "anonymous"
 #define ACCESS_PRIVATE "PRIVATE"
 #define ACCESS_PUBLIC "PUBLIC"
@@ -31,7 +33,7 @@
 #define PARSE_RES_FMT "C512s"
 #define SERIAL_BUILD_FMT "CCHCs"
 #define SERIAL_MSG_RES_FMT "HHHs"
-#define PARSE_BUILD_FMT "CCH512s"
+#define PARSE_BUILD_FMT "CCHC512s"
 #define PARSE_MSG_RES_FMT "HHH512s"
 /* ============================ */
 
@@ -62,6 +64,7 @@
 #define SERVER_ERROR     19
 #define MSG_RESPONSE     20
 #define MSG_EMPTY        21
+#define FAILURE          22
 #define SERV_FATAL       666
 /* ===================== */
 

@@ -7,6 +7,7 @@
 
 #include "linked_list.h"
 
+
 typedef struct cpt_packet CptPacket;
 typedef struct cpt_response CptResponse;
 typedef struct cpt_client_info CptClientInfo;
@@ -62,6 +63,7 @@ struct cpt_client_info {
  *
  */
 struct cpt_response {
+    uint8_t fd;
     uint8_t code;
     uint8_t * buffer;
 };
@@ -93,17 +95,10 @@ struct username_id_pair {
 };
 
 
-enum {
-    CPT_TEXT,
-    CPT_VOICE,
-    CPT_IMG
-} msg_type;
-
-
 /**
  * Valid cpt protocol packet commands.
  */
-enum {
+enum commands {
     SEND,
     LOGOUT,
     LOGIN,
@@ -111,18 +106,18 @@ enum {
     CREATE_CHANNEL,
     JOIN_CHANNEL,
     LEAVE_CHANNEL
-} commands;
+};
 
 
 /**
  * Valid major and minor numbers for
  * cpt protocol versioning.
  */
-enum {
+enum version {
     MAJOR_2 = 2,
     MAJOR_1 = 1,
     MINOR_1 = 1,
     MINOR_0 = 0
-} version;
+};
 
 #endif //CPT_CPT_TYPES_H

@@ -28,6 +28,8 @@ struct addrinfo * tcp_server_addr(const char * ip, const char * port)
 }
 
 
+void check_fd_err(int fd, int res);
+
 int tcp_listen_socket(struct addrinfo * serv_info)
 {
     int server_listen_fd;
@@ -81,7 +83,7 @@ int tcp_server_bind(struct addrinfo * serv_info, int listen_fd)
 int tcp_server_listen(int listen_fd)
 {
     int result;
-    result = listen(listen_fd, LISTEN_BACKLOG_3);
+    result = listen(listen_fd, LISTEN_BACKLOG_32);
 
     if ( result < 0 )
     {
@@ -116,29 +118,20 @@ int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd)
 }
 
 
-char * tcp_server_recv(int sock_fd)
+char * tcp_server_recv(int sock_fd, int * result)
 {
-    ssize_t bytes_received;
     char buff[LG_BUFF_SIZE];
-    char * received;
-    size_t msg_len;
 
-
-    bytes_received = recv(sock_fd, buff, sizeof(buff), 0);
-    if ( bytes_received < 0 )
+    *result = (int) recv(sock_fd, buff, sizeof(buff), 0);
+    if ( *result < 0 )
     {
         const char * msg = "Failed to receive data from client...\n";
+        printf("Error: %s\n", strerror(errno));
         write(STDERR_FILENO, msg, strlen(msg));
         return NULL;
     }
 
-    msg_len = strlen(buff);
-    received = malloc( msg_len + 1);
-    if ( !received ) { return NULL; }
-    memcpy(received, buff, strlen(buff));
-    received[msg_len] = '\0';
-
-    return received;
+    return strdup(buff);
 }
 
 
@@ -160,7 +153,7 @@ int tcp_server_send(int sock_fd, uint8_t * data)
 
 int tcp_server_init(char * host, const char *port)
 {
-    int fd;
+    int fd, res, on = 1;
     struct addrinfo * addr;
 
     port = (port) ? port : PORT_8080;
@@ -169,10 +162,32 @@ int tcp_server_init(char * host, const char *port)
     addr = tcp_server_addr(host, port);
     if ( ((fd = tcp_listen_socket(addr)) >= 0) )
     {
-        tcp_server_sock_opt(fd, SO_REUSEADDR);
-        tcp_server_bind(addr, fd);
-        tcp_server_listen(fd);
+        /* Make sure we can keep using the socket */
+        res = tcp_server_sock_opt(fd, SO_REUSEADDR);
+        check_fd_err(fd, res);
+
+        /* Set socket to non-blocking */
+        res = ioctl(fd, FIONBIO, (char *)&on);
+        check_fd_err(fd, res);
+
+        /* bind the socket to the address */
+        res = tcp_server_bind(addr, fd);
+        check_fd_err(fd, res);
+
+        /* listen for incoming connections */
+        res = tcp_server_listen(fd);
+        check_fd_err(fd, res);
     }
 
     return fd;
+}
+
+
+void check_fd_err(int fd, int res)
+{
+    if (res < 0 )
+    {
+        printf("Error: %s\n", strerror(errno));
+        close(fd); exit(EXIT_FAILURE);
+    }
 }

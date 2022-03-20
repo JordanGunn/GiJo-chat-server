@@ -7,10 +7,11 @@ project(CPT
         LANGUAGES C)
 
 # add all relevant subdirectories with other CMakeList files
-add_subdirectory(common)
-add_subdirectory(tcp_networking)
-add_subdirectory(cpt_api)
-add_subdirectory(app)
+add_subdirectory(common/)
+add_subdirectory(tcp_networking/)
+add_subdirectory(cpt_api/)
+add_subdirectory(app/)
+add_subdirectory(interface/)
 
 
 # To be honest I have no idea what this does
@@ -28,8 +29,8 @@ IF(LINT)
 ENDIF()
 
 # Make a executables
-add_executable(cpt_chat_server ${CHAT_SERVER_TARGETS} ${TCP_SERVER_TARGETS} ${CPT_API_TARGETS} ${CPT_COMMON_TARGET})
-add_executable(cpt_chat_client ${CHAT_CLIENT_TARGETS}  ${TCP_CLIENT_TARGETS}  ${CPT_API_TARGETS} ${CPT_COMMON_TARGET})
+add_executable(cpt_chat_server ${CHAT_SERVER_TARGETS} ${TCP_SERVER_TARGETS} ${CPT_API_SERVER_TGT} ${CPT_COMMON_TARGET})
+add_executable(cpt_chat_client ${CHAT_CLIENT_TARGETS} ${TCP_CLIENT_TARGETS}  ${CPT_API_CLIENT_TGT} ${CPT_COMMON_TARGET} ${CLI_TARGET})
 #add_executable(sandbox ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS} ${TCP_SERVER_TARGETS} ${SANDBOX_TARGETS}  common.h app/sandbox.h common.c)
 
 # =========================================
@@ -49,12 +50,14 @@ target_include_directories(cpt_chat_server PRIVATE common/include/)
 target_include_directories(cpt_chat_server PRIVATE cpt_api/include/)
 target_include_directories(cpt_chat_server PRIVATE tcp_networking/include/)
 target_include_directories(cpt_chat_server PRIVATE app/include/)
+target_include_directories(cpt_chat_server PRIVATE interface/)
 
 # link the local source files
 target_link_directories(cpt_chat_server PRIVATE common/src/)
 target_link_directories(cpt_chat_server PRIVATE cpt_api/src/)
 target_link_directories(cpt_chat_server PRIVATE tcp_networking/src/)
-target_link_directories(cpt_chat_server PRIVATE app/)
+target_link_directories(cpt_chat_server PRIVATE app/src/)
+target_link_directories(cpt_chat_server PRIVATE interface/)
 
 
 # =========================================
@@ -73,13 +76,15 @@ target_link_directories(cpt_chat_client PRIVATE /usr/local/lib)
 target_include_directories(cpt_chat_client PRIVATE common/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_api/include/)
 target_include_directories(cpt_chat_client PRIVATE tcp_networking/include/)
-target_include_directories(cpt_chat_client PRIVATE app/)
+target_include_directories(cpt_chat_client PRIVATE app/include/)
+target_include_directories(cpt_chat_client PRIVATE interface/)
 
 # link the local source files
 target_link_directories(cpt_chat_client PRIVATE common/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_api/src/)
 target_link_directories(cpt_chat_client PRIVATE tcp_networking/src/)
-target_link_directories(cpt_chat_client PRIVATE app/)
+target_link_directories(cpt_chat_client PRIVATE app/src/)
+target_link_directories(cpt_chat_client PRIVATE interface/)
 
 # ==========================================
 # Directory inclusion for sandbox executable
@@ -129,3 +134,27 @@ target_compile_options(cpt_chat_client PRIVATE -Wpedantic -Wall -Wextra)
 #target_compile_options(sandbox PRIVATE -fstack-protector-all -ftrapv)
 #target_compile_options(sandbox PRIVATE -Wpedantic -Wall -Wextra)
 #target_compile_options(cpt_chat_client PRIVATE ${COMPILE_OPTIONS})
+
+# =============================================
+# Directory inclusion for dc app framework libs
+# =============================================
+find_library(LIBM m REQUIRED)
+find_library(LIBDC_ERROR dc_error REQUIRED)
+find_library(LIBDC_POSIX dc_posix REQUIRED)
+find_library(LIBDC_UTIL dc_util REQUIRED)
+find_library(LIBDC_FSM dc_fsm REQUIRED)
+find_library(LIBDC_APPLICATION dc_application REQUIRED)
+
+target_link_libraries(cpt_chat_client PRIVATE ${LIBM})
+target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_ERROR})
+target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_POSIX})
+target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_UTIL})
+target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_FSM})
+target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_APPLICATION})
+
+set_target_properties(cpt_chat_client PROPERTIES OUTPUT_NAME "cpt_chat_client")
+install(TARGETS cpt_chat_client DESTINATION bin)
+
+#set(THREADS_PREFER_PTHREAD_FLAG ON)
+#find_package(Threads REQUIRED)
+#target_link_libraries(udp_tester_client PRIVATE Threads::Threads)

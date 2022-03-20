@@ -23,6 +23,7 @@ int cpt_login(void * cpt, char * name)
         : cpt_packet_msg(packet, DEFAULT_USER_NAME);
 
     cpt_serialize_packet(packet, buffer);
+    CptPacket * p = cpt_parse_packet(buffer);
     fd = tcp_init_client(client_info->ip, client_info->port);
 
     if ( fd < 0 )
@@ -264,9 +265,20 @@ void cpt_destroy_client_info(CptClientInfo * client_info)
 {
     if ( client_info )
     {
-        if ( client_info->packet ) { cpt_packet_destroy(client_info->packet);    }
-        if ( client_info->ip ) { free(client_info->ip); client_info->ip = NULL;     }
-        if ( client_info->ip ) { free(client_info->port); client_info->port = NULL; }
+        if ( client_info->packet )
+        {
+            cpt_packet_destroy(client_info->packet);
+        }
+        if ( client_info->ip )
+        {
+            free(client_info->ip);
+            client_info->ip = NULL;
+        }
+        if ( client_info->port )
+        {
+            free(client_info->port);
+            client_info->port = NULL;
+        }
         free(client_info);
         client_info = NULL;
     }

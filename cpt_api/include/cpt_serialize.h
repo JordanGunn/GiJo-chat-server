@@ -18,6 +18,7 @@
 */
 size_t cpt_serialize_packet(CptPacket * cpt, uint8_t * buffer);
 
+
 /**
 * Serialize a CptResponse object for transmission.
 *

@@ -38,7 +38,4 @@ CptPacket * cpt_parse_packet(uint8_t * packet);
  */
 uint16_t cpt_parse_channel_query(CptPacket * packet, uint16_t * id_buffer);
 
-
-
-
 #endif //CPT_CPT_PARSE_H

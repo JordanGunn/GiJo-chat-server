@@ -18,7 +18,7 @@ CptPacket * cpt_parse_packet(uint8_t * packet)
     CptPacket * cpt;
     cpt = cpt_packet_init();
     memset(cpt, 0, sizeof(struct cpt_packet));
-    char msg_buff[SM_BUFF_SIZE];
+    char msg_buff[MD_BUFF_SIZE];
 
 
     parse( // !

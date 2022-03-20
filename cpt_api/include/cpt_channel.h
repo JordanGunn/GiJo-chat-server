@@ -33,15 +33,6 @@ struct channel_struct /* may consider adding a fd to this object... */
 
 
 /**
- * LinkedList of Channel objects.
- */
-struct channel_directory
-{
-    Channels channels;
-};
-
-
-/**
  * Initialize Channel object.
  *
  * Initialize a Channel object, allocating
@@ -112,11 +103,11 @@ Channel * cpt_find_channel(Channels dir, uint16_t id);
 char * channel_to_string(Channel * channel);
 
 
-// ===================
-// P R E D I C A T E S
-// ===================
+// =====================
+// C O M P A R A T O R S
+// =====================
 
-bool find_channel_id(Channel * channel, int * id);
+bool find_channel_id(Channel * channel, const int * id);
 bool find_channel_name(Channel * channel, int * id);
 bool filter_channels_public(Channel * channel, FilterQuery * filter_query);
 bool filter_channels_private(Channel * channel, FilterQuery * filter_query);

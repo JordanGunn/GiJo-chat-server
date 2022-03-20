@@ -155,3 +155,8 @@ Channel * cpt_find_channel(Channels dir, uint16_t id)
     return ( channel ) ? channel : NULL;
 }
 
+bool find_channel_id(Channel * channel, const int * id)
+{
+    return (channel->id == *id);
+}
+

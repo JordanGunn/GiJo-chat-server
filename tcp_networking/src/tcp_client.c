@@ -18,7 +18,7 @@ struct addrinfo * tcp_client_addr(const char * host, const char * port)
 
     if ( (getaddrinfo(host, port, &hints, &serv_info)) < 0 )
     {
-        const char * msg = "Failed to get client address info...";
+        const char * msg = "Failed to get client address info...\n";
         write(STDERR_FILENO, msg, strlen(msg));
         return NULL;
     }
@@ -35,7 +35,7 @@ int tcp_client_socket(struct addrinfo * serv_info)
 
     if (client_sock_fd < 0)
     {
-        const char * msg = "Failed to create client socket...";
+        const char * msg = "Failed to create client socket...\n";
         write(STDERR_FILENO, msg, strlen(msg));
         return -1;
     }
@@ -69,7 +69,7 @@ int tcp_client_connect(int sock_fd, struct addrinfo * serv_info)
 
     if ( result < 0)
     {
-        const char * msg = "Failed to connect to server...";
+        const char * msg = "Failed to connect to server...\n";
         write(STDERR_FILENO, msg, strlen(msg));
         return -1;
     }
@@ -86,7 +86,7 @@ void tcp_client_send(int sock_fd, uint8_t * data)
     bytes_sent = send(sock_fd, data, strlen((char *)data), 0);
     if (bytes_sent < 0)
     {
-        const char * err_msg = "Failed to send bytes to server...";
+        const char * err_msg = "Failed to send bytes to server...\n";
         write(STDERR_FILENO, err_msg, strlen(err_msg));
         exit(EXIT_FAILURE);
     }

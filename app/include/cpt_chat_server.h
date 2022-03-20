@@ -12,6 +12,16 @@
 #include "cpt_server.h"
 #include "cpt_global_channel.h"
 
+void run();
+
+void server_destroy();
+
+int login_event();
+
+void listen_socket_init();
+
+bool should_end_event_loop(int poll_result);
+
 
 
 

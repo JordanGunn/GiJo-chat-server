@@ -72,7 +72,6 @@ void cpt_packet_version(CptPacket * cpt, uint8_t version_major, uint8_t version_
     bool exceeds_major;
     bool exceeds_minor;
 
-    version = 0;
     exceeds_major = (version_major > VERSION_MAJOR_MAX);
     exceeds_minor = (version_minor > VERSION_MINOR_MAX);
 
@@ -178,7 +177,7 @@ char * cpt_to_string(CptPacket * cpt)
 // ==================================
 
 
-CptResponse * cpt_response_init(uint16_t res_code, uint8_t * data)
+CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code, uint8_t * data)
 {
     CptResponse * res;
 
@@ -187,6 +186,7 @@ CptResponse * cpt_response_init(uint16_t res_code, uint8_t * data)
 
     res->buffer = (uint8_t *) strdup((char *) data);
     res->code = res_code;
+    res->fd = fd;
 
     return res;
 }

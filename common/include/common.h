@@ -19,7 +19,9 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <poll.h>
+#include <errno.h>
 
 #endif //CPT_CPT_CHAT_CLIENT_H
 
@@ -38,6 +40,8 @@
 #include <netdb.h>
 #include <poll.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <errno.h>
 
 
 

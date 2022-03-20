@@ -6,5 +6,9 @@
 #define CPT_CPT_CHAT_CLIENT_H
 
 
+#include "client_config.h"
+#include "cli_dc_app.h"
+
+
 
 #endif //CPT_CPT_CHAT_CLIENT_H
