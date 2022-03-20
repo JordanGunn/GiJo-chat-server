@@ -4,14 +4,7 @@
 
 #include "cpt_packet_builder.h"
 
-/**
-* Initialize cpt struct.
-*
-* Dynamically allocates a cpt struct and
-* initializes all fields.
-*
-* @return Pointer to cpt struct.
-*/
+
 CptPacket * cpt_packet_init()
 {
     CptPacket * cpt_packet;
@@ -25,11 +18,6 @@ CptPacket * cpt_packet_init()
 
 
 
-/**
-* Free all memory and set fields to null.
-*
-* @param cpt   Pointer to a cpt structure.
-*/
 void cpt_packet_destroy(CptPacket * cpt)
 {
     if (cpt)
@@ -45,12 +33,6 @@ void cpt_packet_destroy(CptPacket * cpt)
 }
 
 
-/**
-* Set the command value for the cpt header block.
-*
-* @param cpt   Pointer to a cpt structure.
-* @param cmd   From enum commands.
-*/
 void cpt_packet_cmd(CptPacket * cpt, uint8_t cmd)
 {
     if ( (cmd < SEND) || (cmd > LEAVE_CHANNEL) )
@@ -60,13 +42,6 @@ void cpt_packet_cmd(CptPacket * cpt, uint8_t cmd)
 }
 
 
-/**
-* Set major and minor version for the cpt header block.
-*
-* @param cpt           Pointer to a cpt structure.
-* @param version_major From enum version.
-* @param version_minor From enum version.
-*/
 void cpt_packet_version(CptPacket * cpt, uint8_t version_major, uint8_t version_minor)
 {
     bool exceeds_major;
@@ -82,25 +57,12 @@ void cpt_packet_version(CptPacket * cpt, uint8_t version_major, uint8_t version_
 }
 
 
-/**
-* Set the channel id for the cpt header block.
-*
-* @param cpt           Pointer to a cpt structure.
-* @param channel_id    A 16-bit integer.
-*/
 void cpt_packet_chan(CptPacket * cpt, uint16_t channel_id)
 {
     cpt->channel_id = channel_id;
 }
 
 
-/**
-* Set the MSG field for the cpt packet and
-* appropriately update the MSG_LEN
-*
-* @param cpt  Pointer to a cpt structure.
-* @param msg  Pointer to an array of characters.
-*/
 void cpt_packet_msg(CptPacket * cpt, char * msg)
 {
     char * msg_field;
@@ -119,14 +81,6 @@ void cpt_packet_msg(CptPacket * cpt, char * msg)
 }
 
 
-/**
- * Reset packet parameters.
- *
- * Reset the packet parameters,
- * and free memory for certain params.
- *
- * @param cpt    A CptPacket struct.
-*/
 void cpt_packet_reset(CptPacket * cpt)
 {
     if ( cpt->msg ) { free(cpt->msg); cpt->msg = NULL; }
@@ -135,11 +89,6 @@ void cpt_packet_reset(CptPacket * cpt)
 }
 
 
-/**
- * Print out the contents of a CPT packet
- *
- * @param cpt
- */
 char * cpt_to_string(CptPacket * cpt)
 {
     char buffer[MD_BUFF_SIZE] = {0};

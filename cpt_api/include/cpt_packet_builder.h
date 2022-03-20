@@ -18,85 +18,94 @@
 
 
 /**
-* Initialize cpt struct.
-*
-* Dynamically allocates a cpt struct and
-* initializes all fields.
-*
-* @return Pointer to cpt struct.
+ * Initialize CptPacket object.
+ *
+ * Dynamically allocates a cpt struct and
+ * initializes all fields.
+ *
+ * @return Pointer to cpt struct.
 */
 CptPacket * cpt_packet_init(void);
 
 
 /**
-* Free all memory and set fields to null.
-*
-* @param cpt   Pointer to a cpt structure.
+ * Free all memory and set fields to null.
+ *
+ * @param cpt   Pointer to a cpt structure.
 */
 void cpt_packet_destroy(CptPacket * cpt);
 
 
 /**
-* Set the command value for the cpt header block.
-*
-* @param cpt   Pointer to a cpt structure.
-* @param cmd   From enum commands.
+ * Set the command value for the cpt header block.
+ *
+ * @param cpt   Pointer to a cpt structure.
+ * @param cmd   From enum commands.
 */
 void cpt_packet_cmd(CptPacket * cpt, uint8_t cmd);
 
 
 /**
-* Set major and minor version for the cpt header block.
-*
-* @param cpt           Pointer to a cpt structure.
-* @param version_major From enum version.
-* @param version_minor From enum version.
+ * Set major and minor version for the cpt header block.
+ *
+ * @param cpt           Pointer to a cpt structure.
+ * @param version_major From enum version.
+ * @param version_minor From enum version.
 */
 void cpt_packet_version(CptPacket * cpt, uint8_t version_major, uint8_t version_minor);
 
 
 /**
-* Set the message length for the cpt header block.
-*
-* @param cpt       Pointer to a cpt structure.
-* @param msg_len   An 8-bit integer.
+ * Set the message length for the cpt header block.
+ *
+ * @param cpt       Pointer to a cpt structure.
+ * @param msg_len   An 8-bit integer.
 */
 void cpt_packet_len(CptPacket * cpt, uint8_t msg_len);
 
 
 /**
-* Set the channel id for the cpt header block.
-*
-* @param cpt           Pointer to a cpt structure.
-* @param channel_id    A 16-bit integer.
+ * Set the channel id for the cpt header block.
+ *
+ * @param cpt           Pointer to a cpt structure.
+ * @param channel_id    A 16-bit integer.
 */
 void cpt_packet_chan(CptPacket * cpt, uint16_t channel_id);
 
 
 /**
-* Set the MSG field for the cpt packet and
-* appropriately update the MSG_LEN
-*
-* @param cpt  Pointer to a cpt structure.
-* @param msg  Pointer to an array of characters.
+ * Set the MSG field for the cpt packet.
+ *
+ * Also appropriately updates the MSG_LEN field.
+ *
+ * @param cpt  Pointer to a cpt structure.
+ * @param msg  Pointer to an array of characters.
 */
 void cpt_packet_msg(CptPacket * cpt, char * msg);
 
 
 /**
-* Check serialized cpt to see if it is a valid cpt block.
-*
-* @param packet    A serialized cpt protocol message.
-* @return          0 if no issues, otherwise CPT error code.
+ * Check serialized cpt to see if it is a valid cpt block.\n\n
+ *
+ * @param packet    A serialized cpt protocol message.
+ * @return 0 if no issues, otherwise CPT error code.
 */
 int cpt_validate(void * packet);
 
 
 /**
-* Check serialized cpt to see if it is a valid cpt block.
-*
-* @param packet    A serialized cpt protocol message.
-* @return          0 if no issues, otherwise CPT error code.
+ * Convert CptPacket object to a string representation.\n\n
+ *
+ * Converts a CptPacket object to a string, returning
+ * a char pointer to the dynamically allocated memory.
+ * If fields are missing from the CptPacket, they will
+ * be filled with default values to signify as such.
+ *
+ * If call fails for any reason, function returns NULL.
+ *
+ *
+ * @param packet    A serialized cpt protocol message.
+ * @return Char pointer to dynamically allocated string.
 */
 char * cpt_to_string(CptPacket * cpt);
 
@@ -122,7 +131,7 @@ void cpt_packet_reset(CptPacket * cpt);
  *
  * @param packet    Received client-side packet.
  * @param data      Data being sent to client.
- * @return          CptResponse object.
+ * @return CptResponse object.
  */
 CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code, uint8_t * data);
 
