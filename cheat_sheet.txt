@@ -82,12 +82,12 @@ ECONNREFUSED        indicates that no process is waiting for connections
     to replace itself with the new program. This is typical for
     programs such as shells.
 
-3.  Eating voids that are (typically) not composed of mostly liquid.
-    Some exceptions may occur in which one wishes to use a spoon.
+3.  Eating foods that are (typically) not composed of primarily liquid.
+    Some exceptions may occur in which one wishes to use a spoon however.
     This is particularly useful when the desired food tends to fall
-    off of the fork(), rendering the utensil essentially useless.
-    For example, with foods that are small and consumed  in large
-    quantities, such as rice.
+    off of the fork(), rendering the utensil completely useless,
+    particularly with foods that are small and consumed in large
+    quantities, such as rice or tiny cubed hash-browns.
 
 
 
@@ -270,101 +270,3 @@ int poll(struct pollfd *fdarray, unsigned long nfds, int timeout);
     IP_{ADD,DROP}_MEMBERSHIP • Join or leave multicast group ip_mreq{}
     IP_{BLOCK,UNBLOCK}_SOURCE • Block or unblock multicast source ip_mreq_source{}
     IP_{ADD,DROP}_SOURCE_MEMBERSHIP • Join or leave source-specific multicast ip_mreq_source{}
-
-
-
-    link_directories(${CPT_SOURCE_DIR}/include/app)
-
-    set(APP_CLIENT_SRC
-            ${CPT_SOURCE_DIR}/app/src/cpt_chat_client.c
-            PARENT_SCOPE)
-
-    set(APP_SERVER_SRC
-            ${CPT_SOURCE_DIR}/app/src/cpt_chat_server.c
-            PARENT_SCOPE)
-
-    set(APP_CLIENT_HEADERS
-            ${CPT_SOURCE_DIR}/app/include/cpt_chat_client.h
-            PARENT_SCOPE)
-
-    set(APP_SERVER_HEADERS
-            ${CPT_SOURCE_DIR}/app/include/cpt_chat_server.h
-            PARENT_SCOPE)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///// TO DO
-
-1. checkout signal more. Text is confusing. need to watch a video or something.
-        - return to page 139 +\- 10 pages
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

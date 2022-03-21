@@ -108,23 +108,17 @@ int tcp_init_client(const char * host, const char * port)
 }
 
 
-char * tcp_client_recv(int sock_fd)
+size_t tcp_client_recv(int sock_fd, uint8_t * buff)
 {
     ssize_t bytes_received;
-    char * received;
-    char buff[LG_BUFF_SIZE] = {0};
 
-    bytes_received = recv(sock_fd, buff, sizeof(buff), 0);
+    bytes_received = recv(sock_fd, buff, MD_BUFF_SIZE, 0);
     if ( bytes_received < 0 )
     {
         const char * msg = "Failed to receive data from server...\n";
         printf("  ERROR: %s\n", strerror(errno));
         write(STDERR_FILENO, msg, strlen(msg));
-        return NULL;
     }
 
-    received = malloc(bytes_received);
-    memset(received, 0, bytes_received);
-    memmove(received, buff, bytes_received);
-    return received;
+    return bytes_received;
 }

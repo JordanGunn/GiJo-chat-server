@@ -39,7 +39,10 @@ int cpt_send_response(CptResponse * response);
  * @param cpt_packet    Pointer to a CptPacket object.
  * @return              0 if successful, error code on failure.
  */
-int cpt_handle_login(Channel * gc, CptPacket * packet, int id);
+int cpt_login_response(Channel * gc, CptPacket * packet, int id);
+
+
+int cpt_logout_response(Channel *gc, Channels dir, int id);
 
 
 /**
@@ -135,6 +138,7 @@ int cpt_handle_leave_channel(Channels dir, User * user, CptPacket * packet);
  * @param res   Pointer to CptResponse object.
  * @return      Pointer to Serialized CptResponse object.
  */
-uint8_t * cpt_basic_response(CptResponse * res);
+size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf);
+
 
 #endif //CPT_CPT_SERVER_H

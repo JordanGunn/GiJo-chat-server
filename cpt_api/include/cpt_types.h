@@ -64,9 +64,9 @@ struct cpt_client_info {
  *
  */
 struct cpt_response {
-    uint8_t fd;
+    uint16_t fd;
     uint8_t code;
-    uint8_t * buffer;
+    uint8_t * data;
 };
 
 
@@ -102,11 +102,11 @@ struct username_id_pair {
 enum commands {
     SEND,
     LOGOUT,
-    LOGIN,
     GET_USERS,
     CREATE_CHANNEL,
     JOIN_CHANNEL,
-    LEAVE_CHANNEL
+    LEAVE_CHANNEL,
+    LOGIN
 };
 
 

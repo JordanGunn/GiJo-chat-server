@@ -10,7 +10,7 @@ project(CPT
 add_subdirectory(common/)
 add_subdirectory(tcp_networking/)
 add_subdirectory(cpt_api/)
-add_subdirectory(app/)
+add_subdirectory(cpt_app/)
 add_subdirectory(interface/)
 
 
@@ -49,14 +49,14 @@ target_link_directories(cpt_chat_server PRIVATE /usr/local/lib)
 target_include_directories(cpt_chat_server PRIVATE common/include/)
 target_include_directories(cpt_chat_server PRIVATE cpt_api/include/)
 target_include_directories(cpt_chat_server PRIVATE tcp_networking/include/)
-target_include_directories(cpt_chat_server PRIVATE app/include/)
+target_include_directories(cpt_chat_server PRIVATE cpt_app/include/)
 target_include_directories(cpt_chat_server PRIVATE interface/)
 
 # link the local source files
 target_link_directories(cpt_chat_server PRIVATE common/src/)
 target_link_directories(cpt_chat_server PRIVATE cpt_api/src/)
 target_link_directories(cpt_chat_server PRIVATE tcp_networking/src/)
-target_link_directories(cpt_chat_server PRIVATE app/src/)
+target_link_directories(cpt_chat_server PRIVATE cpt_app/src/)
 target_link_directories(cpt_chat_server PRIVATE interface/)
 
 
@@ -76,14 +76,14 @@ target_link_directories(cpt_chat_client PRIVATE /usr/local/lib)
 target_include_directories(cpt_chat_client PRIVATE common/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_api/include/)
 target_include_directories(cpt_chat_client PRIVATE tcp_networking/include/)
-target_include_directories(cpt_chat_client PRIVATE app/include/)
+target_include_directories(cpt_chat_client PRIVATE cpt_app/include/)
 target_include_directories(cpt_chat_client PRIVATE interface/)
 
 # link the local source files
 target_link_directories(cpt_chat_client PRIVATE common/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_api/src/)
 target_link_directories(cpt_chat_client PRIVATE tcp_networking/src/)
-target_link_directories(cpt_chat_client PRIVATE app/src/)
+target_link_directories(cpt_chat_client PRIVATE cpt_app/src/)
 target_link_directories(cpt_chat_client PRIVATE interface/)
 
 # ==========================================
@@ -97,16 +97,6 @@ target_link_directories(cpt_chat_client PRIVATE interface/)
 ## tell the compiler to check here for 3rd party source files
 #target_link_directories(sandbox PRIVATE /usr/lib)
 #target_link_directories(sandbox PRIVATE /usr/local/lib)
-
-#SET(COMPILE_OPTIONS
-#    -Wdouble-promotion -Wformat-nonliteral
-#    -Wformat-security -Wformat-y2k -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default
-#    -Wswitch-enum -Wunused-local-typedefs -Wstrict-overflow=5 -Wmissing-noreturn -Walloca -Wfloat-equal
-#    -Wdeclaration-after-statement -Wshadow -Wpointer-arith -Wabsolute-value -Wundef -Wexpansion-to-defined
-#    -Wunused-macros -Wno-endif-labels -Wbad-function-cast -Wcast-qual -Wwrite-strings -Wconversion -Wstrict-prototypes
-#    -Wdangling-else -Wdate-time -Wempty-body -Wsign-conversion -Wfloat-conversion -Waggregate-return -Winline
-#    -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wpacked -Wredundant-decls -Wnested-externs
-#    -Winvalid-pch -Wlong-long -Wvariadic-macros -Wdisabled-optimization -Wstack-protector -Woverlength-strings )
 
 # =========================================
 # Additional compile options for server

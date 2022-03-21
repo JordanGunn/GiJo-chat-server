@@ -4,32 +4,24 @@
 
 #include "cpt_client.h"
 
-uint8_t * cpt_login(void * cpt, char * name)
+size_t cpt_login(void * cpt, char * name, uint8_t * serial_buf)
 {
-    uint8_t * serial;
     uint8_t serial_size;
-    uint8_t buffer[LG_BUFF_SIZE] = {0};
     CptClientInfo * client_info;
     client_info = (CptClientInfo *)cpt;
 
     client_info->packet = cpt_packet_init();
     cpt_packet_chan(client_info->packet, (uint16_t) CHANNEL_ZERO);
-    cpt_packet_version(client_info->packet, VER_MAJOR_LATEST, VER_MINOR_LATEST);
+    cpt_packet_version(client_info->packet, VER_MAJ_LAT, VER_MIN_LAT);
     cpt_packet_cmd(client_info->packet, (uint8_t)LOGIN);
 
     ( name )
         ? cpt_packet_msg(client_info->packet, name)
-        : cpt_packet_msg(client_info->packet, DEFAULT_USER_NAME);
+        : cpt_packet_msg(client_info->packet, DEFAULT_USERNAME);
 
-    serial_size = cpt_serialize_packet(client_info->packet, buffer);
-    serial = malloc(serial_size);
-    if ( serial )
-    {
-        memset(serial, 0 , serial_size);
-        memmove(serial, buffer, serial_size);
-    }
+    serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
 
-    return serial;
+    return serial_size;
 }
 
 
@@ -91,136 +83,99 @@ int cpt_send_msg(void * cpt, char * msg)
 }
 
 
-int cpt_logout(void * cpt)
+size_t cpt_logout(void * cpt, uint8_t * serial_buf)
 {
 
-    CptPacket * packet;
+    size_t serial_size;
     CptClientInfo * client_info;
-    uint8_t buffer[LG_BUFF_SIZE];
 
     client_info = (CptClientInfo *)cpt;
-    packet = client_info->packet;
 
-    if ( !(client_info->fd) )
-    {
-        const char * message = "Not connected!";
-        write(STDERR_FILENO, message, strlen(message));
-        return EXIT_FAILURE;
-    }
+    cpt_packet_cmd(client_info->packet, (uint8_t) LOGOUT);
+    serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
 
-    cpt_packet_cmd(packet, (uint8_t) LOGOUT);
-    size_t serial_size;
-    serial_size = cpt_serialize_packet(packet, buffer);
+    cpt_packet_reset(client_info->packet);
 
-    tcp_client_send(client_info->fd, buffer, serial_size);
-    cpt_packet_reset(packet);
-
-    return 0;
+    return serial_size;
 }
 
 
-int cpt_join_channel(void * cpt, int channel_id)
-{
-    CptResponse response;
-    CptPacket * packet;
-    uint8_t * response_msg;
-    CptClientInfo * client_info;
-    uint8_t req_buffer[LG_BUFF_SIZE];
-
-    client_info = (CptClientInfo *)cpt;
-    packet = client_info->packet;
-    if ( !(client_info->fd) )
-    {
-        const char * message = "Not connected!";
-        write(STDERR_FILENO, message, strlen(message));
-        return EXIT_FAILURE;
-    }
-
-    cpt_packet_cmd(packet, (uint8_t) JOIN_CHANNEL);
-    size_t serial_size;
-    serial_size = cpt_serialize_packet(packet, req_buffer);
-
-    tcp_client_send(client_info->fd, req_buffer, serial_size);
-    response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
-    cpt_parse_response(&response, response_msg);
-
-    cpt_packet_reset(packet);
-    if (response.code == (uint8_t)SUCCESS)
-    {
-        client_info->channel = channel_id;
-    } else { return -1; }
-
-    return 0;
-}
+//int cpt_join_channel(void * cpt, int channel_id)
+//{
+//    CptResponse * res;
+//    size_t serial_size;
+//    uint8_t * res_msg;
+//    CptClientInfo * client_info;
+//    uint8_t req_buffer[LG_BUFF_SIZE];
+//
+//    client_info = (CptClientInfo *) cpt;
+//
+//    cpt_packet_cmd(client_info->packet, (uint8_t) JOIN_CHANNEL);
+//    serial_size = cpt_serialize_packet(client_info->packet, req_buffer);
+//
+//    tcp_client_send(client_info->fd, req_buffer, serial_size);
+//    res_msg = (uint8_t *)tcp_client_recv(client_info->fd);
+//    res = cpt_parse_response(res_msg);
+//
+//    cpt_packet_reset(client_info->packet);
+//    if (res->code == (uint8_t) SUCCESS)
+//    {
+//        client_info->channel = channel_id;
+//    } else { return -1; }
+//
+//    return 0;
+//}
 
 
-int cpt_create_channel(void * cpt, char * members, bool is_private)
-{
-    size_t serial_size;
-    CptResponse response;
-    CptPacket * packet;
-    LinkedList * channels;
-    uint8_t * response_msg;
-    CptClientInfo * client_info;
-    uint8_t req_buffer[LG_BUFF_SIZE];
-
-    if ( is_private ) { puts("Handle private channel"); } // !
-    client_info = (CptClientInfo *)cpt;
-    channels = client_info->channels;
-    packet = client_info->packet;
-    if ( !(client_info->fd) )
-    {
-        const char * message = "Not connected!";
-        write(STDERR_FILENO, message, strlen(message));
-        return EXIT_FAILURE;
-    }
-
-    cpt_packet_cmd(packet, (uint8_t) CREATE_CHANNEL);
-    if ( members ) { cpt_packet_msg(packet, members); }
-    serial_size = cpt_serialize_packet(packet, req_buffer);
-
-    tcp_client_send(client_info->fd, req_buffer, serial_size);
-    response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
-    cpt_parse_response(&response, response_msg);
-
-    cpt_packet_reset(packet);
-    if ( response.code == (uint8_t) SUCCESS )
-    {
-        uint16_t _id = strtol( // !
-                (char *)response.buffer,
-                (char **)&response.buffer, BASE_10
-            );
-        push_node(channels, &_id, channels->node_size);
-    } else { return -1; }
-
-    return 0;
-}
+//int cpt_create_channel(void * cpt, char * members, bool is_private)
+//{
+//    size_t serial_size;
+//    CptResponse * res;
+//    CptPacket * packet;
+//    LinkedList * channels;
+//    uint8_t * response_msg;
+//    CptClientInfo * client_info;
+//    uint8_t req_buffer[LG_BUFF_SIZE];
+//
+//    if ( is_private ) { puts("Handle private channel"); } // !
+//    client_info = (CptClientInfo *)cpt;
+//    channels = client_info->channels;
+//    packet = client_info->packet;
+//
+//    cpt_packet_cmd(packet, (uint8_t) CREATE_CHANNEL);
+//    if ( members ) { cpt_packet_msg(packet, members); }
+//    serial_size = cpt_serialize_packet(packet, req_buffer);
+//
+//    tcp_client_send(client_info->fd, req_buffer, serial_size);
+//    response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
+//    res = cpt_parse_response(response_msg);
+//
+//    cpt_packet_reset(packet);
+//    if (res->code == (uint8_t) SUCCESS )
+//    {
+//        uint16_t _id = strtol( // !
+//                (char *)res->buffer, (char **)&res->buffer, BASE_10
+//            );
+//        push_node(channels, &_id, channels->node_size);
+//    } else { return -1; }
+//
+//    return 0;
+//}
 
 
 int cpt_leave_channel(void * cpt, int channel_id)
 {
     size_t serial_size;
-    CptResponse response;
     CptPacket * packet;
-    uint8_t * response_msg;
     CptClientInfo * client_info;
     uint8_t req_buffer[LG_BUFF_SIZE];
 
     client_info = (CptClientInfo *)cpt;
     packet = client_info->packet;
-    if ( !(client_info->fd) )
-    {
-        const char * message = "Not connected!";
-        write(STDERR_FILENO, message, strlen(message));
-        return EXIT_FAILURE;
-    }
 
     cpt_packet_cmd(packet, (uint8_t) LEAVE_CHANNEL);
     serial_size = cpt_serialize_packet(packet, req_buffer);
-
     tcp_client_send(client_info->fd, req_buffer, serial_size);
-    response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
-    cpt_parse_response(&response, response_msg);
 
     cpt_packet_reset(packet);
     delete_node(

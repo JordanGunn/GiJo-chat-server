@@ -20,6 +20,10 @@ int login_event();
 
 void listen_socket_init();
 
+int handle_new_accept();
+
+void logout_event(CptPacket *req, int id);
+
 bool should_end_event_loop(int poll_result);
 
 

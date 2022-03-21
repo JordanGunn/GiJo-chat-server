@@ -16,8 +16,9 @@
  *
  * @param response  Address to a CptResponse object.
  * @param buffer    Serialized response from server.
+ * @return Pointer to filled CptResponse.
  */
-void cpt_parse_response(CptResponse * response, uint8_t * buffer);
+CptResponse * cpt_parse_response(uint8_t * buffer, size_t data_size);
 
 
 /**
@@ -26,7 +27,7 @@ void cpt_parse_response(CptResponse * response, uint8_t * buffer);
 * @param packet    A serialized cpt protocol message.
 * @return          A pointer to a cpt struct.
 */
-CptPacket * cpt_parse_packet(uint8_t * packet);
+CptPacket * cpt_parse_packet(uint8_t * req_buf, size_t req_size);
 
 
 /**

@@ -118,24 +118,23 @@ int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd)
 }
 
 
-char * tcp_server_recv(int sock_fd, int * result)
+size_t tcp_server_recv(int sock_fd, uint8_t * req_buf)
 {
     char * received;
-    char buff[SM_BUFF_SIZE] = {0};
+    size_t req_size;
 
-    *result = (int) recv(sock_fd, buff, sizeof(buff), 0);
-    if ( *result < 0 )
+    req_size = (int) recv(sock_fd, req_buf, LG_BUFF_SIZE, 0);
+    if ( req_size < 0 )
     {
         const char * msg = "Failed to receive data from client...\n";
         printf("Error: %s\n", strerror(errno));
         write(STDERR_FILENO, msg, strlen(msg));
-        return NULL;
     }
 
-    received = malloc(*result);
-    memset(received, 0, *result);
-    memmove(received, buff, *result);
-    return received;
+    received = malloc(req_size);
+    memset(received, 0, req_size);
+    memmove(received, req_buf, req_size);
+    return req_size;
 }
 
 

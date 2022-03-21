@@ -23,7 +23,7 @@
 * @param cpt   CPT packet and any additional information.
 * @return      A status code. Either from server, or user defined.
 */
-uint8_t * cpt_login(void * cpt, char * name);
+size_t cpt_login(void *cpt, char *name, uint8_t *serial_buf);
 
 
 /**
@@ -81,7 +81,7 @@ int cpt_send_msg(void * cpt, char * msg);
 * @param cpt   CPT packet and any additional information.
 * @return      A status code. Either from server, or user defined.
 */
-int cpt_logout(void * cpt);
+size_t cpt_logout(void * cpt, uint8_t * serial_buf);
 
 
 /**

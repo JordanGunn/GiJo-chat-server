@@ -25,7 +25,7 @@ size_t cpt_serialize_packet(CptPacket * cpt, uint8_t * buffer);
 * @param cpt    A CptResponse object.
 * @return       Size of the serialized packet.
 */
-size_t cpt_serialize_response(CptResponse * response, uint8_t * buffer);
+size_t cpt_serialize_response(CptResponse * res, uint8_t * buffer);
 
 
 /**

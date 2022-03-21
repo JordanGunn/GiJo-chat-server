@@ -6,10 +6,9 @@
 
 static int GCFD;
 static int nfds;
-static Channel * global_channel;
-static Channels channel_directory;
+static Channel * gc;
+static Channels channel_dir;
 static struct pollfd poll_fds[MAX_SERVER_FDS];
-
 
 int main(void)
 {
@@ -28,12 +27,18 @@ void run()
 
     nfds = 1;
     is_fatal_error = false;
-    global_channel = init_global_channel();
-    channel_directory = init_channel_directory(global_channel);
+    gc = init_global_channel();
+    channel_dir = init_channel_directory(gc);
     // ------------------------------------------------
 
     /* Setup listener socket. */
     listen_socket_init();
+
+//    printf("POLLERR: %d\n",  POLLERR);
+//    printf("POLLIN: %d\n",   POLLIN);
+//    printf("POLLOUT: %d\n",  POLLOUT);
+//    printf("POLLHUP: %d\n",  POLLHUP);
+//    printf("POLLNVAL: %d\n", POLLNVAL);
 
     // **************************************************
     // ************ E V E N T ** L O O P ****************   AMERICA !!!!!!!!!!!!!!!
@@ -57,7 +62,10 @@ void run()
             /* ------------------------------------ */
             /* Unexpected event causing fatal error */
             /* ------------------------------------ */
-            if ( poll_fds[i].revents != (POLLIN) )
+            if (
+                poll_fds[i].revents != (POLLIN) &&
+                poll_fds[i].revents != (POLLOUT)
+            )
             {
                 printf("Unexpected event: %d\n", poll_fds[i].revents);
                 is_fatal_error = true; break;
@@ -73,7 +81,7 @@ void run()
                 printf("Checking queued login attempts...\n");
                 do { /* Check accept backlog queue for all incoming login attempts */
                     result = login_event();
-                } while ( (result != -1) );
+                } while ( (result != FAILURE) );
             }
 
 
@@ -86,10 +94,50 @@ void run()
                 close_conn = false; // !
 
                 do { /* Receive all incoming data from socket */
-                    uint8_t * data;
-                    if (poll_fds[i].revents & POLLIN)
+                    if (
+                            poll_fds[i].revents & POLLIN ||
+                            poll_fds[i].revents & POLLOUT
+                    )
                     {
-                        data = (uint8_t *)tcp_server_recv(poll_fds[i].fd, &result);
+                        int res;
+                        size_t req_size;
+                        CptPacket * req;
+                        uint8_t req_buf[LG_BUFF_SIZE] = {0};
+
+                        req_size = tcp_server_recv(poll_fds[i].fd, req_buf);
+                        req = cpt_parse_packet(req_buf, req_size);
+
+                        if (req->command == LOGOUT)
+                        {
+                            logout_event(req, poll_fds[i].fd);
+                            poll_fds[i].fd = -1; nfds--;
+                        }
+
+                        if (req->command == SEND)
+                        {
+                            puts("SEND event");
+                        }
+
+                        if (req->command == GET_USERS)
+                        {
+                            puts("GET_USERS event");
+                        }
+
+                        if (req->command == CREATE_CHANNEL)
+                        {
+                            puts("CREATE_CHANNEL event");
+                        }
+
+                        if (req->command == LEAVE_CHANNEL)
+                        {
+                            puts("LEAVE_CHANNEL event");
+                        }
+
+                        if (req->command == JOIN_CHANNEL)
+                        {
+                            puts("JOIN_CHANNEL event");
+                        }
+
                         if ( result < 0 )
                         {
                             if ( errno != EWOULDBLOCK )
@@ -109,9 +157,6 @@ void run()
                         break;
                     }
 
-                    /* Echo data back to client */
-                    printf("  %d bytes received\n", result);
-                    result = tcp_server_send(poll_fds[i].fd, data, 20);
                     if ( (result < 0) )
                     {
                         perror("  send() failed");
@@ -151,6 +196,22 @@ void run()
     server_destroy();  /* Close existing sockets before ending */
 }
 
+void logout_event(CptPacket *req, int id) {
+    int lo_res;
+    size_t res_size;
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+    CptResponse res;
+    lo_res = cpt_logout_response(gc, channel_dir, id);
+    res.code = lo_res;
+    res.fd = id;
+    if ( lo_res == SUCCESS )
+    {
+        res_size = cpt_simple_response(&res, res_buf);
+        tcp_server_send(id, res_buf, res_size);
+    }
+    cpt_packet_destroy(req);
+}
+
 void server_destroy() {
     for (int ifd = 0; ifd < nfds; ifd++)
     {
@@ -160,53 +221,67 @@ void server_destroy() {
         }
     }
 
-    if (channel_directory)
+    if (channel_dir)
     {
-        destroy_list((LinkedList *) channel_directory);
+        destroy_list((LinkedList *) channel_dir);
     }
-    global_channel = NULL;
+    gc = NULL;
 }
 
 
 int login_event()
 {
-    uint8_t * data;
+    size_t res_size, req_size;
+    CptResponse res;
     CptPacket * packet;
     int login_res, new_fd;
-    uint8_t serial_size;
-    uint8_t serial_buf[MD_BUFF_SIZE];
-    struct sockaddr_storage client_addr;
+    uint8_t res_buf[MD_BUFF_SIZE] = {0};
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
 
+    if ( (new_fd =  handle_new_accept()) != SYS_CALL_FAIL )
+    {
+        req_size = tcp_server_recv(new_fd, req_buf);
+        packet = cpt_parse_packet(req_buf, req_size);
+        login_res = cpt_login_response(gc, packet, new_fd);
+        res.code = login_res; res.fd = new_fd;
+        if (login_res == SUCCESS)
+        {
+            poll_fds[nfds  ].fd = new_fd;
+            poll_fds[nfds++].events = POLLIN | POLLOUT;
+        }
+        res_size = cpt_simple_response(&res, res_buf);
+        tcp_server_send(new_fd, res_buf, res_size);
+
+        cpt_packet_destroy(packet);
+    }
+
+    return (new_fd != SYS_CALL_FAIL) ? SUCCESS : FAILURE;
+}
+
+
+int handle_new_accept()
+{
+    int new_fd;
+    struct sockaddr_storage client_addr;
     new_fd = tcp_server_accept(&client_addr, poll_fds[CHANNEL_ZERO].fd);
     if ( new_fd < 0 ) /* Accept will fail safely with EWOULDBLOCK */
     {
         if (errno != EWOULDBLOCK) /* if errno is not EWOULDBLOCK, fatal error occurred */
         {
             perror("  accept()");
-            return new_fd;
         }
     }
-    data = (uint8_t *)tcp_server_recv(new_fd, &login_res);
-    packet = cpt_parse_packet(data);
-    login_res = cpt_handle_login(global_channel, packet, new_fd);
-    if (login_res == SUCCESS)
-    {
-        poll_fds[nfds  ].fd = new_fd;
-        poll_fds[nfds++].events = POLLIN | POLLOUT;
-        serial_size = cpt_serialize_packet(packet, serial_buf);
-        tcp_server_send(new_fd, serial_buf, serial_size);
-    }
-    return login_res;
+    return new_fd;
 }
 
 
 void listen_socket_init()
 {
     memset(poll_fds, 0 , sizeof(poll_fds));
-    if ((GCFD = tcp_server_init(NULL, NULL)) > 0)
+    if ((GCFD = tcp_server_init(NULL, NULL)) != SYS_CALL_FAIL)
     {
-        global_channel->fd = GCFD;
-        poll_fds[CHANNEL_ZERO].fd = global_channel->fd;
+        gc->fd = GCFD;
+        poll_fds[CHANNEL_ZERO].fd = gc->fd;
         poll_fds[CHANNEL_ZERO].events = POLLIN;
     }
     else { exit( SERV_FATAL ); }

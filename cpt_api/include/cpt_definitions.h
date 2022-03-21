@@ -12,14 +12,14 @@
 /* ============================== */
 #define GENERIC_SUCCESS_MSG "Operation successful"
 #define GENERIC_FAIL_MSG "Operation failed"
-#define DEFAULT_USER_NAME "anonymous"
+#define DEFAULT_USERNAME "anonymous"
 #define ACCESS_PRIVATE "PRIVATE"
 #define ACCESS_PUBLIC "PUBLIC"
 #define VERSION_MINOR_MAX 15
 #define VERSION_MAJOR_MAX 15
 #define MAX_SERVER_FDS 2048
-#define VER_MAJOR_LATEST 1
-#define VER_MINOR_LATEST 1
+#define VER_MAJ_LAT 1
+#define VER_MIN_LAT 1
 #define MAX_NAME_SIZE 12
 #define CHANNEL_ZERO 0
 /* ============================== */
@@ -29,11 +29,11 @@
  * Valid parsing/serialization formats.
  */
 /* ============================ */
-#define SERIAL_RES_FMT "Cs"
-#define PARSE_RES_FMT "C512s"
-#define SERIAL_BUILD_FMT "CCHCs"
+#define SERIAL_RES_FMT "HCs"
+#define PARSE_RES_FMT "HC512s"
+#define SERIAL_PACKET_FMT "CCHCs"
 #define SERIAL_MSG_RES_FMT "HHHs"
-#define PARSE_BUILD_FMT "CCHC512s"
+#define PARSE_PACKET_FMT "CCHC512s"
 #define PARSE_MSG_RES_FMT "HHH512s"
 /* ============================ */
 

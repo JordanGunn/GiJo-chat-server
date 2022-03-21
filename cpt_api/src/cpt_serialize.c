@@ -15,7 +15,7 @@ size_t cpt_serialize_packet(CptPacket * cpt, uint8_t * buffer)
     size_t serial_size;
 
     serial_size = serialize(
-            buffer, SERIAL_BUILD_FMT,
+            buffer, SERIAL_PACKET_FMT,
             cpt->version, cpt->command, cpt->channel_id,
             cpt->msg_len, cpt->msg
     );
@@ -30,13 +30,13 @@ size_t cpt_serialize_packet(CptPacket * cpt, uint8_t * buffer)
 * @param cpt    A CptPacket struct.
 * @return       Size of the serialized packet.
 */
-size_t cpt_serialize_response(CptResponse * response, uint8_t * buffer)
+size_t cpt_serialize_response(CptResponse * res, uint8_t * buffer)
 {
     size_t serial_size;
 
     serial_size = serialize(
             buffer, SERIAL_RES_FMT,
-            response->code, response->buffer
+            res->fd, res->code, res->data
     );
 
     return serial_size;

@@ -6,6 +6,8 @@
 #define LG_BUFF_SIZE 1024
 #define XL_BUFF_SIZE 2048
 
+#define SYS_CALL_FAIL -1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -22,6 +24,7 @@
 #include <sys/ioctl.h>
 #include <poll.h>
 #include <errno.h>
+#include <sys/wait.h>
 
 #endif //CPT_CPT_CHAT_CLIENT_H
 

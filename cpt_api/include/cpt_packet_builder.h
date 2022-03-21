@@ -11,7 +11,6 @@
 #include "linked_list.h"
 #include "cpt_definitions.h"
 
-
 // ==================================
 // C P T   C L I E N T   P A C K E T
 // ==================================
@@ -121,10 +120,9 @@ char * cpt_to_string(CptPacket * cpt);
 void cpt_packet_reset(CptPacket * cpt);
 
 
-// ==================================
-// C P T   S E R V E R  P A C K E T S
-// ==================================
-
+// ===================================
+// C P T   S E R V E R   P A C K E T S
+// ===================================
 
 /**
  * Initialize CptResponse server-side packet.
@@ -133,7 +131,7 @@ void cpt_packet_reset(CptPacket * cpt);
  * @param data      Data being sent to client.
  * @return CptResponse object.
  */
-CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code, uint8_t * data);
+CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code);
 
 
 /**
@@ -148,9 +146,9 @@ void cpt_response_destroy(CptResponse * response);
 
 
 
-// ============================
-// C P T   S U B - P A CK E T S
-// ============================
+// =============================
+// C P T   S U B - P A C K E T S
+// =============================
 
 /**
  * Initialize CptMsgResponse server-side sub-packet.

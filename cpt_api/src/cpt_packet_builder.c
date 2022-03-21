@@ -126,15 +126,14 @@ char * cpt_to_string(CptPacket * cpt)
 // ==================================
 
 
-CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code, uint8_t * data)
+CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code)
 {
     CptResponse * res;
 
     if ( !(res = malloc(sizeof(struct cpt_response))) ) { return NULL; }
-    if ( !data ) { return NULL; }
 
-    res->buffer = (uint8_t *) strdup((char *) data);
     res->code = res_code;
+    res->data = NULL;
     res->fd = fd;
 
     return res;
@@ -145,10 +144,10 @@ void cpt_response_destroy(CptResponse * res)
 {
     if ( res )
     {
-        if ( res->buffer )
+        if ( res->data )
         {
-            free(res->buffer);
-            res->buffer = NULL;
+            free(res->data);
+            res->data = NULL;
         }
         free(res);
         res = NULL;
