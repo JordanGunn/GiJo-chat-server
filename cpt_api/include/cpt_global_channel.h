@@ -32,7 +32,7 @@ Channel * init_global_channel();
  * @param gc Global Channel object.
  * @return ChannelDirectory object.
  */
-Channels init_channel_directory(Channel * gc);
+Channels * init_channel_directory(Channel * gc);
 
 
 

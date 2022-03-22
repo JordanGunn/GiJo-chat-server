@@ -108,7 +108,7 @@ LinkedList * test_list(int len)
     data.text = default_text;
 
     // initialize the linked list
-    list = init_list((void *)&data, sizeof(data));
+    list = init_list_data((void *) &data, sizeof(data));
 
     if ( !list )
     {
@@ -123,7 +123,7 @@ LinkedList * test_list(int len)
         // create some more data and push the node
         int new_id = i;
         some_data = (test_data){ (new_id), default_text };
-        push_node(list, &some_data, sizeof(some_data));
+        push_data(list, &some_data, sizeof(some_data));
     }
 
     return list;

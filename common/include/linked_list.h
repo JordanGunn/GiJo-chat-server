@@ -45,7 +45,22 @@ void destroy_node(Node * node);
  * @param data_size
  * @return
  */
-LinkedList * init_list(void * data, size_t data_size);
+LinkedList * init_list_data(void * data, size_t data_size);
+
+
+/**
+ * Initialize a LinkedList.
+ *
+ * Initializes a LinkedList object using
+ * <data> as head. Function will allocate
+ * necessary memory, initialize data members,
+ * and set the HEAD/TAIL pointers for the list.
+ *
+ * @param data
+ * @param data_size
+ * @return
+ */
+LinkedList * init_list_node(Node * node);
 
 
 /**
@@ -88,7 +103,17 @@ Node * get_head_node(LinkedList * list);
  * @param data      Data for the LinkedList.
  * @param data_size Size od the data in bytes.
  */
-void push_node(LinkedList * list, void * data, size_t data_size);
+void push_data(LinkedList * list, void * data, size_t data_size);
+
+
+/**
+ * Push a node to the front of hte linked list.
+ *
+ * @param list      A LinkedList object.
+ * @param data      Data for the LinkedList.
+ * @param data_size Size od the data in bytes.
+ */
+void push_node(LinkedList * list, Node * node);
 
 
 /**

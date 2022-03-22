@@ -25,7 +25,8 @@ typedef struct username_id_pair UserNameIdPair;
  * to a cpt server.
  *
  */
-struct cpt_packet {
+struct cpt_packet
+{
     uint8_t   version;
     uint8_t   command ;
     uint16_t  channel_id;
@@ -43,7 +44,8 @@ struct cpt_packet {
  * active user channels, etc.
  *
  */
-struct cpt_client_info {
+struct cpt_client_info
+{
     int fd;
     int code;
     char * ip;
@@ -63,7 +65,8 @@ struct cpt_client_info {
  * cpt_serialize_response()/
  *
  */
-struct cpt_response {
+struct cpt_response
+{
     uint16_t fd;
     uint8_t code;
     uint8_t * data;
@@ -76,7 +79,8 @@ struct cpt_response {
  * Valid pre-serialized format for server
  * transmission of SEND cpt packets.
  */
-struct cpt_msg_response {
+struct cpt_msg_response
+{
     uint16_t channel_id;
     uint16_t user_id;
     uint16_t msg_len;
@@ -90,7 +94,8 @@ struct cpt_msg_response {
  * Valid format for USER_LIST server
  * response sub-packet.
  */
-struct username_id_pair {
+struct username_id_pair
+{
     uint16_t id;
     uint8_t * username;
 };
@@ -99,9 +104,10 @@ struct username_id_pair {
 /**
  * Valid cpt protocol packet commands.
  */
-enum commands {
-    SEND,
-    LOGOUT,
+enum commands
+{
+    SEND = 1,
+    LOGOUT = 2,
     GET_USERS,
     CREATE_CHANNEL,
     JOIN_CHANNEL,
@@ -114,7 +120,8 @@ enum commands {
  * Valid major and minor numbers for
  * cpt protocol versioning.
  */
-enum version {
+enum version
+{
     MAJOR_2 = 2,
     MAJOR_1 = 1,
     MINOR_1 = 1,

@@ -14,15 +14,16 @@
 
 void run();
 
-void server_destroy();
+int login_event(Channel * gc);
 
-int login_event();
-
-void listen_socket_init();
+void listen_socket_init(Channel * gc);
 
 int handle_new_accept();
 
-void logout_event(CptPacket *req, int id);
+void logout_event(Channel * gc, Channels * dir, int id);
+
+void server_destroy(Channels * dir);
+
 
 bool should_end_event_loop(int poll_result);
 

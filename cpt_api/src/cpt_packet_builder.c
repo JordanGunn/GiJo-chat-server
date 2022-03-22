@@ -35,10 +35,10 @@ void cpt_packet_destroy(CptPacket * cpt)
 
 void cpt_packet_cmd(CptPacket * cpt, uint8_t cmd)
 {
-    if ( (cmd < SEND) || (cmd > LEAVE_CHANNEL) )
+    if ( (cmd >= SEND) && (cmd <= LOGIN) )
     {
         cpt->command = cmd;
-    }
+    } else { printf("Bad CMD code assigned to packet\n"); }
 }
 
 
@@ -81,11 +81,11 @@ void cpt_packet_msg(CptPacket * cpt, char * msg)
 }
 
 
-void cpt_packet_reset(CptPacket * cpt)
+void cpt_packet_reset(CptPacket * packet)
 {
-    if ( cpt->msg ) { free(cpt->msg); cpt->msg = NULL; }
-    cpt->msg_len = 0;
-    cpt->command = 0;
+    if ( packet->msg ) { free(packet->msg); packet->msg = NULL; }
+    packet->msg_len = 0;
+    packet->command = 0;
 }
 
 

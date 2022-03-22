@@ -133,7 +133,7 @@ int cpt_join_channel(void * cpt, int channel_id);
 * @param is_private  Set the created channel to private or public.
 * @return A status code. Either from server, or user defined.
 */
-int cpt_create_channel(void * cpt, char * members, bool is_private);
+size_t cpt_create_channel(void * cpt, uint8_t * serial_buf, char * user_list);
 
 
 /**

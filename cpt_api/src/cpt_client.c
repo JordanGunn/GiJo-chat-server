@@ -77,8 +77,6 @@ int cpt_send_msg(void * cpt, char * msg)
     tcp_client_send(client_info->fd, buffer, serial_size);
     cpt_packet_reset(packet);
 
-    cpt_packet_reset(packet);
-
     return 0;
 }
 
@@ -127,40 +125,27 @@ size_t cpt_logout(void * cpt, uint8_t * serial_buf)
 //}
 
 
-//int cpt_create_channel(void * cpt, char * members, bool is_private)
-//{
-//    size_t serial_size;
-//    CptResponse * res;
-//    CptPacket * packet;
-//    LinkedList * channels;
-//    uint8_t * response_msg;
-//    CptClientInfo * client_info;
-//    uint8_t req_buffer[LG_BUFF_SIZE];
-//
-//    if ( is_private ) { puts("Handle private channel"); } // !
-//    client_info = (CptClientInfo *)cpt;
-//    channels = client_info->channels;
-//    packet = client_info->packet;
-//
-//    cpt_packet_cmd(packet, (uint8_t) CREATE_CHANNEL);
-//    if ( members ) { cpt_packet_msg(packet, members); }
-//    serial_size = cpt_serialize_packet(packet, req_buffer);
-//
-//    tcp_client_send(client_info->fd, req_buffer, serial_size);
-//    response_msg = (uint8_t *)tcp_client_recv(client_info->fd);
-//    res = cpt_parse_response(response_msg);
-//
-//    cpt_packet_reset(packet);
-//    if (res->code == (uint8_t) SUCCESS )
-//    {
-//        uint16_t _id = strtol( // !
-//                (char *)res->buffer, (char **)&res->buffer, BASE_10
-//            );
-//        push_node(channels, &_id, channels->node_size);
-//    } else { return -1; }
-//
-//    return 0;
-//}
+size_t cpt_create_channel(void * cpt, uint8_t * serial_buf, char * user_list)
+{
+    uint8_t serial_size;
+    CptClientInfo * client_info;
+    uint8_t user_list_buf[SM_BUFF_SIZE] = {0};
+
+    client_info = (CptClientInfo *) cpt;
+    client_info->packet = cpt_packet_init();
+    cpt_packet_chan(client_info->packet, (uint16_t) CHANNEL_ZERO);
+    cpt_packet_version(client_info->packet, VER_MAJ_LAT, VER_MIN_LAT);
+    cpt_packet_cmd(client_info->packet, (uint8_t) CREATE_CHANNEL);
+
+    if ( user_list )
+    {
+        serialize(user_list_buf, "s", user_list);
+    }
+
+    serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
+
+    return serial_size;
+}
 
 
 int cpt_leave_channel(void * cpt, int channel_id)
@@ -208,7 +193,7 @@ CptClientInfo * cpt_init_client_info(char * port, char * ip)
     client_info->port = strdup(port); // !
     client_info->ip = strdup(ip);
 
-    channels = init_list(&global_id, sizeof(uint16_t));
+    channels = init_list_data(&global_id, sizeof(uint16_t));
     client_info->channels = channels;
 
     return client_info;

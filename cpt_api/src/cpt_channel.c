@@ -4,21 +4,9 @@
 
 #include "cpt_channel.h"
 
-Channel * channel_init(uint16_t id, Users users, char * name, bool is_private)
+Channel * channel_init(uint16_t id, Users * users, char * name, bool is_private)
 {
     Channel * channel;
-
-    if (id == CHANNEL_ZERO)
-    {
-        write(STDERR_FILENO, "Channel 0 (zero) creation forbidden\n", SM_BUFF_SIZE);
-        return NULL;
-    }
-
-    if (strlen(name) > MAX_NAME_SIZE)
-    {
-        write(STDERR_FILENO, "Name exceeds max name length...\n", SM_BUFF_SIZE);
-        return NULL;
-    }
 
     if ( !(channel = malloc(sizeof(struct channel_struct))) )
     {
@@ -48,7 +36,7 @@ void channel_destroy(Channel * channel)
 
         if (channel->users)
         {
-            destroy_list(channel->users);
+            destroy_list((LinkedList *) channel->users);
         }
 
         free(channel); channel = NULL;
@@ -56,22 +44,31 @@ void channel_destroy(Channel * channel)
 }
 
 
-void push_channel(Channels channels, Channel * channel)
+ChannelNode * create_channel_node(Channel * channel)
 {
-    UserNode * new_user;
-    UserNode * next_user;
+    ChannelNode * channel_node;
 
-    new_user = create_node(channel, sizeof(struct user_struct));
-    next_user = *(channels->head);
-    (*channels->head) = new_user;
-    (*channels->head)->next = next_user;
+    channel_node = (ChannelNode *)create_node(channel, sizeof(struct channel_struct));
+    return (channel_node) ? channel_node : NULL;
+}
 
-    if ( channels->length == 1 )
-    {
-        (*channels->tail) = next_user;   // set the first tail
-    }
 
-    channels->length++;
+ChannelNode * get_head_channel(Channels * channels)
+{
+    LinkedList * list;
+    ChannelNode * channel_node;
+
+    list = (LinkedList *) channels;
+    channel_node = (ChannelNode *)get_head_node(list);
+    return channel_node;
+}
+
+
+void push_channel(Channels * channels, Channel * channel)
+{
+    LinkedList * list;
+    list = (LinkedList *) channels;
+    push_data(list, channel, sizeof(struct channel_struct));
 }
 
 
@@ -89,15 +86,26 @@ void print_channel(Channel * channel)
         channel->id, channel->name, channel_access
     );
     printf("%s\n", buffer);
-    for_each(channel->users, (Consumer) print_user); // !!!!!!!!!!!!!!!!!!
+    for_each((LinkedList *)channel->users, (Consumer) print_user); // !!!!!!!!!!!!!!!!!!
 }
 
 
-/**
- * Print details about the Channel object.
- *
- * @param channel A Channel object.
- */
+int delete_channel(Channels * channels, int id)
+{
+    int result;
+    Comparator find_id;
+
+    result = SYS_CALL_FAIL;
+    find_id = (Comparator) find_user_id;
+    if ( channels )
+    {
+        result = delete_node((LinkedList *) channels, find_id, &id);
+    }
+
+    return result;
+}
+
+
 char * channel_to_string(Channel * channel)
 {
     User * user;
@@ -105,11 +113,11 @@ char * channel_to_string(Channel * channel)
     UserNode * user_iterator;
     char buffer[LG_BUFF_SIZE] = {0};
 
-    user_iterator = get_head_node(channel->users);
+    user_iterator = (UserNode *) get_head_node((LinkedList *) channel->users);
 
-    while (user_iterator->next)
+    while (user_iterator->next_user)
     {
-        user = user_iterator->data;
+        user = user_iterator->user;
         user_str = user_to_string(user);
         strncat(buffer, user_str, strlen(user_str));
         free(user_str);   // !
@@ -120,28 +128,36 @@ char * channel_to_string(Channel * channel)
 }
 
 
-Channels channels_init(Channel * channel)
+Channels * channels_init(ChannelNode * channel_node)
 {
-    Channels channels;
+    Channels * channels;
 
-    if (!channel) { return NULL; }
+    if (!channel_node) { return NULL; }
 
-    channels = init_list(channel, sizeof(struct channel_struct));
+    channels = (Channels *) init_list_node((Node *) channel_node);
     return (channels) ? channels : NULL;
 }
 
 
-void channels_destroy(Channels channels)
+void push_channel_user(Channel * channel, User * user)
+{
+    UserNode * user_node;
+    user_node = create_user_node(user);
+    push_node( (LinkedList *)channel->users, (Node *) user_node);
+}
+
+
+void channels_destroy(Channels * channels)
 {
     if (channels)
     {
-        destroy_list(channels);
+        destroy_list((LinkedList *) channels);
     }
 
     free(channels); channels = NULL;
 }
 
-Channel * cpt_find_channel(Channels dir, uint16_t id)
+Channel * find_channel(Channels * dir, uint16_t id)
 {
     Channel * channel;
     LinkedList * list;

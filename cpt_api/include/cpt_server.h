@@ -14,6 +14,17 @@
 #include "cpt_user.h"
 
 
+typedef struct cpt_server_info CptServerInfo;
+
+
+struct cpt_server_info
+{
+    int current_id;
+    Channels * dir;
+    Channel * gc;
+};
+
+
 /**
  * Send serialized server response to client.
  *
@@ -42,7 +53,7 @@ int cpt_send_response(CptResponse * response);
 int cpt_login_response(Channel * gc, CptPacket * packet, int id);
 
 
-int cpt_logout_response(Channel *gc, Channels dir, int id);
+int cpt_logout_response(Channel *gc, Channels * dir, int id);
 
 
 /**
@@ -78,7 +89,7 @@ uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result);
  * @param packet    Packet sent by requesting user.
  * @return 0 on success, error code on failure.
  */
-uint8_t * cpt_get_users_response(Channels dir, CptPacket *packet, CptResponse *res);
+uint8_t * cpt_get_users_response(Channels * dir, CptPacket * packet, CptResponse * res);
 
 
 /**
@@ -96,7 +107,7 @@ uint8_t * cpt_get_users_response(Channels dir, CptPacket *packet, CptResponse *r
  * @param packet    The Received client packet.
  * @return 0 on success, error code on failure.
  */
-int cpt_handle_create_channel(Channel * gc, Channels dir, User * user, CptPacket * packet);
+int cpt_create_channel_response(Channel * gc, Channels * dir, CptPacket * packet, int id);
 
 
 /**
@@ -111,7 +122,7 @@ int cpt_handle_create_channel(Channel * gc, Channels dir, User * user, CptPacket
  * @param packet    The Received client packet.
  * @return 0 on success, error code on failure.
  */
-int cpt_handle_join_channel(Channels dir, User * user, CptPacket * packet);
+int cpt_handle_join_channel(Channels * dir, User * user, CptPacket * packet);
 
 
 /**
@@ -126,7 +137,7 @@ int cpt_handle_join_channel(Channels dir, User * user, CptPacket * packet);
  * @param packet    The Received client packet.
  * @return 0 on success, error code on failure.
  */
-int cpt_handle_leave_channel(Channels dir, User * user, CptPacket * packet);
+int cpt_handle_leave_channel(Channels * dir, User * user, CptPacket * packet);
 
 
 /**
@@ -139,6 +150,19 @@ int cpt_handle_leave_channel(Channels dir, User * user, CptPacket * packet);
  * @return      Pointer to Serialized CptResponse object.
  */
 size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf);
+
+
+/**
+ * Send serialized server response to client.
+ *
+ * Serializes a CptResponse object and sends
+ * it to a connected client.
+ *
+ * @param user      Pointer to a User object.
+ * @param response  Pointer to a CptResponse object.
+ * @return          0 if successful, error code on failure.
+ */
+CptServerInfo * cpt_server_info_init(Channel * gc, Channels * dir);
 
 
 #endif //CPT_CPT_SERVER_H

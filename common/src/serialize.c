@@ -20,7 +20,7 @@ unsigned int serialize(unsigned char * buf, char * format, ...)
 
     unsigned int H;
 
-    char *s;                    // strings
+    char * s;                    // strings
     unsigned int len;
 
     unsigned int size = 0;

@@ -18,6 +18,7 @@ struct node_struct
 {
     void * data;
     Node * next;
+    size_t node_size;
 };
 
 
@@ -28,7 +29,6 @@ struct linked_list
 {
     // properties
     int length;
-    size_t node_size;
     Node ** head;
     Node ** tail;
 };

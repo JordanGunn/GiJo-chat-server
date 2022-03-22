@@ -9,9 +9,9 @@
 #include "cpt_definitions.h"
 #include "cpt_types.h"
 
+typedef struct users Users;
 typedef struct user_struct User;
-typedef LinkedList * Users;
-typedef Node UserNode;
+typedef struct user_node UserNode;
 
 
 /**
@@ -25,6 +25,23 @@ struct user_struct
     uint8_t id;
     uint8_t fd;
     char *  name;
+};
+
+
+struct users
+{
+    // properties
+    int length;
+    UserNode ** user_head;
+    UserNode ** user_tail;
+};
+
+
+struct user_node
+{
+    User * user;
+    UserNode * next_user;
+    size_t user_size;
 };
 
 
@@ -55,6 +72,25 @@ void user_destroy(User * user);
 
 
 /**
+ * Find a UserNode in a Users list by ID.
+ *
+ * @param users     LinkedList of users.
+ * @param id        User id.
+ * @return UserNode if success, NULL if failure.
+ */
+User * find_user(Users * users, int id);
+
+
+/**
+ * Push UserNode onto Users lists.
+ *
+ * @param users     LinkedList of users
+ * @param user_node Pointer to UserNode object.
+ */
+void push_user_node(Users * users, UserNode * user_node);
+
+
+/**
  * Create a UserNode object.
  *
  * Creates a UserNode object which can be added
@@ -65,7 +101,13 @@ void user_destroy(User * user);
  * @param user A pointer to a User object.
  * @return     A pointer to a UserNode object.
  */
-UserNode * user_node(User * user);
+UserNode * create_user_node(User * user);
+
+
+int delete_user(Users * users, int id);
+
+
+UserNode * get_head_user(Users * users);
 
 
 /**
@@ -77,7 +119,7 @@ UserNode * user_node(User * user);
  * @param user      A pointer to a User object.
  * @return Pointer to Users LinkedList object.
  */
-Users users_init(User * user);
+Users * users_init(UserNode * user_node);
 
 
 /**
@@ -86,7 +128,7 @@ Users users_init(User * user);
  * @param users Pointer to a linked list of User objects.
  * @param user  New user to add.
  */
-void push_user(Users users, User * user);
+void push_user(Users * users, User * user);
 
 
 /**
@@ -102,9 +144,9 @@ char * user_to_string(User * user);
 // P R E D I C A T E S
 // ===================
 
-bool find_user_id(User * user, const int * id);
+bool find_user_id(void * data, void * test);
 bool find_user_name(User * user, char * name);
-bool filter_user_id(User * user, FilterQuery * filter_query);
+bool filter_user_id(void * data, void * params);
 bool filter_user_name(User * user, FilterQuery * filter_query);
 
 

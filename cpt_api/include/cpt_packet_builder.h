@@ -115,9 +115,9 @@ char * cpt_to_string(CptPacket * cpt);
  * Reset the packet parameters,
  * and free memory for certain params.
  *
- * @param cpt    A CptPacket struct.
+ * @param packet    A CptPacket struct.
 */
-void cpt_packet_reset(CptPacket * cpt);
+void cpt_packet_reset(CptPacket * packet);
 
 
 // ===================================

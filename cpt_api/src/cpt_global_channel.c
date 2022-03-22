@@ -7,36 +7,30 @@
 Channel * init_global_channel()
 {
     Channel * gc;
+    Users * gc_users;
     User * root_user;
-    Users gc_users;
+    UserNode * user_node;
 
-    root_user = user_init(GC_ROOT_USER_ID, GC_ROOT_USER_FD, GC_ROOT_USER_NAME);
+    root_user = user_init(GC_ROOT_USER_ID, (uint16_t)GC_ROOT_USER_FD, GC_ROOT_USER_NAME);
+    user_node = create_user_node(root_user);
     if (!root_user) { return NULL ;}
-    gc_users = init_list(root_user, sizeof(struct user_struct));
+    gc_users = users_init(user_node);
 
-    if ( !(gc = malloc(sizeof(struct channel_struct))) )
-    {
-        printf("Failed to allocate memory of size %lud\n", sizeof(Channel));
-        return NULL;
-    }
-
-    memset(gc, 0, sizeof(struct channel_struct));
-    gc->id = GC_ID;
-    gc->name = strdup(GC_NAME);
-    gc->is_private = GC_ACCESS;
-    gc->users = gc_users;
+    gc = channel_init(GC_ID, gc_users, GC_NAME, GC_ACCESS);
 
     return gc;
 }
 
 
-Channels init_channel_directory(Channel * gc)
+Channels * init_channel_directory(Channel * gc)
 {
-    Channels channel_directory;
+    Channels * channel_directory;
+    ChannelNode * channel_node;
 
     if ( gc )
     {
-        channel_directory = channels_init(gc) ;
+        channel_node = create_channel_node(gc);
+        channel_directory = channels_init(channel_node);
         return (channel_directory) ? channel_directory : NULL;
     }
 

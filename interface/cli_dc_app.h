@@ -20,20 +20,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define NUM_CMD 6
+#define NUM_CMD 7
+
+#define SEND 0
+#define GET_USERS 1
+#define CREATE_CHANNEL 2
+#define JOIN_CHANNEL 3
+#define LEAVE_CHANNEL 4
+#define LOGOUT 5
+#define MENU 6
+
 
 typedef void (* Prompt)(void);
-typedef struct user_commands UserCommands;
+typedef struct command Command;
 typedef struct user_state UserState;
 
-static char * cli_commands[] = {
-        "--SEND",
-        "--GET-USERS",
-        "--CREATE-CHANNEL",
-        "--JOIN-CHANNEL",
-        "--LEAVE-CHANNEL",
-        "--LOGOUT"
+
+static char * cli_cmds[] = {
+        "send",
+        "get-users",
+        "create-channel",
+        "join-channel",
+        "leave-channel",
+        "logout",
+        "menu"
 };
+
 
 struct user_state
 {
@@ -43,27 +55,23 @@ struct user_state
     CptClientInfo * client_info;
 };
 
+
 struct application_settings
 {
     struct dc_opt_settings opts;
     struct dc_setting_string * port;
     struct dc_setting_string * host;
     struct dc_setting_string * login;
-    struct dc_setting_string * logout;
-    struct dc_setting_string * send;
-    struct dc_setting_string * get_users;
-    struct dc_setting_string * create_channel;
-    struct dc_setting_string * join_channel;
-    struct dc_setting_string * leave_channel;
 };
 
 
-/**
- * Send logout request to server.
- *
- * @return -1 if failure.
- */
-int user_logout();
+struct command
+{
+    char * cmd;
+    void * args;
+    char * input;
+    char * p_input;
+};
 
 
 /**
@@ -82,17 +90,17 @@ void logout_handler();
  * @param name  Name of requesting user.
  * @return 0 if successful, -1 if failure.
  */
-int user_login(char *name);
+int login_handler(char *name);
 
 
 /**
- * Call the user_login() function and control result.
+ * Call the login_handler() function and control result.
  *
  * @param host  Server host address.
  * @param port  Server host port.
  * @param login Name of requested login user.
  */
-void login_handler(char * host, char * port, char * name);
+void user_login(char * host, char * port, char * name);
 
 
 /**
@@ -100,7 +108,7 @@ void login_handler(char * host, char * port, char * name);
  *
  * @param user_commands Commands from user input.
  */
-void handle_commands(char * user_commands[]);
+void handle_commands(Command * command);
 
 
 /**
@@ -110,18 +118,9 @@ void menu();
 
 
 /**
- * Count commands entered by user.
- *
- * @param commands  Commands gather from application framework.
- * @return Number of commands that are not NULL.
- */
-int count_commands(char * commands[NUM_CMD]);
-
-
-/**
  * Get user input from STDIN.
  *
- * @return
+ * @return Input from user as char pointer.
  */
 char * get_user_input();
 
@@ -129,16 +128,85 @@ char * get_user_input();
 /**
  * Check user input against valid CLI commands.
  *
- * @param input     string from get_user_input().
- * @return
+ * @param cmd     string from get_user_input().
+ * @return true or false.
  */
-bool is_valid_command(char *input);
+bool is_valid_command(Command * cmd);
 
 
+/**
+ * Initialize command object.
+ *
+ * Allocates necessary memory and initialize all
+ * pointers to NULL.
+ *
+ * @return Pointer to command object.
+ */
+Command * command_init();
 
-// =====================================================================================
-// D C   A P P L I CA T I O N   F R A M E WO R K    I N T E R FA C E   F U N C T I O N S
-// =====================================================================================
+
+/**
+ * Destroy Command object.
+ *
+ * Free any dynamically allocated memory
+ * and set all pointer to NULL.
+ *
+ * @param cmd   Pointer to Command object.
+ */
+void command_destroy(Command * cmd);
+
+
+/**
+ * Parse user input from stdin.
+ *
+ * Calls parse_args() and parse_command().
+ *
+ * @param cmd   Pointer to Command object.
+ */
+void parse_user_input(Command * cmd);
+
+
+/**
+ * Print prompt to stdout.
+ */
+void chat_prompt();
+
+
+/**
+ * Parse command from user input.
+ *
+ * @param cmd   Pointer to Command object.
+ */
+void parse_command(Command * cmd);
+
+
+/**
+ * Parse arguments from user input.
+ *
+ * @param cmd   Pointer to Command object.
+ */
+void parse_args(Command * cmd);
+
+
+/**
+ * Handle parsed commands.
+ *
+ * @param cmd   Pointer to Command object.
+ */
+void handle_command(Command * cmd);
+
+
+/**
+ * Handle CREATE_CHANNEL cpt protocol request and response.
+ *
+ * @param cmd   Pointer to command object.
+ */
+void create_channel_handler(Command * cmd);
+
+
+// ========================================================================================
+// D C   A P P L I C A T I O N   F R A M E W O R K    I N T E R F A C E   F U N C T I O N S
+// ========================================================================================
 
 /**
  *  DC application framework interface function.

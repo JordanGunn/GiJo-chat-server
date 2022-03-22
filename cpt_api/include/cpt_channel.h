@@ -11,8 +11,8 @@
 #include "cpt_user.h"
 
 
-typedef Node ChannelNode;
-typedef LinkedList * Channels;
+typedef struct channels Channels;
+typedef struct channel_node ChannelNode;
 typedef struct channel_struct Channel;
 
 
@@ -26,9 +26,28 @@ struct channel_struct /* may consider adding a fd to this object... */
 {
     int      fd;
     uint16_t id;
-    Users    users;
+    Users *  users;
     bool     is_private;
     char *   name;
+};
+
+
+int delete_channel(Channels * channels, int id);
+
+
+struct channels
+{
+    int length;
+    ChannelNode ** channel_head;
+    ChannelNode ** channel_tail;
+};
+
+
+struct channel_node
+{
+    Channel * channel;
+    ChannelNode * next_channel;
+    size_t channel_size;
 };
 
 
@@ -45,7 +64,7 @@ struct channel_struct /* may consider adding a fd to this object... */
  * @param is_private Privacy setting of channel.
  * @return Pointer to a Channel object.
  */
-Channel * channel_init(uint16_t id, Users users, char * name, bool is_private);
+Channel * channel_init(uint16_t id, Users * users, char * name, bool is_private);
 
 
 /**
@@ -54,7 +73,7 @@ Channel * channel_init(uint16_t id, Users users, char * name, bool is_private);
  * @param users Pointer to a linked list of User objects.
  * @param user  New user to add.
  */
-void push_channel(Channels channels, Channel * channel);
+void push_channel(Channels * channels, Channel * channel);
 
 
 /**
@@ -68,7 +87,13 @@ void push_channel(Channels channels, Channel * channel);
  * @param user A pointer to a Channel object.
  * @return     A pointer to a ChannelNode object.
  */
-ChannelNode * channel_node(Channel * channel);
+ChannelNode * create_channel_node(Channel * channel);
+
+
+void push_channel_user(Channel * channel, User * user);
+
+
+ChannelNode * get_head_channel(Channels * channels);
 
 
 /**
@@ -80,7 +105,7 @@ ChannelNode * channel_node(Channel * channel);
  * @param channel A pointer to a Channel object.
  * @return a Channels object (Pointer to a LinkedList).
  */
-Channels channels_init(Channel * channel);
+Channels * channels_init(ChannelNode * channel_node);
 
 
 /**
@@ -92,7 +117,7 @@ Channels channels_init(Channel * channel);
  * @param channel A pointer to a Channel object.
  * @return a Channels object (Pointer to a LinkedList).
  */
-Channel * cpt_find_channel(Channels dir, uint16_t id);
+Channel * find_channel(Channels * dir, uint16_t id);
 
 
 /**

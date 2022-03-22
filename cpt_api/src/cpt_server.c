@@ -16,34 +16,38 @@ int cpt_login_response(Channel * gc, CptPacket * packet, int id)
     name = ( packet->msg ) ? (char *)packet->msg : DEFAULT_USERNAME;
     if ( strlen(name) > MAX_NAME_SIZE ) { return NAME_TOO_LONG; }
 
-    if ( (gc->users) )
+    if ( gc->users )
     {
         user = user_init(id, id, name ); // Set ID same as file descriptor.
-        push_user(gc->users, user);
+        push_channel_user(gc, user);
     }
 
     return SUCCESS;
 }
 
 
-int cpt_logout_response(Channel *gc, Channels dir, int id)
+int cpt_logout_response(Channel * gc, Channels * dir, int id)
 {
+    int result;
     Channel * channel;
-    Comparator find_id;
     ChannelNode * channel_iterator;
 
     if ( !gc )  { return BAD_CHANNEL; }
 
-    find_id = (Comparator)find_user_id;
-    channel_iterator = get_head_node(dir); // !
-
-    while (channel_iterator->next) /* Remove User from all channels */
+    channel_iterator = get_head_channel(dir); // !
+    if (!channel_iterator->next_channel)
     {
-        channel = channel_iterator->data;
-        delete_node(channel->users, find_id, &id);
+        result = delete_user(gc->users, id);
     }
-
-    return SUCCESS;
+    else
+    {
+        while (channel_iterator->next_channel) /* Remove User from all channels */
+        {
+            channel = channel_iterator->channel;
+            result = delete_user(channel->users, id);
+        }
+    }
+    return (result >= 0) ? SUCCESS : result;
 }
 
 
@@ -77,7 +81,7 @@ uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result)
 }
 
 
-uint8_t * cpt_get_users_response(Channels dir, CptPacket *packet, CptResponse * res)
+uint8_t * cpt_get_users_response(Channels * dir, CptPacket *packet, CptResponse * res)
 {
     char * users_str;
     Channel * channel;
@@ -89,7 +93,7 @@ uint8_t * cpt_get_users_response(Channels dir, CptPacket *packet, CptResponse * 
         return NULL;
     }
 
-    channel = cpt_find_channel(dir, packet->channel_id);
+    channel = find_channel(dir, packet->channel_id);
     users_str = channel_to_string(channel);
     if ( !users_str )
     { res->code = (uint8_t) CHAN_EMPTY; }
@@ -102,65 +106,56 @@ uint8_t * cpt_get_users_response(Channels dir, CptPacket *packet, CptResponse * 
 }
 
 
-int cpt_handle_create_channel(Channel * gc, Channels dir, User * user, CptPacket * packet)
+int cpt_create_channel_response(Channel * gc, Channels * dir, CptPacket * packet, int id)
 {
-    Users users;
-    uint16_t * IDs;
-    FilterQuery idq;
     uint16_t num_IDs;
-    Comparator id_filter;
     Channel * new_channel;
+    User * user; Users * users;
+    uint16_t * IDs; FilterQuery idq;
 
-    if ( !gc )                     { return BAD_CHANNEL; }
-    if ( !packet )                 { return BAD_PACKET;  }
-    if ( packet->channel_id == 0 ) { return BAD_CHANNEL; }
+    if ( !gc )     { return BAD_CHANNEL; }
+    if ( !packet ) { return BAD_PACKET;  }
 
-    IDs = NULL;
-    users = NULL;
+    IDs = NULL; users = NULL;
     if ( packet->msg )
     {
         num_IDs = cpt_parse_channel_query(packet, IDs);  // !!!
         idq.params = IDs;
         idq.num_params = num_IDs;
-        id_filter = (Comparator) filter_user_id;
-        users = filter(gc->users, id_filter, &idq, idq.num_params);
+        users = (Users *)filter( (LinkedList *)
+                gc->users, filter_user_id, &idq, idq.num_params);
     }
 
-    if (users) /* if filter found requested IDs. */
+    user = find_user(gc->users, id);
+    if (!users) /* if filter found requested IDs. */
     {
-        new_channel = channel_init(++gc->users->length, users, "Channel", false);
-        push_user(new_channel->users, user);
-        push_channel(dir, new_channel);
+        users = users_init( create_user_node(user) );
     }
-    else /* else create a channel with the user who made the request. */
-    {
-        users = users_init(user);
-        new_channel = channel_init(++(gc->users->length), users, "Channel", false);
-        push_user(new_channel->users, user);
-        push_channel(dir, new_channel);
-    }
+    new_channel = channel_init(++(dir->length), users, "Channel", false);
+    push_user(new_channel->users, user);
+    push_channel(dir, new_channel);
 
     return SUCCESS;
 }
 
 
-int cpt_handle_join_channel(Channels dir, User * user, CptPacket * packet)
+int cpt_handle_join_channel(Channels * dir, User * user, CptPacket * packet)
 {
     Channel * channel;
 
     if ( !packet ) { return BAD_PACKET; }
     if ( !user )   { return BAD_USER;   }
 
-    channel = cpt_find_channel(dir, packet->channel_id);
+    channel = find_channel(dir, packet->channel_id);
 
     if ( !channel ) { return UKNOWN_CHANNEL; }
-    push_user(channel->users, user);
+    push_channel_user(channel, user);
 
     return SUCCESS;
 }
 
 
-int cpt_handle_leave_channel(Channels dir, User * user, CptPacket * packet)
+int cpt_handle_leave_channel(Channels * dir, User * user, CptPacket * packet)
 {
     int result;
     Channel * channel;
@@ -170,11 +165,10 @@ int cpt_handle_leave_channel(Channels dir, User * user, CptPacket * packet)
     if ( !user )                    { return BAD_USER;    }
     if ( packet->channel_id == 0 )  { return BAD_CHANNEL; }
 
-    channel = cpt_find_channel(dir, packet->channel_id);
+    channel = find_channel(dir, packet->channel_id);
     if ( !channel ) { return UKNOWN_CHANNEL; }
 
-    find_id = (Comparator) find_channel_id;
-    result = delete_node(channel->users, find_id, &packet->channel_id);
+    result = delete_user(channel->users, packet->channel_id);
 
     return ( result < 0 ) ? SERVER_ERROR : SUCCESS;
 }
@@ -191,4 +185,37 @@ size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf)
     serial_size = cpt_serialize_response(res, res_buf);
 
     return serial_size;
+}
+
+
+CptServerInfo * cpt_server_info_init(Channel * gc, Channels * dir)
+{
+    CptServerInfo * server_info;
+
+    if ( !(server_info = malloc(sizeof(struct cpt_server_info))) )
+    {
+        return NULL;
+    }
+
+    server_info->gc = gc;
+    server_info->dir = dir;
+    server_info->current_id = gc->id;
+
+    return (server_info);
+}
+
+
+CptServerInfo * cpt_server_info_destroy(CptServerInfo * server_info)
+{
+
+    if ( server_info )
+    {
+        if ( server_info->dir )
+        {
+            destroy_list((LinkedList *) server_info->dir);
+            server_info->dir = NULL;
+        }
+    }
+
+    return server_info;
 }

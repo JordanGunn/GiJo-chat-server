@@ -42,6 +42,7 @@ Node * create_node(void * data, size_t data_size)
         return NULL;
     }
 
+    node->node_size = data_size;
     memset(node->data, 0, data_size);
     memcpy(node->data, data, data_size);
     node->next = NULL;
@@ -65,7 +66,7 @@ void destroy_node(Node * node)
 }
 
 
-LinkedList * init_list(void * data, size_t data_size)
+LinkedList * init_list_data(void * data, size_t data_size)
 {
     Node * head;
     LinkedList * list;
@@ -82,10 +83,30 @@ LinkedList * init_list(void * data, size_t data_size)
         return NULL;
     }
 
-    if ( !(list->head = (Node **)malloc(sizeof(Node *))) ) { return NULL; }
-    if ( !(list->tail = (Node **)malloc(sizeof(Node *))) ) { return NULL; }
+    if ( !(list->head = (Node **)malloc(sizeof(Node **))) ) { return NULL; }
+    if ( !(list->tail = (Node **)malloc(sizeof(Node **))) ) { return NULL; }
 
-    list->node_size = data_size;
+    (*list->head) = head;
+    (*list->tail) = head;
+    list->length++;
+
+    return list;
+}
+
+
+LinkedList * init_list_node(Node * head)
+{
+    LinkedList * list;
+
+    if ( !(list = malloc(sizeof(LinkedList))) )
+    {
+        printf("Failed to allocate memory of size %lud\n", sizeof(LinkedList));
+        return NULL;
+    }
+
+    if ( !(list->head = (Node **)malloc(sizeof(Node **))) ) { return NULL; }
+    if ( !(list->tail = (Node **)malloc(sizeof(Node **))) ) { return NULL; }
+
     (*list->head) = head;
     (*list->tail) = head;
     list->length++;
@@ -114,7 +135,7 @@ void destroy_list(LinkedList * list)
 }
 
 
-void push_node(LinkedList * list, void * data, size_t data_size)
+void push_data(LinkedList * list, void * data, size_t data_size)
 {
     Node * new_node;
     Node * next_node;
@@ -127,6 +148,22 @@ void push_node(LinkedList * list, void * data, size_t data_size)
     if ( list->length == 1 )
     {
         (*list->tail) = next_node;   // set the first tail
+    }
+
+    list->length++;
+}
+
+
+void push_node(LinkedList * list, Node * node)
+{
+    Node * next_node;
+    next_node = get_head_node(list);
+    (*list->head) = node;
+    node->next = next_node;
+
+    if ( list->length == 1 )
+    {
+        (*list->tail) = node->next;   // set the first tail
     }
 
     list->length++;
@@ -148,11 +185,11 @@ LinkedList * filter(LinkedList * list, Comparator comparator, void * params, siz
         {
             if (!filtered) /* check for first find */
             {
-                filtered = init_list(node_iterator->data, list->node_size);
+                filtered = init_list_data(node_iterator->data, node_iterator->node_size);
             }
             else /* other-wise push the node */
             {
-                push_node(filtered, node_iterator->data, list->node_size);
+                push_data(filtered, node_iterator->data, node_iterator->node_size);
             }
             found++;
         }
@@ -206,15 +243,25 @@ int delete_node(LinkedList * list, Comparator comparator, void * test_param)
     bool found;
     Node * previous, * middle, * next;
 
-    previous = (*list->head);
+    previous = get_head_node(list);
     middle = previous->next;
-    if (!middle) { return -1; }
-
-    while ( (next = middle->next) )
+    found = comparator(previous->data, test_param);
+    if ( found )
     {
-        if (( found = (comparator(middle, test_param)) )) { break; }
-        previous = middle;
-        middle = previous->next;
+        *(list->head) = middle;
+        destroy_node(previous);
+        return 0;
+    }
+    else
+    {
+        while ( (next = middle->next) )
+        {
+            if ( (found = (comparator(middle->data, test_param))) )
+            { break; }
+
+            previous = middle;
+            middle = previous->next;
+        }
     }
 
     if ( found ) /* Check if any were found */
@@ -224,8 +271,6 @@ int delete_node(LinkedList * list, Comparator comparator, void * test_param)
         list->length--;
     }
     else { return -1; }
-
-    if ( !next ) { (*list->tail) = previous; } /* point to new tail if needed */
 
     return 0;
 }

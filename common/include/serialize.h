@@ -14,7 +14,6 @@
  */
 
 
-
 #ifndef CPT_SERIALIZE_H
 #define CPT_SERIALIZE_H
 

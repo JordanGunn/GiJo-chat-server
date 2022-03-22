@@ -15,13 +15,13 @@ User * user_init(int id, int fd, char * name)
         return NULL;
     }
 
-    if ( !(user = malloc(sizeof(User))) )
+    if ( !(user = malloc(sizeof(struct user_struct))) )
     {
-        printf("Failed to allocate memory of size %lud\n", sizeof(User));
+        printf("Failed to allocate memory of size %lud\n", sizeof(struct user_struct));
         return NULL;
     }
 
-    memset(user, 0, sizeof(User));
+    memset(user, 0, sizeof(struct user_struct));
     user->fd = fd;
     user->id = id;
     user->name = strdup(name);
@@ -44,31 +44,35 @@ void user_destroy(User * user)
 }
 
 
-UserNode * user_node(User * user)
+UserNode * create_user_node(User * user)
 {
     UserNode * user_node;
 
-    user_node = create_node(user, sizeof(struct user_struct));
+    user_node = (UserNode *)create_node(user, sizeof(struct user_struct));
     return (user_node) ? user_node : NULL;
 }
 
 
-void push_user(Users users, User * user)
+UserNode * get_head_user(Users * users)
 {
-    UserNode * new_user;
-    UserNode * next_user;
+    UserNode * user_node;
+    user_node = (UserNode *)get_head_node((LinkedList *) users);
+    return user_node;
+}
 
-    new_user = create_node(user, sizeof(struct user_struct));
-    next_user = *(users->head);
-    (*users->head) = new_user;
-    (*users->head)->next = next_user;
 
-    if ( users->length == 1 )
-    {
-        (*users->tail) = next_user;   // set the first tail
-    }
+void push_user(Users * users, User * user)
+{
+    LinkedList * list;
+    list = (LinkedList *) users;
+    push_data(list, user, sizeof(struct user_struct));
+}
 
-    users->length++;
+
+void push_user_node(Users * users, UserNode * user_node)
+{
+    push_node( (LinkedList *)
+            users, (Node *) user_node);
 }
 
 
@@ -86,6 +90,34 @@ void print_user(User * user)
 }
 
 
+User * find_user(Users * users, int id)
+{
+    UserNode * user_node;
+
+    user_node = (UserNode *)
+            find_node((LinkedList *) users, find_user_id, &id);
+
+    return user_node->user;
+}
+
+
+int delete_user(Users * users, int id)
+{
+    int result;
+    Comparator find_id;
+
+    result = SYS_CALL_FAIL;
+    find_id = (Comparator) find_user_id;
+    if ( users )
+    {
+        result = delete_node((LinkedList *) users, find_id, &id);
+        users->length--;
+    }
+
+    return result;
+}
+
+
 char * user_to_string(User * user)
 {
     char buffer[MD_BUFF_SIZE] = {0};
@@ -100,13 +132,15 @@ char * user_to_string(User * user)
 }
 
 
-Users users_init(User * user)
+Users * users_init(UserNode * user_node)
 {
-    Users users;
+    Users * users;
 
-    if (!user) { return NULL; }
+    if (!user_node) { return NULL; }
+    users = (Users *) init_list_node(
+        (Node *) user_node
+    );
 
-    users = init_list(user, sizeof(struct user_struct));
     return (users) ? users : NULL;
 }
 
@@ -115,9 +149,14 @@ Users users_init(User * user)
 // P R E D I C A T E S
 // ===================
 
-bool find_user_id(User * user, const int * id)
+bool find_user_id(void * data, void * test)
 {
-    return user->id == *id;
+    int * id;
+    User * user;
+
+    user = (User *) data;
+    id = (int *) test;
+    return (user->id == *id);
 }
 
 
@@ -127,10 +166,15 @@ bool find_user_name(User * user, char * name)
 }
 
 
-bool filter_user_id(User * user, FilterQuery * filter_query)
+bool filter_user_id(void * data, void * params)
 {
+    User * user;
     int i, * num_crawler;
     int * IDs, num_IDs;
+    FilterQuery * filter_query;
+
+    user = (User *) data;
+    filter_query = (FilterQuery *) params;
 
     IDs = (int *)filter_query->params;
     num_IDs = filter_query->num_params;
