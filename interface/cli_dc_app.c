@@ -221,21 +221,31 @@ void create_channel_handler(Command * cmd)
 {
     int result;
     CptResponse * res;
+    uint16_t new_cid;
     size_t req_size, res_size;
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
     uint8_t res_buf[MD_BUFF_SIZE] = {0};
 
-    req_size = cpt_create_channel(user.client_info, req_buf, (char *) cmd->args);
-    result = tcp_client_send(user.client_info->fd, req_buf, req_size);
+    req_size = cpt_create_channel(
+            user.client_info, req_buf, (char *) cmd->args);
+
+    result = tcp_client_send(
+            user.client_info->fd, req_buf, req_size);
+
     if ( result != SYS_CALL_FAIL )
     {
-        res_size = tcp_client_recv(user.client_info->fd, res_buf);
+        res_size = tcp_client_recv(
+                user.client_info->fd, res_buf);
+
         res = cpt_parse_response(res_buf, res_size);
         if ( res->code == SUCCESS )
         {
+            new_cid = (uint16_t) ( *(res->data) ); // new channel id is in response
+            user.channel = new_cid;
+            push_data(user.client_info->channels, &new_cid, sizeof(uint16_t));
             printf("\nSuccessfully created channel with users: [ %s ]\n",
                    (char *)cmd->args);
-        }
+        } else { printf("Failed to create channel with code: %d", res->code); }
     }
 }
 

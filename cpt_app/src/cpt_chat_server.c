@@ -208,7 +208,8 @@ void create_channel_event(Channel * gc, Channels * dir, CptPacket * req, int id)
     cc_res = cpt_create_channel_response(gc, dir, req, id);
 
     res.code = cc_res; res.fd = id;
-    res_size = cpt_simple_response(&res, res_buf);
+    res.data = (uint8_t *) &(dir->length);
+    res_size = cpt_response(&res, res_buf);
     tcp_server_send(id, res_buf, res_size);
 }
 

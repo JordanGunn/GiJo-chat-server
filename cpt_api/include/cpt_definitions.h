@@ -42,8 +42,7 @@
  * Valid cpt protocol response codes.
  */
 /* ===================== */
-#define SUCCESS          0
-#define UKNOWN_CMD       1
+#define SUCCESS          1
 #define LOGIN_FAIL       2
 #define UKNOWN_CHANNEL   3
 #define BAD_VERSION      4

@@ -53,6 +53,21 @@ int cpt_send_response(CptResponse * response);
 int cpt_login_response(Channel * gc, CptPacket * packet, int id);
 
 
+
+/**
+ * Handle a received 'LOGOUT' protocol message.
+ *
+ * Use information in the CptPacket to handle
+ * a LOGOUT protocol message from a connected client.
+ * If successful, will remove any instance of the user
+ * specified by the user <id> from the GlobalChannel
+ * and the ChannelDirectory.
+ *
+ * @param gc        The GlobalChannel (pointer to a Channel)
+ * @param dir       A linked list of Channel objects.
+ * @param id        User ID.
+ * @return Status Code (0 if successful, other if failure).
+ */
 int cpt_logout_response(Channel *gc, Channels * dir, int id);
 
 
@@ -138,6 +153,17 @@ int cpt_handle_join_channel(Channels * dir, User * user, CptPacket * packet);
  * @return 0 on success, error code on failure.
  */
 int cpt_handle_leave_channel(Channels * dir, User * user, CptPacket * packet);
+
+
+
+/**
+ * Serialize CptResponse object for transmission to client.
+ *
+ * @param res       Pointer to CptResponse object.
+ * @param res_buf   Buffer for serialized CptResponse.
+ * @return Size of serialized CptResponse.
+ */
+size_t cpt_response(CptResponse * res, uint8_t * res_buf);
 
 
 /**

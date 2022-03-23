@@ -127,7 +127,7 @@ int cpt_create_channel_response(Channel * gc, Channels * dir, CptPacket * packet
         idq.num_params = num_IDs;
         idq.params = calloc(num_IDs, sizeof(uint16_t));
         memcpy(idq.params, id_buf, sizeof(uint16_t) * num_IDs);
-        users = (Users *) filter((LinkedList *)
+        users = (Users *) filter( (LinkedList *)
                 gc->users, filter_user_id, &idq, idq.num_params);
     }
 
@@ -137,10 +137,14 @@ int cpt_create_channel_response(Channel * gc, Channels * dir, CptPacket * packet
         users = users_init( create_user_node(user) );
     }
 
-    new_channel = channel_init(++(dir->length), users, "Channel", false);
-    push_channel(dir, new_channel);
+    new_channel = channel_init(
+        ++(dir->length), users, "Channel", false);
 
-    return SUCCESS;
+    if ( new_channel )
+    {
+        push_channel(dir, new_channel);
+        return SUCCESS;
+    } else { return FAILURE; }
 }
 
 
@@ -186,6 +190,15 @@ size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf)
             ? (uint8_t *) strdup(GENERIC_SUCCESS_MSG)
             : (uint8_t *) strdup(GENERIC_FAIL_MSG);
 
+    serial_size = cpt_serialize_response(res, res_buf);
+
+    return serial_size;
+}
+
+
+size_t cpt_response(CptResponse * res, uint8_t * res_buf)
+{
+    size_t serial_size;
     serial_size = cpt_serialize_response(res, res_buf);
 
     return serial_size;
