@@ -4,6 +4,41 @@
 
 #include "cpt_channel.h"
 
+
+Channel * init_global_channel()
+{
+    Channel * gc;
+    Users * gc_users;
+    User * root_user;
+    UserNode * user_node;
+
+    root_user = user_init(GC_ROOT_USER_ID, (uint16_t)GC_ROOT_USER_FD, GC_ROOT_USER_NAME);
+    user_node = create_user_node(root_user);
+    if (!root_user) { return NULL ;}
+    gc_users = users_init(user_node);
+
+    gc = channel_init(GC_ID, gc_users, GC_NAME, GC_ACCESS);
+
+    return gc;
+}
+
+
+Channels * init_channel_directory(Channel * gc)
+{
+    Channels * channel_directory;
+    ChannelNode * channel_node;
+
+    if ( gc )
+    {
+        channel_node = create_channel_node(gc);
+        channel_directory = channels_init(channel_node);
+        return (channel_directory) ? channel_directory : NULL;
+    }
+
+    return NULL;
+}
+
+
 Channel * channel_init(uint16_t id, Users * users, char * name, bool is_private)
 {
     Channel * channel;
@@ -122,6 +157,7 @@ char * channel_to_string(Channel * channel)
         strncat(buffer, user_str, strlen(user_str));
         free(user_str);   // !
         user_str = NULL;
+        user_iterator = user_iterator->next_user;
     }
 
     return ( strlen(buffer) > 0 ) ? strdup(buffer) : NULL;
@@ -162,11 +198,13 @@ Channel * find_channel(Channels * dir, uint16_t id)
     Channel * channel;
     LinkedList * list;
     Comparator find_id;
+    ChannelNode * channel_node;
 
     list = (LinkedList *) dir;
     find_id = (Comparator) find_channel_id;
 
-    channel = (Channel *) find_node(list, find_id, &id); // !
+    channel_node = (ChannelNode *) find_node(list, find_id, &id); // !
+    channel = channel_node->channel;
 
     return ( channel ) ? channel : NULL;
 }

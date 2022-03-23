@@ -108,7 +108,16 @@ void cmd_destroy(Command * cmd);
 
 
 /**
- * Handle user_logout() function call.
+ * Make LOGIN request to server.
+ *
+ * @param name  Name of requesting user.
+ * @return 0 if successful, -1 if failure.
+ */
+int login_handler(char *name);
+
+
+/**
+ * Make a LOGOUT request to the server.
  *
  * Handles the logout function call and destroys
  * any necessary memory from the program.
@@ -118,12 +127,11 @@ void logout_handler();
 
 
 /**
- * Make login request to server.
+ * Make GET_USERS request to the server.
  *
- * @param name  Name of requesting user.
- * @return 0 if successful, -1 if failure.
+ * @param cmd
  */
-int login_handler(char *name);
+void get_users_handler(Command * cmd);
 
 
 /**

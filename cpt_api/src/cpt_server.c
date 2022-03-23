@@ -51,6 +51,38 @@ int cpt_logout_response(Channel * gc, Channels * dir, int id)
 }
 
 
+int cpt_get_users_response(void * server_info, int id)
+{
+    int result;
+    char * users_str;
+    Channel * channel;
+    CptServerInfo * info;
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+
+    info = (CptServerInfo *) server_info;
+
+    if ( !info->dir )
+    {
+        return SERVER_ERROR;
+    }
+
+    channel = (Channel *) find_channel(info->dir, id);
+    users_str = channel_to_string(channel);
+
+    if ( !users_str )
+    {
+        info->res->code = (uint8_t) CHAN_EMPTY;
+    }
+    else
+    {
+        info->res->data = (uint8_t *)users_str;
+    }
+
+    info->res->code = (uint8_t) SUCCESS;
+    return info->res->code;
+}
+
+
 uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result)
 {
     CptMsgResponse * msg_res;
@@ -81,34 +113,8 @@ uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result)
 }
 
 
-uint8_t * cpt_get_users_response(Channels * dir, CptPacket *packet, CptResponse * res)
-{
-    char * users_str;
-    Channel * channel;
-    uint8_t res_buf[LG_BUFF_SIZE] = {0};
-
-    if ( !packet )
-    {
-        res->code = (uint8_t) BAD_PACKET;
-        return NULL;
-    }
-
-    channel = find_channel(dir, packet->channel_id);
-    users_str = channel_to_string(channel);
-    if ( !users_str )
-    { res->code = (uint8_t) CHAN_EMPTY; }
-    else { res->data = (uint8_t *)users_str; }
-    res->code = (uint8_t) SUCCESS;
-    cpt_serialize_response(res, res_buf);
-    cpt_response_destroy(res);
-
-    return (uint8_t *) strdup((char *) res_buf);
-}
-
-
 int cpt_create_channel_response(Channel * gc, Channels * dir, CptPacket * packet, int id)
 {
-    uint16_t * IDs;
     FilterQuery idq;
     uint16_t num_IDs;
     Channel * new_channel;
@@ -190,15 +196,6 @@ size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf)
             ? (uint8_t *) strdup(GENERIC_SUCCESS_MSG)
             : (uint8_t *) strdup(GENERIC_FAIL_MSG);
 
-    serial_size = cpt_serialize_response(res, res_buf);
-
-    return serial_size;
-}
-
-
-size_t cpt_response(CptResponse * res, uint8_t * res_buf)
-{
-    size_t serial_size;
     serial_size = cpt_serialize_response(res, res_buf);
 
     return serial_size;

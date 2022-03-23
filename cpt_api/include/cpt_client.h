@@ -13,23 +13,23 @@
 
 
 /**
-* Send client information to the server.
+* Prepare a GET_USERS request from a CptPacket.
 *
-* Sends client information and adds them to the chat server.
-* Successful execution of this function call should enable
+* Prepares client information necessary to be added to the server.
+* Successful transmission of this packet should enable
 * the client program's information to persist within the
 * server until cpt_logout() is called.
 *
-* @param cpt   CPT packet and any additional information.
-* @return      A status code. Either from server, or user defined.
+* @param cpt           CPT packet and any additional information.
+* @return The size of the serialized packet in <serial_buf>.
 */
 size_t cpt_login(void * cpt, char * name, uint8_t * serial_buf);
 
 
 /**
-* Get users from the server.
+* Prepare a GET_USERS request from a CptPacket.
 *
-* Makes a request to the CPT server for errors.
+* Prepares a request to the CPT server for errors.
 *      > <query_string> may be passed in optionally,
 *        as additional filter parameters for the server's
 *        data organization structure(s).
@@ -39,15 +39,15 @@ size_t cpt_login(void * cpt, char * name, uint8_t * serial_buf);
 * @param cpt           CPT packet and any additional information.
 * @param query_string  A string intended to provide additional
 *                      query params to the server.
-* @return A status code. Either from server, or user defined.
+* @return The size of the serialized packet in <serial_buf>.
 */
-int cpt_get_users(void * cpt, char * query_string);
+size_t cpt_get_users(void * cpt, uint8_t * serial_buf, uint16_t channel_id);
 
 
 /**
-* Send a message to the current channel.
+* Prepare a SEND request from a CptPacket.
 *
-* Sends a message to the channel specified in the packet CHAN_ID.
+* Prepares a message to the channel specified in the packet CHAN_ID.
 *      > <msg> may be passed in optionally in the event that the
 *        MSG field of the packet has not been assigned.
 *      > If <msg> is not NULL, it will overwrite the
@@ -184,7 +184,7 @@ void cpt_destroy_client_info(CptClientInfo * client_info);
 
 
 /**
- * A helped for cpt_leave_channel.
+ * A helper for cpt_leave_channel.
  *
  * comparator function pointer that compares
  * channel IDs in a LinkedList object.

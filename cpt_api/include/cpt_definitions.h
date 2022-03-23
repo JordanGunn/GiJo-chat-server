@@ -5,7 +5,6 @@
 #ifndef CPT_CPT_DEFINITIONS_H
 #define CPT_CPT_DEFINITIONS_H
 
-
 /**
  * CPT constants definitions.
  */
@@ -66,5 +65,17 @@
 #define FAILURE          22
 #define SERV_FATAL       666
 /* ===================== */
+
+
+/**
+ * Global Channel Definitions
+ */
+#define GC_ROOT_USER_ID 0
+#define GC_ROOT_USER_FD 16383
+#define GC_ROOT_USER_NAME "ROOT_USER"
+#define GC_NAME "Global Channel"
+#define GC_MAX_USERS 4096
+#define GC_ACCESS 0
+#define GC_ID 0
 
 #endif //CPT_CPT_DEFINITIONS_H

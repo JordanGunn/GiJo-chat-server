@@ -20,6 +20,7 @@ typedef struct cpt_server_info CptServerInfo;
 struct cpt_server_info
 {
     int current_id;
+    CptResponse * res;
     Channels * dir;
     Channel * gc;
 };
@@ -104,7 +105,7 @@ uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result);
  * @param packet    Packet sent by requesting user.
  * @return 0 on success, error code on failure.
  */
-uint8_t * cpt_get_users_response(Channels * dir, CptPacket * packet, CptResponse * res);
+int cpt_get_users_response(void * server_info, int id);
 
 
 /**
@@ -153,17 +154,6 @@ int cpt_handle_join_channel(Channels * dir, User * user, CptPacket * packet);
  * @return 0 on success, error code on failure.
  */
 int cpt_handle_leave_channel(Channels * dir, User * user, CptPacket * packet);
-
-
-
-/**
- * Serialize CptResponse object for transmission to client.
- *
- * @param res       Pointer to CptResponse object.
- * @param res_buf   Buffer for serialized CptResponse.
- * @return Size of serialized CptResponse.
- */
-size_t cpt_response(CptResponse * res, uint8_t * res_buf);
 
 
 /**

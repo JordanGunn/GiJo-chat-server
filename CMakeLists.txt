@@ -50,8 +50,7 @@ target_include_directories(cpt_chat_server PRIVATE common/include/)
 target_include_directories(cpt_chat_server PRIVATE cpt_api/include/)
 target_include_directories(cpt_chat_server PRIVATE tcp_networking/include/)
 target_include_directories(cpt_chat_server PRIVATE cpt_app/include/)
-target_include_directories(cpt_chat_server PRIVATE interface/include/)
-target_include_directories(cpt_chat_server PRIVATE interface/)
+
 
 # link the local source files
 target_link_directories(cpt_chat_server PRIVATE common/src/)
@@ -77,7 +76,7 @@ target_include_directories(cpt_chat_client PRIVATE cpt_api/include/)
 target_include_directories(cpt_chat_client PRIVATE tcp_networking/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_app/include/)
 #target_include_directories(cpt_chat_client PRIVATE interface/include/)
-target_link_directories(cpt_chat_client PRIVATE interface/)
+target_include_directories(cpt_chat_client PRIVATE interface/)
 
 # link the local source files
 target_link_directories(cpt_chat_client PRIVATE common/src/)

@@ -250,12 +250,40 @@ void create_channel_handler(Command * cmd)
 }
 
 
+void get_users_handler(Command * cmd)
+{
+    int result;
+    CptResponse * res;
+    size_t req_size, res_size;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+
+    req_size = cpt_get_users( /* !!! This needs to be changed for different channels !!! */
+            user.client_info, req_buf, CHANNEL_ZERO);
+
+    result = tcp_client_send(
+            user.client_info->fd, req_buf, req_size);
+
+    if ( result != SYS_CALL_FAIL )
+    {
+        res_size = tcp_client_recv(
+                user.client_info->fd, res_buf);
+
+        res = cpt_parse_response(res_buf, res_size);
+        if ( res->code == SUCCESS )
+        {
+            printf("%s\n", (char *)res->data);
+        } else { printf("Failed to get users with code: %d\n", res->code); }
+    }
+}
+
+
 void handle_cmd(Command * cmd)
 {
     if ( is_cmd(cmd, cli_cmds[MENU]           )) { menu();                      }
     if ( is_cmd(cmd, cli_cmds[LOGOUT]         )) { logout_handler();            }
     if ( is_cmd(cmd, cli_cmds[SEND]           )) { puts("SEND");                }
-    if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { puts("GET_USERS");           }
+    if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler(cmd);      }
     if ( is_cmd(cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(cmd); }
     if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { puts("JOIN_CHANNEL");        }
     if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { puts("LEAVE_CHANNEL");       }
@@ -302,10 +330,10 @@ void menu()
     div = "==================================================";
     title = "Choose from the following options...\n\n";
     send           = "  [0] send <message>\n";
-    get_users      = "  [1] get-users <message>\n";
-    create_channel = "  [2] create-channel <id-1> <id-2>v.. <id-n>\n";
-    join_channel   = "  [3] join-channel <id>\n";
-    leave_channel  = "  [4] leave-channel <id>\n";
+    get_users      = "  [1] get-users <chan_id>\n";
+    create_channel = "  [2] create-channel \"<uid-1> <uid-2>.. <uid-n>\"\n";
+    join_channel   = "  [3] join-channel <chan_id>\n";
+    leave_channel  = "  [4] leave-channel <chan_id>\n";
     logout         = "  [5] logout <name>\n";
     menu           = "  [6] menu\n";
 
@@ -358,13 +386,16 @@ void parse_cmd_args(Command * cmd)
     if ( cmd->p_input )
     {
         arg_start = cmd->p_input;
-        if ( !strchr(arg_start, '\"') ) { strcpy(arg_buf, arg_start + 1); }
+        if ( !strchr(arg_start, '\"') )
+        {
+            arg_end = strchr(arg_start++, '\n');
+        }
         else
         {
             arg_start = strchr(cmd->p_input, '\"'); arg_start++;
             arg_end = strchr(arg_start + 1, '\"');
-            memcpy(arg_buf, arg_start, arg_end - arg_start);
         }
+        memcpy(arg_buf, arg_start, arg_end - arg_start);
         cmd->args = strdup(arg_buf);
         cmd->p_input = NULL;
     }

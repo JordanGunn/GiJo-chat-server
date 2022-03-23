@@ -12,5 +12,4 @@ SET(CPT_API_SERVER_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/cpt_channel.c
         ${CMAKE_CURRENT_SOURCE_DIR}/cpt_serialize.c
         ${CMAKE_CURRENT_SOURCE_DIR}/cpt_packet_builder.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/cpt_global_channel.c
         PARENT_SCOPE)

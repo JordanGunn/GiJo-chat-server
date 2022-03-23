@@ -145,6 +145,17 @@ CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code);
 void cpt_response_destroy(CptResponse * response);
 
 
+/**
+ * Reset packet parameters.
+ *
+ * Reset the response parameters,
+ * and free memory for certain params.
+ *
+ * @param response    A CptResponse struct.
+*/
+void cpt_response_reset(CptResponse * response);
+
+
 
 // =============================
 // C P T   S U B - P A C K E T S

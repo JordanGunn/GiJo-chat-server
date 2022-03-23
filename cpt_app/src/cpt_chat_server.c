@@ -103,6 +103,7 @@ void run()
                     {
                         int id;
                         id = poll_fds[i].fd;
+                        server_info->current_id = poll_fds[i].fd;
                         req_size = tcp_server_recv(id, req_buf);
                         req = cpt_parse_packet(req_buf, req_size);
 
@@ -120,7 +121,7 @@ void run()
 
                         if (req->command == GET_USERS)
                         {
-                            puts("GET_USERS event");
+                            get_users_event(server_info, req->channel_id);
                         }
 
                         if (req->command == CREATE_CHANNEL)
@@ -159,12 +160,6 @@ void run()
                         }
                     } else { break; }
 
-//                    if ( (result < 0) )
-//                    {
-//                        perror("  send() failed");
-//                        close_conn = true;
-//                        break;
-//                    }
                 } while ( true );
 
                 /* handle close connection flag if set */
@@ -199,73 +194,6 @@ void run()
 }
 
 
-void create_channel_event(Channel * gc, Channels * dir, CptPacket * req, int id)
-{
-    int cc_res;
-    size_t res_size;
-    CptResponse res;
-    uint8_t res_buf[MD_BUFF_SIZE] = {0};
-    cc_res = cpt_create_channel_response(gc, dir, req, id);
-
-    res.code = cc_res; res.fd = id;
-    res.data = (uint8_t *) &(dir->length);
-    res_size = cpt_response(&res, res_buf);
-    tcp_server_send(id, res_buf, res_size);
-}
-
-
-bool is_revent_POLLOUT(int index)
-{
-    return (
-            poll_fds[index].revents ==
-            (poll_fds[index].revents & POLLOUT)
-        );
-}
-
-
-bool is_revent_POLLIN(int index)
-{
-    if (poll_fds[index].fd >= 0)
-    {
-        return (
-            poll_fds[index].revents ==
-            (poll_fds[index].revents & POLLIN)
-        );
-    } else { return false; }
-}
-
-
-void logout_event(Channel *gc, Channels * dir, int id)
-{
-    int lo_res;
-    CptResponse res;
-    lo_res = cpt_logout_response(gc, dir, id);
-    res.code = lo_res;
-    res.fd = id;
-    if ( lo_res == SUCCESS )
-    {
-        printf("  User with ID %d logged out...\n", id);
-    }
-}
-
-
-void server_destroy(Channels * dir)
-{
-    for (int ifd = 0; ifd < nfds; ifd++)
-    {
-        if ( (poll_fds[ifd].fd >= 0) )
-        {
-            close(poll_fds[ifd].fd);
-        }
-    }
-
-    if (dir)
-    {
-        destroy_list((LinkedList *) dir);
-    }
-}
-
-
 int login_event(Channel * gc)
 {
     CptResponse res;
@@ -297,6 +225,97 @@ int login_event(Channel * gc)
 
     return (new_fd != SYS_CALL_FAIL) ? SUCCESS : FAILURE;
 }
+
+
+void logout_event(Channel * gc, Channels * dir, int id)
+{
+    int lo_res;
+    CptResponse res;
+    lo_res = cpt_logout_response(gc, dir, id);
+    res.code = lo_res;
+    res.fd = id;
+    if ( lo_res == SUCCESS )
+    {
+        printf("  User with ID %d logged out...\n", id);
+    }
+}
+
+
+void create_channel_event(Channel * gc, Channels * dir, CptPacket * req, int id)
+{
+    int cc_res;
+    size_t res_size;
+    CptResponse res;
+    uint8_t res_buf[MD_BUFF_SIZE] = {0};
+    cc_res = cpt_create_channel_response(gc, dir, req, id);
+
+    res.code = cc_res; res.fd = id;
+    res.data = (uint8_t *) &(dir->length);
+    res_size = cpt_serialize_response(&res, res_buf);
+    tcp_server_send(id, res_buf, res_size);
+}
+
+
+void get_users_event(CptServerInfo * info, int chan_id)
+{
+    int gu_res;
+    size_t res_size;
+    CptResponse res;
+    info->res = &res;
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+
+    gu_res = cpt_get_users_response(info, chan_id);
+    if ( gu_res == SUCCESS )
+    {
+        printf("GET_USERS event occurred successfully...\n");
+    }
+
+    res_size = cpt_serialize_response(info->res, res_buf);
+    tcp_server_send(info->current_id, res_buf, res_size);
+    cpt_response_reset(info->res);
+}
+
+
+void server_destroy(Channels * dir)
+{
+    for (int ifd = 0; ifd < nfds; ifd++)
+    {
+        if ( (poll_fds[ifd].fd >= 0) )
+        {
+            close(poll_fds[ifd].fd);
+        }
+    }
+
+    if (dir)
+    {
+        destroy_list((LinkedList *) dir);
+    }
+}
+
+
+
+
+bool is_revent_POLLOUT(int index)
+{
+    return (
+            poll_fds[index].revents ==
+            (poll_fds[index].revents & POLLOUT)
+    );
+}
+
+
+bool is_revent_POLLIN(int index)
+{
+    if (poll_fds[index].fd >= 0)
+    {
+        return (
+                poll_fds[index].revents ==
+                (poll_fds[index].revents & POLLIN)
+        );
+    } else { return false; }
+}
+
+
 
 
 int handle_new_accept()

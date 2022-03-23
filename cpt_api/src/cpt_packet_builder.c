@@ -155,6 +155,15 @@ void cpt_response_destroy(CptResponse * res)
 }
 
 
+void cpt_response_reset(CptResponse * response)
+{
+    if ( response->data ) { free(response->data); response->data = NULL; }
+    response->fd = 0;
+    response->code = 0;
+}
+
+
+
 
 // ============================
 // C P T   S U B - P A CK E T S

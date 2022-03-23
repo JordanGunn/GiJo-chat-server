@@ -20,30 +20,43 @@ size_t cpt_login(void * cpt, char * name, uint8_t * serial_buf)
         : cpt_packet_msg(client_info->packet, DEFAULT_USERNAME);
 
     serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
-
     return serial_size;
 }
 
 
-int cpt_get_users(void * cpt, char * query_string)
+size_t cpt_logout(void * cpt, uint8_t * serial_buf)
+{
+
+    size_t serial_size;
+    CptClientInfo * client_info;
+
+    client_info = (CptClientInfo *)cpt;
+
+    cpt_packet_cmd(client_info->packet, (uint8_t) LOGOUT);
+    serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
+
+    cpt_packet_reset(client_info->packet);
+    return serial_size;
+}
+
+
+size_t cpt_get_users(void * cpt, uint8_t * serial_buf, uint16_t channel_id)
 {
     CptPacket * packet;
     size_t serial_size;
     CptClientInfo * client_info;
-    uint8_t buffer[LG_BUFF_SIZE];
 
     client_info = (CptClientInfo *)cpt;
     packet = client_info->packet;
 
     cpt_packet_cmd(packet, (uint8_t) GET_USERS);
-    if (query_string) { cpt_packet_msg(packet, query_string); }
-    serial_size = cpt_serialize_packet(packet, buffer);
-
-    tcp_client_send(client_info->fd, buffer, serial_size);
-    cpt_packet_reset(packet);
-    return 0;
+    if (channel_id >= CHANNEL_ZERO)
+    {
+        cpt_packet_chan(packet, channel_id);
+        serial_size = cpt_serialize_packet(packet, serial_buf);
+        return serial_size;
+    } else { return 0; }
 }
-
 
 
 int cpt_send_msg(void * cpt, char * msg)
@@ -71,23 +84,6 @@ int cpt_send_msg(void * cpt, char * msg)
     cpt_packet_reset(packet);
 
     return 0;
-}
-
-
-size_t cpt_logout(void * cpt, uint8_t * serial_buf)
-{
-
-    size_t serial_size;
-    CptClientInfo * client_info;
-
-    client_info = (CptClientInfo *)cpt;
-
-    cpt_packet_cmd(client_info->packet, (uint8_t) LOGOUT);
-    serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
-
-    cpt_packet_reset(client_info->packet);
-
-    return serial_size;
 }
 
 

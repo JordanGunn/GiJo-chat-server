@@ -10,20 +10,20 @@
 
 #include "cpt_types.h"
 #include "cpt_server.h"
-#include "cpt_global_channel.h"
 
 void run();
 
 int login_event(Channel * gc);
 
+void logout_event(Channel * gc, Channels * dir, int id);
+
+void get_users_event(CptServerInfo * info, int chan_id);
+
 void listen_socket_init(Channel * gc);
 
 int handle_new_accept();
 
-void logout_event(Channel * gc, Channels * dir, int id);
-
 void server_destroy(Channels * dir);
-
 
 bool should_end_event_loop(int poll_result);
 
