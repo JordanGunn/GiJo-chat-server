@@ -42,12 +42,6 @@ void run()
     /* Setup listener socket. */
     listen_socket_init( gc );
 
-    printf("POLLERR: %d\n",  POLLERR);
-    printf("POLLIN: %d\n",   POLLIN);
-    printf("POLLOUT: %d\n",  POLLOUT);
-    printf("POLLHUP: %d\n",  POLLHUP);
-    printf("POLLNVAL: %d\n", POLLNVAL);
-
     // **************************************************
     // ************ E V E N T ** L O O P ****************   AMERICA !!!!!!!!!!!!!!!
     // **************************************************
@@ -204,6 +198,7 @@ void run()
     server_destroy( dir );  /* Close existing sockets before ending */
 }
 
+
 void create_channel_event(Channel * gc, Channels * dir, CptPacket * req, int id)
 {
     int cc_res;
@@ -226,6 +221,7 @@ bool is_revent_POLLOUT(int index)
         );
 }
 
+
 bool is_revent_POLLIN(int index)
 {
     if (poll_fds[index].fd >= 0)
@@ -235,10 +231,10 @@ bool is_revent_POLLIN(int index)
             (poll_fds[index].revents & POLLIN)
         );
     } else { return false; }
-
 }
 
-void logout_event(Channel *gc, Channels *dir, int id)
+
+void logout_event(Channel *gc, Channels * dir, int id)
 {
     int lo_res;
     CptResponse res;
@@ -250,6 +246,7 @@ void logout_event(Channel *gc, Channels *dir, int id)
         printf("  User with ID %d logged out...\n", id);
     }
 }
+
 
 void server_destroy(Channels * dir)
 {

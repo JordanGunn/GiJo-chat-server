@@ -4,7 +4,6 @@
 
 #include "cli_dc_app.h"
 
-
 // =============================
 // I N I T   U S E R   S T A T E
 // =============================
@@ -111,8 +110,6 @@ struct dc_application_settings * create_settings(const struct dc_posix_env *env,
 
 bool is_cmd(Command *command, char *cli_cmd);
 
-void create_channel_handler();
-
 int destroy_settings(const struct dc_posix_env *env, __attribute__((unused)) struct dc_error *err,
                      struct dc_application_settings **psettings)
 {
@@ -136,6 +133,7 @@ int destroy_settings(const struct dc_posix_env *env, __attribute__((unused)) str
     return 0;
 }
 
+
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
     char * host, * port, * login;
@@ -144,9 +142,9 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
     struct application_settings * app_settings;
     app_settings = (struct application_settings *) settings;
 
-    host  = dc_setting_string_get(env, app_settings->host          );
-    port  = dc_setting_string_get(env, app_settings->port          );
-    login = dc_setting_string_get(env, app_settings->login         );
+    host  = dc_setting_string_get(env, app_settings->host );
+    port  = dc_setting_string_get(env, app_settings->port );
+    login = dc_setting_string_get(env, app_settings->login);
 
     if ( !user.LOGGED_IN )
     {
@@ -155,15 +153,15 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
 
     while ( user.LOGGED_IN )
     {
-        command = command_init();
-        while ( !is_valid_command(command) )
+        command = cmd_init();
+        while ( !is_valid_cmd(command) )
         {
             chat_prompt();
             command->input = get_user_input();
             parse_user_input(command);
         }
-        handle_command(command);
-        command_destroy(command);
+        handle_cmd(command);
+        cmd_destroy(command);
     }
     close(user.client_info->fd);  // close the connection
     return EXIT_SUCCESS;
@@ -235,14 +233,14 @@ void create_channel_handler(Command * cmd)
         res = cpt_parse_response(res_buf, res_size);
         if ( res->code == SUCCESS )
         {
-            printf("Successfully created channel with users:\n\n\t%d %s",
-                   user.client_info->fd, (char *)cmd->args);
+            printf("\nSuccessfully created channel with users: [ %s ]\n",
+                   (char *)cmd->args);
         }
     }
 }
 
 
-void handle_command(Command * cmd)
+void handle_cmd(Command * cmd)
 {
     if ( is_cmd(cmd, cli_cmds[MENU]           )) { menu();                      }
     if ( is_cmd(cmd, cli_cmds[LOGOUT]         )) { logout_handler();            }
@@ -326,13 +324,50 @@ void chat_prompt()
 }
 
 
+char * get_user_input()
+{
+    char buf[SM_BUFF_SIZE];
+
+    read(STDIN_FILENO, buf, SM_BUFF_SIZE);
+    return strdup(buf);
+}
+
+
+void parse_user_input(Command * cmd)
+{
+    parse_cmd(cmd);
+    parse_cmd_args(cmd);
+}
+
+
+void parse_cmd_args(Command * cmd)
+{
+    char arg_buf[SM_BUFF_SIZE] = {0};
+    char * arg_start, * arg_end;
+
+    if ( cmd->p_input )
+    {
+        arg_start = cmd->p_input;
+        if ( !strchr(arg_start, '\"') ) { strcpy(arg_buf, arg_start + 1); }
+        else
+        {
+            arg_start = strchr(cmd->p_input, '\"'); arg_start++;
+            arg_end = strchr(arg_start + 1, '\"');
+            memcpy(arg_buf, arg_start, arg_end - arg_start);
+        }
+        cmd->args = strdup(arg_buf);
+        cmd->p_input = NULL;
+    }
+}
+
+
 bool is_cmd(Command * command, char * cli_cmd)
 {
     return !( strcmp(command->cmd, cli_cmd) );
 }
 
 
-bool is_valid_command(Command * cmd) {
+bool is_valid_cmd(Command * cmd) {
 
     int i;
     if ( !cmd->cmd ) { return false; }
@@ -347,43 +382,7 @@ bool is_valid_command(Command * cmd) {
 }
 
 
-char * get_user_input()
-{
-    char buf[SM_BUFF_SIZE];
-
-    read(STDIN_FILENO, buf, SM_BUFF_SIZE);
-    return strdup(buf);
-}
-
-
-void parse_user_input(Command * cmd)
-{
-    parse_command(cmd);
-    parse_args(cmd);
-}
-
-
-void parse_args(Command * cmd)
-{
-    char arg_buf[SM_BUFF_SIZE] = {0};
-    char * arg_start, * arg_end;
-
-    if ( cmd->p_input )
-    {
-        arg_start = cmd->p_input;
-        if ( !strchr(arg_start, '\"') ) { strcpy(arg_buf, arg_start + 1); }
-        else
-        {
-            arg_start = strchr(arg_start, '\"');
-            arg_end = strchr(arg_start, '\"');
-            memcpy(arg_buf, arg_start, arg_end - arg_start);
-        }
-        cmd->args = strdup(arg_buf);
-        cmd->p_input = NULL;
-    }
-}
-
-void parse_command(Command * cmd)
+void parse_cmd(Command * cmd)
 {
     char cmd_buf[SM_BUFF_SIZE] = {0};
     char * cmd_start, * cmd_end;
@@ -405,7 +404,7 @@ void parse_command(Command * cmd)
 }
 
 
-Command * command_init()
+Command * cmd_init()
 {
     Command * command;
     if ( (command = malloc(sizeof( struct command))) )
@@ -418,7 +417,7 @@ Command * command_init()
 }
 
 
-void command_destroy(Command * cmd)
+void cmd_destroy(Command * cmd)
 {
     if ( cmd )
     {

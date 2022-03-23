@@ -2,8 +2,8 @@
 // Created by jordan on 2022-03-08.
 //
 
-#include "../include/linked_list.h"
-#include "../include/common.h"
+#include "linked_list.h"
+#include "common.h"
 
 
 void for_each(LinkedList * list, Consumer consumer)

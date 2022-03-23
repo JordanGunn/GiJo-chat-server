@@ -2,7 +2,7 @@
 // Created by jordan on 2022-03-17.
 //
 
-#include "../include/serialize.h"
+#include "serialize.h"
 
 
 void packi16(unsigned char *buf, unsigned int i)

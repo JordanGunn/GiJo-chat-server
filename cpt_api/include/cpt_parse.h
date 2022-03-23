@@ -25,7 +25,7 @@ CptResponse * cpt_parse_response(uint8_t * buffer, size_t data_size);
 * Create a cpt struct from a cpt packet.
 *
 * @param packet    A serialized cpt protocol message.
-* @return          A pointer to a cpt struct.
+* @return A pointer to a cpt struct.
 */
 CptPacket * cpt_parse_packet(uint8_t * req_buf, size_t req_size);
 
@@ -37,6 +37,6 @@ CptPacket * cpt_parse_packet(uint8_t * req_buf, size_t req_size);
  * @param data  Body of CptPacket struct.
  * @return      Pointer to array of IDs
  */
-uint16_t cpt_parse_channel_query(CptPacket * packet, uint16_t * id_buffer);
+uint16_t cpt_parse_channel_query(CptPacket * packet, uint16_t * id_buf);
 
 #endif //CPT_CPT_PARSE_H

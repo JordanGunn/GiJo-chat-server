@@ -10,7 +10,6 @@
 #include "cpt_types.h"
 #include "cpt_user.h"
 
-
 typedef struct channels Channels;
 typedef struct channel_node ChannelNode;
 typedef struct channel_struct Channel;

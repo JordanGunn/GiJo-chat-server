@@ -35,13 +35,6 @@ int cpt_get_users(void * cpt, char * query_string)
     client_info = (CptClientInfo *)cpt;
     packet = client_info->packet;
 
-    if ( !(client_info->fd) )
-    {
-        const char * message = "Not connected!";
-        write(STDERR_FILENO, message, strlen(message));
-        return EXIT_FAILURE;
-    }
-
     cpt_packet_cmd(packet, (uint8_t) GET_USERS);
     if (query_string) { cpt_packet_msg(packet, query_string); }
     serial_size = cpt_serialize_packet(packet, buffer);
@@ -129,7 +122,6 @@ size_t cpt_create_channel(void * cpt, uint8_t * serial_buf, char * user_list)
 {
     uint8_t serial_size;
     CptClientInfo * client_info;
-    uint8_t user_list_buf[SM_BUFF_SIZE] = {0};
 
     client_info = (CptClientInfo *) cpt;
     client_info->packet = cpt_packet_init();
@@ -139,11 +131,9 @@ size_t cpt_create_channel(void * cpt, uint8_t * serial_buf, char * user_list)
 
     if ( user_list )
     {
-        serialize(user_list_buf, "s", user_list);
+        cpt_packet_msg(client_info->packet, (char *) user_list);
     }
-
     serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
-
     return serial_size;
 }
 

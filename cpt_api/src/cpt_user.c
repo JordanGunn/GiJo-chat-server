@@ -169,21 +169,21 @@ bool find_user_name(User * user, char * name)
 bool filter_user_id(void * data, void * params)
 {
     User * user;
-    int i, * num_crawler;
-    int * IDs, num_IDs;
+    int i, num_IDs;
     FilterQuery * filter_query;
+    uint16_t * IDs, * id_crawler;
 
     user = (User *) data;
     filter_query = (FilterQuery *) params;
 
-    IDs = (int *)filter_query->params;
+    IDs = (uint16_t *)filter_query->params;
     num_IDs = filter_query->num_params;
 
-    num_crawler = IDs;
+    id_crawler = IDs;
     for (i = 0; i < num_IDs; i++)
     {
-        if ( user->id == *(num_crawler) ) { return true; }
-        num_crawler++;
+        if ( user->id == *(id_crawler) ) { return true; }
+        id_crawler++;
     }
     return false;
 }

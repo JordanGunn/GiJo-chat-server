@@ -50,6 +50,7 @@ target_include_directories(cpt_chat_server PRIVATE common/include/)
 target_include_directories(cpt_chat_server PRIVATE cpt_api/include/)
 target_include_directories(cpt_chat_server PRIVATE tcp_networking/include/)
 target_include_directories(cpt_chat_server PRIVATE cpt_app/include/)
+target_include_directories(cpt_chat_server PRIVATE interface/include/)
 target_include_directories(cpt_chat_server PRIVATE interface/)
 
 # link the local source files
@@ -57,8 +58,6 @@ target_link_directories(cpt_chat_server PRIVATE common/src/)
 target_link_directories(cpt_chat_server PRIVATE cpt_api/src/)
 target_link_directories(cpt_chat_server PRIVATE tcp_networking/src/)
 target_link_directories(cpt_chat_server PRIVATE cpt_app/src/)
-target_link_directories(cpt_chat_server PRIVATE interface/)
-
 
 # =========================================
 # Directory inclusion for client executable
@@ -77,13 +76,15 @@ target_include_directories(cpt_chat_client PRIVATE common/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_api/include/)
 target_include_directories(cpt_chat_client PRIVATE tcp_networking/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_app/include/)
-target_include_directories(cpt_chat_client PRIVATE interface/)
+#target_include_directories(cpt_chat_client PRIVATE interface/include/)
+target_link_directories(cpt_chat_client PRIVATE interface/)
 
 # link the local source files
 target_link_directories(cpt_chat_client PRIVATE common/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_api/src/)
 target_link_directories(cpt_chat_client PRIVATE tcp_networking/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_app/src/)
+#target_include_directories(cpt_chat_client PRIVATE interface/src/)
 target_link_directories(cpt_chat_client PRIVATE interface/)
 
 # ==========================================

@@ -1,5 +1,5 @@
-add_subdirectory(src)
-add_subdirectory(include)
+add_subdirectory(src/)
+add_subdirectory(include/)
 
 SET(CPT_API_SERVER_TGT
         ${CPT_API_SERVER_INCLUDE}

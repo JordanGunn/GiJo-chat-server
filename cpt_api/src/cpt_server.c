@@ -108,31 +108,36 @@ uint8_t * cpt_get_users_response(Channels * dir, CptPacket *packet, CptResponse 
 
 int cpt_create_channel_response(Channel * gc, Channels * dir, CptPacket * packet, int id)
 {
+    uint16_t * IDs;
+    FilterQuery idq;
     uint16_t num_IDs;
     Channel * new_channel;
     User * user; Users * users;
-    uint16_t * IDs; FilterQuery idq;
+    uint16_t id_buf[SM_BUFF_SIZE] = {0};
 
     if ( !gc )     { return BAD_CHANNEL; }
     if ( !packet ) { return BAD_PACKET;  }
 
-    IDs = NULL; users = NULL;
+    users = NULL;
     if ( packet->msg )
     {
-        num_IDs = cpt_parse_channel_query(packet, IDs);  // !!!
-        idq.params = IDs;
+        id_buf[0] = (uint16_t) id;
+        num_IDs = cpt_parse_channel_query(packet, id_buf);// !!!
+
         idq.num_params = num_IDs;
-        users = (Users *)filter( (LinkedList *)
+        idq.params = calloc(num_IDs, sizeof(uint16_t));
+        memcpy(idq.params, id_buf, sizeof(uint16_t) * num_IDs);
+        users = (Users *) filter((LinkedList *)
                 gc->users, filter_user_id, &idq, idq.num_params);
     }
 
-    user = find_user(gc->users, id);
-    if (!users) /* if filter found requested IDs. */
+    if ( !users ) /* if filter found requested IDs. */
     {
+        user = find_user(gc->users, id);
         users = users_init( create_user_node(user) );
     }
+
     new_channel = channel_init(++(dir->length), users, "Channel", false);
-    push_user(new_channel->users, user);
     push_channel(dir, new_channel);
 
     return SUCCESS;
@@ -147,7 +152,6 @@ int cpt_handle_join_channel(Channels * dir, User * user, CptPacket * packet)
     if ( !user )   { return BAD_USER;   }
 
     channel = find_channel(dir, packet->channel_id);
-
     if ( !channel ) { return UKNOWN_CHANNEL; }
     push_channel_user(channel, user);
 

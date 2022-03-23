@@ -45,7 +45,8 @@ struct linked_list
  * @property params:     Pointer to data structure holding
  *                       search parameters.
  */
-struct filter_query {
+struct filter_query
+{
     int num_params;
     void * params;
 };

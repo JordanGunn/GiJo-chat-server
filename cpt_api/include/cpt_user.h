@@ -104,6 +104,12 @@ void push_user_node(Users * users, UserNode * user_node);
 UserNode * create_user_node(User * user);
 
 
+/**
+ *
+ * @param users
+ * @param id
+ * @return
+ */
 int delete_user(Users * users, int id);
 
 

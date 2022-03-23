@@ -48,7 +48,7 @@ ChannelNode * create_channel_node(Channel * channel)
 {
     ChannelNode * channel_node;
 
-    channel_node = (ChannelNode *)create_node(channel, sizeof(struct channel_struct));
+    channel_node = (ChannelNode *) create_node(channel, sizeof(struct channel_struct));
     return (channel_node) ? channel_node : NULL;
 }
 

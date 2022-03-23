@@ -73,6 +73,39 @@ struct command
     char * p_input;
 };
 
+typedef struct command Command;
+
+
+/**
+ * Check user input against valid CLI commands.
+ *
+ * @param cmd     string from get_user_input().
+ * @return true or false.
+ */
+bool is_valid_cmd(Command * cmd);
+
+
+/**
+ * Initialize command object.
+ *
+ * Allocates necessary memory and initialize all
+ * pointers to NULL.
+ *
+ * @return Pointer to command object.
+ */
+Command * cmd_init();
+
+
+/**
+ * Destroy Command object.
+ *
+ * Free any dynamically allocated memory
+ * and set all pointer to NULL.
+ *
+ * @param cmd   Pointer to Command object.
+ */
+void cmd_destroy(Command * cmd);
+
 
 /**
  * Handle user_logout() function call.
@@ -125,41 +158,11 @@ void menu();
 char * get_user_input();
 
 
-/**
- * Check user input against valid CLI commands.
- *
- * @param cmd     string from get_user_input().
- * @return true or false.
- */
-bool is_valid_command(Command * cmd);
-
-
-/**
- * Initialize command object.
- *
- * Allocates necessary memory and initialize all
- * pointers to NULL.
- *
- * @return Pointer to command object.
- */
-Command * command_init();
-
-
-/**
- * Destroy Command object.
- *
- * Free any dynamically allocated memory
- * and set all pointer to NULL.
- *
- * @param cmd   Pointer to Command object.
- */
-void command_destroy(Command * cmd);
-
 
 /**
  * Parse user input from stdin.
  *
- * Calls parse_args() and parse_command().
+ * Calls parse_cmd_args() and parse_cmd().
  *
  * @param cmd   Pointer to Command object.
  */
@@ -177,7 +180,7 @@ void chat_prompt();
  *
  * @param cmd   Pointer to Command object.
  */
-void parse_command(Command * cmd);
+void parse_cmd(Command * cmd);
 
 
 /**
@@ -185,7 +188,7 @@ void parse_command(Command * cmd);
  *
  * @param cmd   Pointer to Command object.
  */
-void parse_args(Command * cmd);
+void parse_cmd_args(Command * cmd);
 
 
 /**
@@ -193,7 +196,7 @@ void parse_args(Command * cmd);
  *
  * @param cmd   Pointer to Command object.
  */
-void handle_command(Command * cmd);
+void handle_cmd(Command * cmd);
 
 
 /**

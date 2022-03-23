@@ -58,7 +58,7 @@ struct cpt_client_info
 
 
 /**
- * Cpt response object.
+ * Cpt response object.\n\n
  *
  * Contains properties for preparing cpt response packets.
  * When ready, can be passed to cpt_parse_response() or
@@ -74,7 +74,7 @@ struct cpt_response
 
 
 /**
- * Message response sub-packet.
+ * Message response sub-packet.\n\n
  *
  * Valid pre-serialized format for server
  * transmission of SEND cpt packets.
@@ -89,7 +89,7 @@ struct cpt_msg_response
 
 
 /**
- * Username-ID pair format.
+ * Username-ID pair format.\n\n
  *
  * Valid format for USER_LIST server
  * response sub-packet.

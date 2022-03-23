@@ -48,22 +48,25 @@ CptPacket * cpt_parse_packet(uint8_t * req_buf, size_t req_size)
 }
 
 
-uint16_t cpt_parse_channel_query(CptPacket * packet, uint16_t * id_buffer)
+uint16_t cpt_parse_channel_query(CptPacket * packet, uint16_t * id_buf)
 {
+    uint8_t * body;
+    char * id_str;
+    int id_count;
     uint16_t id;
-    int i, id_count;
-    uint8_t * body, len;
-    uint16_t IDs[SM_BUFF_SIZE];
+
 
     id_count = 0;
     body = packet->msg;
-    len = packet->msg_len;
-    for (i = 0; i < len; i += 3) /* body is uint8_t, so two bytes give us an ID, skip one for space */
+    while ( strlen((char *) body) )
     {
-        id = (body[i] + body[i + 1]);
-        IDs[id_count++] = id;
+        id = strtol((char *)body, &id_str, 10);
+        body = (uint8_t *) id_str;
+        if ( id != 0 )
+        {
+            if ( id != id_buf[0] )
+            { id_buf[id_count++] = id; }
+        }
     }
-
-    memmove(id_buffer, IDs, sizeof(uint16_t) * id_count);
     return id_count;
 }
