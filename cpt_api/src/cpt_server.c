@@ -30,20 +30,19 @@ int cpt_logout_response(Channel * gc, Channels * dir, int id)
 {
     int result;
     Channel * channel;
-    ChannelNode * channel_iterator;
+    ChannelNode * chan_iter;
 
     if ( !gc )  { return BAD_CHANNEL; }
 
-    channel_iterator = get_head_channel(dir); // !
-    if (!channel_iterator->next_channel)
-    {
-        result = delete_user(gc->users, id);
-    }
+    chan_iter = get_head_channel(dir); // !
+    if ( !chan_iter->next_chan )
+        { result = delete_user(gc->users, id); }
+
     else
     {
-        while (channel_iterator->next_channel) /* Remove User from all channels */
+        while (chan_iter->next_chan) /* Remove User from all channels */
         {
-            channel = channel_iterator->channel;
+            channel = chan_iter->chan;
             result = delete_user(channel->users, id);
         }
     }
@@ -51,32 +50,25 @@ int cpt_logout_response(Channel * gc, Channels * dir, int id)
 }
 
 
-int cpt_get_users_response(void * server_info, int id)
+int cpt_get_users_response(void * server_info, int chan_id)
 {
-    int result;
     char * users_str;
     Channel * channel;
     CptServerInfo * info;
-    uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
     info = (CptServerInfo *) server_info;
-
     if ( !info->dir )
     {
         return SERVER_ERROR;
     }
 
-    channel = (Channel *) find_channel(info->dir, id);
+    channel = (Channel *) find_channel(info->dir, chan_id);
     users_str = channel_to_string(channel);
 
     if ( !users_str )
-    {
-        info->res->code = (uint8_t) CHAN_EMPTY;
-    }
+        { info->res->code = (uint8_t)CHAN_EMPTY; }
     else
-    {
-        info->res->data = (uint8_t *)users_str;
-    }
+        { info->res->data = (uint8_t *)users_str; }
 
     info->res->code = (uint8_t) SUCCESS;
     return info->res->code;
@@ -144,7 +136,7 @@ int cpt_create_channel_response(Channel * gc, Channels * dir, CptPacket * packet
     }
 
     new_channel = channel_init(
-        ++(dir->length), users, "Channel", false);
+        (dir->length + 1), users, "Channel", false);
 
     if ( new_channel )
     {

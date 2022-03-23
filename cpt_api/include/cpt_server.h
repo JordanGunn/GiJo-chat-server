@@ -105,7 +105,7 @@ uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result);
  * @param packet    Packet sent by requesting user.
  * @return 0 on success, error code on failure.
  */
-int cpt_get_users_response(void * server_info, int id);
+int cpt_get_users_response(void * server_info, int chan_id);
 
 
 /**

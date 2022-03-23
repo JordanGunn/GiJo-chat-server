@@ -42,7 +42,6 @@ struct cpt_packet
  * client side application programming. This
  * includes sending/receiving messages, storing
  * active user channels, etc.
- *
  */
 struct cpt_client_info
 {

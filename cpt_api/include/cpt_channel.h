@@ -24,9 +24,9 @@ struct channel_struct /* may consider adding a fd to this object... */
 {
     int      fd;
     uint16_t id;
+    char *   name;
     Users *  users;
     bool     is_private;
-    char *   name;
 };
 
 
@@ -43,8 +43,8 @@ struct channels
 
 struct channel_node
 {
-    Channel * channel;
-    ChannelNode * next_channel;
+    Channel * chan;
+    ChannelNode * next_chan;
     size_t channel_size;
 };
 

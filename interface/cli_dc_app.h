@@ -36,7 +36,8 @@ typedef struct command Command;
 typedef struct user_state UserState;
 
 
-static char * cli_cmds[] = {
+static char * cli_cmds[] =
+{
         "send",
         "get-users",
         "create-channel",

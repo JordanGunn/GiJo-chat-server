@@ -150,8 +150,15 @@ char * channel_to_string(Channel * channel)
 
     user_iterator = (UserNode *) get_head_node((LinkedList *) channel->users);
 
+    if ( !(user_iterator->next_user) )
+    { /* If only User in Channel */
+        user = user_iterator->user;
+        user_str = user_to_string(user);
+        return strdup(user_str);
+    }
+
     while (user_iterator->next_user)
-    {
+    { /* If multiple users in channel */
         user = user_iterator->user;
         user_str = user_to_string(user);
         strncat(buffer, user_str, strlen(user_str));
@@ -203,10 +210,15 @@ Channel * find_channel(Channels * dir, uint16_t id)
     list = (LinkedList *) dir;
     find_id = (Comparator) find_channel_id;
 
+    channel_node = NULL;
     channel_node = (ChannelNode *) find_node(list, find_id, &id); // !
-    channel = channel_node->channel;
 
-    return ( channel ) ? channel : NULL;
+    if ( channel_node )
+    { channel = channel_node->chan; }
+    else
+    { channel = NULL; }
+
+    return channel;
 }
 
 bool find_channel_id(Channel * channel, const int * id)

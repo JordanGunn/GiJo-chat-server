@@ -47,7 +47,7 @@ void run()
     // **************************************************
     do {
         printf("Waiting on poll...\n");
-        result = poll(poll_fds, nfds, POLL_TIMEOUT_1M);
+        result = poll(poll_fds, nfds, POLL_TIMEOUT_5M);
 
         if ( should_end_event_loop(result) ) { break; }
 
@@ -60,7 +60,6 @@ void run()
             /* -------------------------------------------------- */
             if ( poll_fds[i].revents == 0 ) { continue; }
 
-
             /* ------------------------------------ */
             /* Unexpected event causing fatal error */
             /* ------------------------------------ */
@@ -70,15 +69,14 @@ void run()
                 is_fatal_error = true; break;
             }
 
-
             /* ------------------------------------------------ */
             /* Event on listener socket, new connection arrived */
             /* ------------------------------------------------ */
             if (poll_fds[i].fd == GCFD )
             {
-                printf("New connections found...\n");
+                printf("  New connections found...\n");
                 printf("Checking queued login attempts...\n");
-                do { /* Check accept backlog queue for all incoming login attempts */
+                do { /* Check accept backlog queue for incoming login attempts */
                     result = login_event( gc );
                 } while ( (result != FAILURE) );
             }
@@ -89,16 +87,15 @@ void run()
             /* ----------------------------------------------- */
             else
             {
-//                printf("  Event occurred on file descriptor %d\n", poll_fds[i].fd);
-                close_conn = false; // !
-
                 size_t req_size;
                 CptPacket * req;
                 uint8_t req_buf[LG_BUFF_SIZE] = {0};
 
                 req = NULL;
-                do { /* Receive all incoming data from socket */
+                close_conn = false; // !
 
+                do
+                { /* Receive all incoming data from socket */
                     if ( is_revent_POLLIN(i) )
                     {
                         int id;
@@ -107,42 +104,41 @@ void run()
                         req_size = tcp_server_recv(id, req_buf);
                         req = cpt_parse_packet(req_buf, req_size);
 
-                        if (req->command == LOGOUT)
+                        if ( req->command == LOGOUT )
                         {
                             logout_event(gc, dir, id);
                             cpt_packet_destroy(req);
                             close_conn = true; break;
                         }
 
-                        if (req->command == SEND)
+                        if ( req->command == SEND )
                         {
                             puts("SEND event");
                         }
 
-                        if (req->command == GET_USERS)
+                        if ( req->command == GET_USERS )
                         {
                             get_users_event(server_info, req->channel_id);
                         }
 
-                        if (req->command == CREATE_CHANNEL)
+                        if ( req->command == CREATE_CHANNEL )
                         {
                             create_channel_event(gc, dir, req, id);
                             cpt_packet_destroy(req);
                         }
 
-                        if (req->command == LEAVE_CHANNEL)
+                        if ( req->command == LEAVE_CHANNEL )
                         {
                             puts("LEAVE_CHANNEL event");
                         }
 
-                        if (req->command == JOIN_CHANNEL)
+                        if ( req->command == JOIN_CHANNEL )
                         {
                             puts("JOIN_CHANNEL event");
                         }
 
-                        /* Check if something went wrong other than EWOULDBLOCK */
                         if ( req_size < 0 )
-                        {
+                        { /* Check if error is not EWOULDBLOCK */
                             if ( errno != EWOULDBLOCK )
                             {
                                 perror("  recv() failed...");
@@ -151,9 +147,8 @@ void run()
                             break;
                         }
 
-                        /* Check if connection closed by client */
                         if (req_size == 0 )
-                        {
+                        { /* Check if connection closed by client */
                             printf("  Connection closed\n");
                             close_conn = true;
                             break;
@@ -162,14 +157,12 @@ void run()
 
                 } while ( true );
 
-                /* handle close connection flag if set */
                 if ( close_conn )
-                {
+                { /* handle close connection flag if set */
                     close(poll_fds[i].fd);
                     poll_fds[i].fd = -1; // setting fd to -1 will cause poll() to ignore this fd index
                 }
-
-            }   /* CURRENT USER CONNECTION EVENTS */
+            } /* CURRENT USER CONNECTION EVENTS */
 
         } /* POLL LOOP FOR ALL USER CONNECTIONS */
 

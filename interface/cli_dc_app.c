@@ -177,7 +177,7 @@ int login_handler(char * name)
     uint8_t req_buf[LG_BUFF_SIZE] = {0};
 
     // send data to server
-    req_size = cpt_login(user.client_info, name, req_buf);
+    req_size = cpt_login(user.client_info, req_buf, name);
     result = tcp_client_send(user.client_info->fd, req_buf, req_size);
     user.client_info->channel = CHANNEL_ZERO;
     user.client_info->name = strdup(name);
@@ -259,7 +259,7 @@ void get_users_handler(Command * cmd)
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
     req_size = cpt_get_users( /* !!! This needs to be changed for different channels !!! */
-            user.client_info, req_buf, CHANNEL_ZERO);
+            user.client_info, req_buf, user.channel);
 
     result = tcp_client_send(
             user.client_info->fd, req_buf, req_size);

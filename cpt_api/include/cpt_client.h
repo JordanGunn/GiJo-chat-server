@@ -13,35 +13,70 @@
 
 
 /**
-* Prepare a GET_USERS request from a CptPacket.
+* Prepare a LOGIN request from a CptPacket.
 *
-* Prepares client information necessary to be added to the server.
-* Successful transmission of this packet should enable
-* the client program's information to persist within the
-* server until cpt_logout() is called.
+* Prepares client information necessary to be added to the
+* server. Successful transmission of this packet should enable
+* the client-side user's information to persist within the
+* server until a LOGOUT packet is sent.
 *
 * @param cpt           CPT packet and any additional information.
 * @return The size of the serialized packet in <serial_buf>.
 */
-size_t cpt_login(void * cpt, char * name, uint8_t * serial_buf);
+size_t cpt_login(void * cpt, uint8_t * serial_buf, char * name);
 
 
 /**
-* Prepare a GET_USERS request from a CptPacket.
+* Prepare a GET_USERS request for the server.
 *
-* Prepares a request to the CPT server for errors.
-*      > <query_string> may be passed in optionally,
-*        as additional filter parameters for the server's
-*        data organization structure(s).
-*      > If <query_string> is not NULL, it will overwrite
-*        the existing BODY of the CPT packet before sending.
+* Prepares a GET_USERS request to the server. If successful,
+* the resulting data in <serial_buf> will contain a CPT packet
+* with the necessary information to instruct the server to
+* send back a list of users specified by the <channel_id>.
 *
-* @param cpt           CPT packet and any additional information.
-* @param query_string  A string intended to provide additional
-*                      query params to the server.
-* @return The size of the serialized packet in <serial_buf>.
+* @param cpt            CPT packet information and any other necessary data.
+* @param serial_buf     A buffer intended for storing the result.
+* @param channel_id     The ID of the CHANNEL you wish to get a list
+*                       of users from.
+* @return Size of the resulting serialized packet in <serial_buf>
 */
 size_t cpt_get_users(void * cpt, uint8_t * serial_buf, uint16_t channel_id);
+
+
+/**
+* Prepare a CREATE_CHANNEL request for the server.
+*
+* Prepares a CREATE_CHANNEL request to the server. If successful,
+* the resulting data in <serial_buf> will contain a CPT packet
+* with the necessary information to instruct the server to create
+* a new channel.
+*
+*      > <user_list> may be optionally passed as user selection
+*        parameters for the new Channel.
+*      > If <members> is not NULL, it will be assigned to the
+*        MSG field of the packet.
+*
+* @param cpt            CPT packet information and any other necessary data.
+* @param serial_buf     A buffer intended for storing the result.
+* @param user_list      Whitespace seperated user IDs as a string.
+* @return Size of the resulting serialized packet in <serial_buf>
+*/
+size_t cpt_create_channel(void * client_info, uint8_t * serial_buf, char * user_list);
+
+
+/**
+* Prepare a LOGOUT request packet for the server.
+*
+* Sends a server request to remove the client from the server.
+* Successful execution of this function call should remove the
+* existing client's information from any and all data structures
+* used to represent a CHANNEL.
+*
+* @param cpt            CPT packet information and any other necessary data.
+* @param serial_buf     A buffer intended for storing the result.
+* @return Size of the resulting serialized packet in <serial_buf>
+*/
+size_t cpt_logout(void * cpt, uint8_t * serial_buf);
 
 
 /**
@@ -71,20 +106,6 @@ int cpt_send_msg(void * cpt, char * msg);
 
 
 /**
-* Remove client information from the server.
-*
-* Sends a server request to remove the client from the server.
-* Successful execution of this function call should remove the
-* existing client's information from any and all data structures
-* used to represent a CHANNEL.
-*
-* @param cpt   CPT packet and any additional information.
-* @return      A status code. Either from server, or user defined.
-*/
-size_t cpt_logout(void * cpt, uint8_t * serial_buf);
-
-
-/**
 * Add a user to the channel on the server.
 *
 * Adds a user to an existing channel on the server.
@@ -103,37 +124,6 @@ size_t cpt_logout(void * cpt, uint8_t * serial_buf);
 * @return 		   A status code. Either from server, or user defined.
 */
 int cpt_join_channel(void * cpt, int channel_id);
-
-
-/**
-* Create a new CHANNEL on the server.
-*
-* Sends a request to the server to create a new channel.
-* If successful, the server will create a new CHANNEL data
-* structure and add the client to the CHANNEL.
-*      > <members> may be optionally passed as selection
-*        parameters for the server.
-*        If the parameters in <members> are sufficient to
-*        identify the target channel members, all members
-*        will be added to the channel by default.
-*      > If <members> is not NULL, it will overwrite the
-*        existing BODY of the cpt packet.
-*      > If <is_private> is set to true, the packet ACCESS
-*        bit field will be overwritten to PRIVATE making
-*        the created CHANNEL visible only to the user, and
-*        any members added via the <members> parameter.
-*      > If <is_private> is set to false, the packet ACCESS
-*        bit field will be overwritten to PUBLIC making the
-*        created CHANNEL visible to all active users on the server.
-*      > If <is_private> is NULL, the channel will be created using
-*        the current FLAG value set in the ACCESS bit field.
-*
-* @param cpt         CPT packet and any additional information.
-* @param members     Additional member selection parameters for the server.
-* @param is_private  Set the created channel to private or public.
-* @return A status code. Either from server, or user defined.
-*/
-size_t cpt_create_channel(void * cpt, uint8_t * serial_buf, char * user_list);
 
 
 /**
