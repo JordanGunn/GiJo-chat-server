@@ -1,0 +1,3 @@
+SET(CHAT_CLIENT_SOURCE
+        ${CMAKE_CURRENT_SOURCE_DIR}/cpt_chat_client.c
+        PARENT_SCOPE)

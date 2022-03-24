@@ -1,18 +1,10 @@
-add_subdirectory(src/)
-add_subdirectory(include/)
+add_subdirectory(client/)
+add_subdirectory(server/)
 
-SET(CHAT_CLIENT_TARGETS
-        ${CHAT_CLIENT_SOURCE}
-        ${CHAT_CLIENT_INCLUDE}
+SET(CHAT_CLIENT_TARGET
+        ${APP_CLIENT_TARGET}
         PARENT_SCOPE)
 
-SET(CHAT_SERVER_TARGETS
-        ${CHAT_SERVER_SOURCE}
-        ${CHAT_SERVER_INCLUDE}
+SET(CHAT_SERVER_TARGET
+        ${APP_SERVER_TARGET}
         PARENT_SCOPE)
-
-#SET(SANDBOX_TARGETS
-#        ${CHAT_SERVER_TARGETS}
-#        ${CHAT_CLIENT_TARGETS}
-#        ${CMAKE_CURRENT_SOURCE_DIR}/sandbox.c
-#        PARENT_SCOPE)

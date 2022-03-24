@@ -2,8 +2,8 @@
 // Created by jordan on 2022-03-19.
 //
 
-#ifndef CPT_CLI_DC_APP_H
-#define CPT_CLI_DC_APP_H
+#ifndef CPT_CLI_DC_H
+#define CPT_CLI_DC_H
 
 #include "client_config.h"
 #include "cpt_client.h"
@@ -132,7 +132,7 @@ void logout_handler();
  *
  * @param cmd
  */
-void get_users_handler(Command * cmd);
+void get_users_handler();
 
 
 /**
@@ -257,4 +257,4 @@ void trace_reporter(const struct dc_posix_env *env, const char *file_name,
  */
 int run_client_cli(int argc, char *argv[]);
 
-#endif //CPT_CLI_DC_APP_H
+#endif //CPT_CLI_DC_H

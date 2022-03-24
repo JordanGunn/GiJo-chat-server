@@ -2,7 +2,7 @@
 // Created by jordan on 2022-03-18.
 //
 
-#include "cpt_channel.h"
+#include "../include/channel.h"
 
 
 Channel * init_global_channel()

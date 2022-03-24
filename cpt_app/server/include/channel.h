@@ -2,13 +2,13 @@
 // Created by jordan on 2022-03-18.
 //
 
-#ifndef CPT_CPT_CHANNEL_H
-#define CPT_CPT_CHANNEL_H
+#ifndef CPT_CHANNEL_H
+#define CPT_CHANNEL_H
 
 #include "cpt_definitions.h"
 #include "linked_list.h"
 #include "cpt_types.h"
-#include "cpt_user.h"
+#include "user.h"
 
 typedef struct channels Channels;
 typedef struct channel_node ChannelNode;
@@ -177,4 +177,4 @@ void print_channel(Channel * channel);
 // =================
 
 
-#endif //CPT_CPT_CHANNEL_H
+#endif //CPT_CHANNEL_H

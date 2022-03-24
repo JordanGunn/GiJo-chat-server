@@ -9,9 +9,9 @@
 
 #include "cpt_packet_builder.h"
 #include "cpt_serialize.h"
-#include "cpt_channel.h"
+#include "../../cpt_app/server/include/channel.h"
 #include "cpt_parse.h"
-#include "cpt_user.h"
+#include "../../cpt_app/server/include/user.h"
 
 
 typedef struct cpt_server_info CptServerInfo;

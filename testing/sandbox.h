@@ -4,7 +4,7 @@
 
 #ifndef CPT_SANDBOX_H
 #define CPT_SANDBOX_H
-#include "../common/include/linked_list.h"
+#include "linked_list.h"
 #include "../cpt_api/include/cpt_packet.h"
 
 // ==================================

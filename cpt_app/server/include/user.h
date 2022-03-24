@@ -2,8 +2,8 @@
 // Created by jordan on 2022-03-18.
 //
 
-#ifndef CPT_CPT_USER_H
-#define CPT_CPT_USER_H
+#ifndef CPT_USER_H
+#define CPT_USER_H
 
 #include "linked_list.h"
 #include "cpt_definitions.h"
@@ -168,4 +168,4 @@ void print_user(User * user);
 
 
 
-#endif //CPT_CPT_USER_H
+#endif //CPT_USER_H

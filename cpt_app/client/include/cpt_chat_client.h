@@ -7,7 +7,7 @@
 
 
 #include "client_config.h"
-#include "cli_dc_app.h"
+#include "cli_dc.h"
 
 
 

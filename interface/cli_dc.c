@@ -2,7 +2,7 @@
 // Created by jordan on 2022-02-10.
 //
 
-#include "cli_dc_app.h"
+#include "cli_dc.h"
 
 // =============================
 // I N I T   U S E R   S T A T E
@@ -250,7 +250,7 @@ void create_channel_handler(Command * cmd)
 }
 
 
-void get_users_handler(Command * cmd)
+void get_users_handler()
 {
     int result;
     CptResponse * res;
@@ -283,7 +283,7 @@ void handle_cmd(Command * cmd)
     if ( is_cmd(cmd, cli_cmds[MENU]           )) { menu();                      }
     if ( is_cmd(cmd, cli_cmds[LOGOUT]         )) { logout_handler();            }
     if ( is_cmd(cmd, cli_cmds[SEND]           )) { puts("SEND");                }
-    if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler(cmd);      }
+    if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler();         }
     if ( is_cmd(cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(cmd); }
     if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { puts("JOIN_CHANNEL");        }
     if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { puts("LEAVE_CHANNEL");       }
@@ -359,6 +359,8 @@ void chat_prompt()
 
     printf("[ %s | (channel %hu) ] $ ", name, channel);
     fflush(stdout);
+
+    free(name); name = NULL;
 }
 
 
