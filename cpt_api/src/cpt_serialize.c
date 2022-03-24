@@ -4,12 +4,7 @@
 
 #include "cpt_serialize.h"
 
-/**
-* Serialize a CptPacket struct for transmission.
-*
-* @param cpt    A CptPacket struct.
-* @return       Size of the serialized packet.
-*/
+
 size_t cpt_serialize_packet(CptPacket * cpt, uint8_t * buffer)
 {
     size_t serial_size;
@@ -24,19 +19,13 @@ size_t cpt_serialize_packet(CptPacket * cpt, uint8_t * buffer)
 }
 
 
-/**
-* Serialize a CptPacket struct for transmission.
-*
-* @param cpt    A CptPacket struct.
-* @return       Size of the serialized packet.
-*/
 size_t cpt_serialize_response(CptResponse * res, uint8_t * buffer)
 {
     size_t serial_size;
 
     serial_size = serialize(
             buffer, SERIAL_RES_FMT,
-            res->fd, res->code, res->data
+            res->code, res->data
     );
 
     return serial_size;

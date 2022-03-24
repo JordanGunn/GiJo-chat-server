@@ -66,7 +66,6 @@ struct cpt_client_info
  */
 struct cpt_response
 {
-    uint16_t fd;
     uint8_t code;
     uint8_t * data;
 };

@@ -8,18 +8,11 @@ static int GCFD;
 static int nfds;
 static struct pollfd poll_fds[MAX_SERVER_FDS];
 
-bool is_revent_POLLIN(int index);
-
-bool is_revent_POLLOUT(int index);
-
-void create_channel_event(Channel * gc, Channels * dir, CptPacket * req, int id);
-
 int main(void)
 {
     run();
     return 0;
 }
-
 
 void run()
 {
@@ -77,7 +70,9 @@ void run()
                 printf("  New connections found...\n");
                 printf("Checking queued login attempts...\n");
                 do { /* Check accept backlog queue for incoming login attempts */
-                    result = login_event( gc );
+
+                    server_info->current_id = poll_fds[i].fd;
+                    result = login_event( server_info );
                 } while ( (result != FAILURE) );
             }
 
@@ -106,8 +101,8 @@ void run()
 
                         if ( req->command == LOGOUT )
                         {
-                            logout_event(gc, dir, id);
-                            cpt_packet_destroy(req);
+                            logout_event(server_info);
+                            cpt_request_destroy(req);
                             close_conn = true; break;
                         }
 
@@ -119,12 +114,13 @@ void run()
                         if ( req->command == GET_USERS )
                         {
                             get_users_event(server_info, req->channel_id);
+                            cpt_request_destroy(req);
                         }
 
                         if ( req->command == CREATE_CHANNEL )
                         {
-                            create_channel_event(gc, dir, req, id);
-                            cpt_packet_destroy(req);
+                            create_channel_event(server_info, (char *) req->msg);
+                            cpt_request_destroy(req);
                         }
 
                         if ( req->command == LEAVE_CHANNEL )
@@ -187,7 +183,7 @@ void run()
 }
 
 
-int login_event(Channel * gc)
+int login_event(CptServerInfo * info)
 {
     CptResponse res;
     CptPacket * packet;
@@ -198,10 +194,11 @@ int login_event(Channel * gc)
 
     if ( (new_fd =  handle_new_accept()) != SYS_CALL_FAIL )
     {
+        info->res = &res;
+        info->current_id = new_fd;
         req_size = tcp_server_recv(new_fd, req_buf);
         packet = cpt_parse_packet(req_buf, req_size);
-        login_res = cpt_login_response(gc, packet, new_fd);
-        res.code = login_res; res.fd = new_fd;
+        login_res = cpt_login_response(info->gc, (char *) packet->msg);
 
         if (login_res == SUCCESS)
         {
@@ -211,41 +208,41 @@ int login_event(Channel * gc)
             nfds++;
         }
 
+        info->res->code = login_res;
         res_size = cpt_simple_response(&res, res_buf);
         tcp_server_send(new_fd, res_buf, res_size);
-        cpt_packet_destroy(packet);
+        cpt_request_destroy(packet);
     }
 
     return (new_fd != SYS_CALL_FAIL) ? SUCCESS : FAILURE;
 }
 
 
-void logout_event(Channel * gc, Channels * dir, int id)
+void logout_event(CptServerInfo * info)
 {
     int lo_res;
     CptResponse res;
-    lo_res = cpt_logout_response(gc, dir, id);
+    lo_res = cpt_logout_response(info);
     res.code = lo_res;
-    res.fd = id;
     if ( lo_res == SUCCESS )
     {
-        printf("  User with ID %d logged out...\n", id);
+        printf("  User with ID %d logged out...\n", info->current_id);
     }
 }
 
 
-void create_channel_event(Channel * gc, Channels * dir, CptPacket * req, int id)
+void create_channel_event(CptServerInfo * info, char * id_list)
 {
     int cc_res;
     size_t res_size;
     CptResponse res;
     uint8_t res_buf[MD_BUFF_SIZE] = {0};
-    cc_res = cpt_create_channel_response(gc, dir, req, id);
+    cc_res = cpt_create_channel_response(info, id_list);
 
-    res.code = cc_res; res.fd = id;
-    res.data = (uint8_t *) &(dir->length);
+    res.code = cc_res;
+    res.data = (uint8_t *) &(info->dir->length);
     res_size = cpt_serialize_response(&res, res_buf);
-    tcp_server_send(id, res_buf, res_size);
+    tcp_server_send(info->current_id, res_buf, res_size);
 }
 
 

@@ -24,7 +24,7 @@
  *
  * @return Pointer to cpt struct.
 */
-CptPacket * cpt_packet_init(void);
+CptPacket * cpt_request_init(void);
 
 
 /**
@@ -32,7 +32,7 @@ CptPacket * cpt_packet_init(void);
  *
  * @param cpt   Pointer to a cpt structure.
 */
-void cpt_packet_destroy(CptPacket * cpt);
+void cpt_request_destroy(CptPacket * cpt);
 
 
 /**
@@ -41,7 +41,7 @@ void cpt_packet_destroy(CptPacket * cpt);
  * @param cpt   Pointer to a cpt structure.
  * @param cmd   From enum commands.
 */
-void cpt_packet_cmd(CptPacket * cpt, uint8_t cmd);
+void cpt_request_cmd(CptPacket * cpt, uint8_t cmd);
 
 
 /**
@@ -51,7 +51,7 @@ void cpt_packet_cmd(CptPacket * cpt, uint8_t cmd);
  * @param version_major From enum version.
  * @param version_minor From enum version.
 */
-void cpt_packet_version(CptPacket * cpt, uint8_t version_major, uint8_t version_minor);
+void cpt_request_version(CptPacket * cpt, uint8_t version_major, uint8_t version_minor);
 
 
 /**
@@ -69,7 +69,7 @@ void cpt_packet_len(CptPacket * cpt, uint8_t msg_len);
  * @param cpt           Pointer to a cpt structure.
  * @param channel_id    A 16-bit integer.
 */
-void cpt_packet_chan(CptPacket * cpt, uint16_t channel_id);
+void cpt_request_chan(CptPacket * cpt, uint16_t channel_id);
 
 
 /**
@@ -80,7 +80,7 @@ void cpt_packet_chan(CptPacket * cpt, uint16_t channel_id);
  * @param cpt  Pointer to a cpt structure.
  * @param msg  Pointer to an array of characters.
 */
-void cpt_packet_msg(CptPacket * cpt, char * msg);
+void cpt_request_msg(CptPacket * cpt, char * msg);
 
 
 /**
@@ -117,7 +117,7 @@ char * cpt_to_string(CptPacket * cpt);
  *
  * @param packet    A CptPacket struct.
 */
-void cpt_packet_reset(CptPacket * packet);
+void cpt_request_reset(CptPacket * packet);
 
 
 // ===================================
@@ -127,11 +127,14 @@ void cpt_packet_reset(CptPacket * packet);
 /**
  * Initialize CptResponse server-side packet.
  *
- * @param packet    Received client-side packet.
- * @param data      Data being sent to client.
+ * Initializes a CptResponse by initializing data
+ * members, and returning a dynamically allocated
+ * pointer to a CptResponse struct.
+ *
+ * @param res_code    Received client-side packet.
  * @return CptResponse object.
  */
-CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code);
+CptResponse * cpt_response_init(uint16_t res_code);
 
 
 /**
@@ -151,9 +154,9 @@ void cpt_response_destroy(CptResponse * response);
  * Reset the response parameters,
  * and free memory for certain params.
  *
- * @param response    A CptResponse struct.
+ * @param res    A CptResponse struct.
 */
-void cpt_response_reset(CptResponse * response);
+void cpt_response_reset(CptResponse * res);
 
 
 

@@ -8,14 +8,13 @@ CptResponse * cpt_parse_response(uint8_t * data, size_t data_size)
 {
     CptResponse * res;
     uint8_t code;
-    uint16_t fd;
 
     parse( // !
         data, PARSE_RES_FMT,
-        &fd, &code, data
+        &code, data
     );
 
-    res = cpt_response_init(fd, code);
+    res = cpt_response_init(code);
     if ( (res->data = malloc(data_size)) )
     {
         memmove(res->data, data, data_size);
@@ -28,7 +27,7 @@ CptResponse * cpt_parse_response(uint8_t * data, size_t data_size)
 CptPacket * cpt_parse_packet(uint8_t * req_buf, size_t req_size)
 {
     CptPacket * packet;
-    packet = cpt_packet_init();
+    packet = cpt_request_init();
     uint8_t buf[MD_BUFF_SIZE] = {0};
     memset(packet, 0, sizeof(struct cpt_packet));
 
@@ -48,20 +47,17 @@ CptPacket * cpt_parse_packet(uint8_t * req_buf, size_t req_size)
 }
 
 
-uint16_t cpt_parse_channel_query(CptPacket * packet, uint16_t * id_buf)
+uint16_t cpt_parse_channel_query(char * id_list, uint16_t * id_buf)
 {
-    uint8_t * body;
     char * id_str;
     int id_count;
     uint16_t id;
 
-
     id_count = 0;
-    body = packet->msg;
-    while ( strlen((char *) body) )
+    while ( strlen(id_list) )
     {
-        id = strtol((char *)body, &id_str, 10);
-        body = (uint8_t *) id_str;
+        id = strtol((char *)id_list, &id_str, 10);
+        id_list = id_str;
         if ( id != 0 )
         {
             if ( id != id_buf[0] )

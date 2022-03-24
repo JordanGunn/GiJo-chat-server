@@ -5,7 +5,7 @@
 #include "cpt_packet_builder.h"
 
 
-CptPacket * cpt_packet_init()
+CptPacket * cpt_request_init()
 {
     CptPacket * cpt_packet;
     if ( (cpt_packet = malloc(sizeof(struct cpt_packet))) )
@@ -18,7 +18,7 @@ CptPacket * cpt_packet_init()
 
 
 
-void cpt_packet_destroy(CptPacket * cpt)
+void cpt_request_destroy(CptPacket * cpt)
 {
     if (cpt)
     {
@@ -33,7 +33,7 @@ void cpt_packet_destroy(CptPacket * cpt)
 }
 
 
-void cpt_packet_cmd(CptPacket * cpt, uint8_t cmd)
+void cpt_request_cmd(CptPacket * cpt, uint8_t cmd)
 {
     if ( (cmd >= SEND) && (cmd <= LOGIN) )
     {
@@ -42,7 +42,7 @@ void cpt_packet_cmd(CptPacket * cpt, uint8_t cmd)
 }
 
 
-void cpt_packet_version(CptPacket * cpt, uint8_t version_major, uint8_t version_minor)
+void cpt_request_version(CptPacket * cpt, uint8_t version_major, uint8_t version_minor)
 {
     bool exceeds_major;
     bool exceeds_minor;
@@ -52,18 +52,18 @@ void cpt_packet_version(CptPacket * cpt, uint8_t version_major, uint8_t version_
 
     if ( exceeds_major || exceeds_minor) { return; }
 
-    version_major <<= 4;
+    version_major <<= (uint8_t) 4;
     cpt->version = version_major + version_minor;
 }
 
 
-void cpt_packet_chan(CptPacket * cpt, uint16_t channel_id)
+void cpt_request_chan(CptPacket * cpt, uint16_t channel_id)
 {
     cpt->channel_id = channel_id;
 }
 
 
-void cpt_packet_msg(CptPacket * cpt, char * msg)
+void cpt_request_msg(CptPacket * cpt, char * msg)
 {
     char * msg_field;
 
@@ -81,7 +81,7 @@ void cpt_packet_msg(CptPacket * cpt, char * msg)
 }
 
 
-void cpt_packet_reset(CptPacket * packet)
+void cpt_request_reset(CptPacket * packet)
 {
     if ( packet->msg ) { free(packet->msg); packet->msg = NULL; }
     packet->msg_len = 0;
@@ -91,20 +91,23 @@ void cpt_packet_reset(CptPacket * packet)
 
 char * cpt_to_string(CptPacket * cpt)
 {
+    char * msg, * cpt_str;
+    int cmd, msg_len, chan_id;
     char buffer[MD_BUFF_SIZE] = {0};
     uint8_t version_minor, version_major;
+
     version_major = cpt->version;
     version_minor = cpt->version;
-    version_major >>= 4;
-    version_minor &= 15;
-    int cmd, msg_len, chan_id;
-    char * msg;
-    char * cpt_str;
+    version_major >>= (uint8_t) 4;
+    version_minor &= (uint8_t) 15;
 
-    cmd     = (cpt->command >= 0   ) ? cpt->command              : -1;
-    chan_id = (cpt->channel_id >= 0) ? cpt->channel_id           : -1;
-    msg_len = (cpt->msg_len >= 0   ) ? cpt->msg_len              : -1;
-    msg     = (cpt->msg            ) ? strdup((char *)cpt->msg)  : strdup("(empty)");
+    cmd     = cpt->command;
+    msg_len = cpt->msg_len;
+    chan_id = cpt->channel_id;
+
+    msg     = ( cpt->msg )
+        ? strdup((char *)cpt->msg)
+        : strdup("(empty)");
 
     sprintf(buffer,
         "VERSION: %d.%d\n"  \
@@ -117,6 +120,7 @@ char * cpt_to_string(CptPacket * cpt)
     );
 
     cpt_str = strdup(buffer);
+    free(msg); msg = NULL;
     return cpt_str;
 }
 
@@ -126,7 +130,7 @@ char * cpt_to_string(CptPacket * cpt)
 // ==================================
 
 
-CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code)
+CptResponse * cpt_response_init(uint16_t res_code)
 {
     CptResponse * res;
 
@@ -134,7 +138,6 @@ CptResponse * cpt_response_init(uint16_t fd, uint16_t res_code)
 
     res->code = res_code;
     res->data = NULL;
-    res->fd = fd;
 
     return res;
 }
@@ -155,11 +158,15 @@ void cpt_response_destroy(CptResponse * res)
 }
 
 
-void cpt_response_reset(CptResponse * response)
+void cpt_response_reset(CptResponse * res)
 {
-    if ( response->data ) { free(response->data); response->data = NULL; }
-    response->fd = 0;
-    response->code = 0;
+    if ( res->data )
+    {
+        free(res->data);
+        res->data = NULL;
+    }
+
+    res->code = 0;
 }
 
 
@@ -175,9 +182,9 @@ CptMsgResponse * cpt_msg_response_init(uint8_t * msg, uint16_t chan_id, uint16_t
     size_t num_bytes;
     CptMsgResponse * msg_res;
 
+    if ( !msg ) { return NULL; }
     num_bytes = sizeof(struct cpt_msg_response);
     if ( !(msg_res = malloc(num_bytes)) ) { return NULL; }
-    if ( !msg ) { return NULL; }
 
     msg_res->msg = (uint8_t *) strdup((char *) msg);
     msg_res->channel_id = chan_id;

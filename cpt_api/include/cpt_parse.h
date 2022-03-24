@@ -34,9 +34,9 @@ CptPacket * cpt_parse_packet(uint8_t * req_buf, size_t req_size);
  * Parse requested user IDs from body of
  * CREATE_CHANNEL cpt protocol message.
  *
- * @param data  Body of CptPacket struct.
- * @return      Pointer to array of IDs
+ * @param id_list  MSG field of received CREATE_CHANNEL request.
+ * @return Number of requested IDs in the id_buf.
  */
-uint16_t cpt_parse_channel_query(CptPacket * packet, uint16_t * id_buf);
+uint16_t cpt_parse_channel_query(char * id_list, uint16_t * id_buf);
 
 #endif //CPT_CPT_PARSE_H

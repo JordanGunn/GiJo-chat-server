@@ -44,15 +44,15 @@ int cpt_send_response(CptResponse * response);
  *
  * Use information in the CptPacket to handle
  * a LOGIN protocol message from a connected client.
- * If successful, will accept the tcp connection and
- * push a new User object into the GlobalChannel.
+ * If successful, the protocol request will be fulfilled,
+ * updating any necessary information contained within
+ * <server_info>.
  *
- * @param gc            The GlobalChannel (pointer to a Channel)
- * @param cpt_packet    Pointer to a CptPacket object.
- * @return              0 if successful, error code on failure.
+ * @param server_info   Server data structures and information.
+ * @param name          Name of user in received Packet MSG field.
+ * @return              1 if successful, error code on failure.
  */
-int cpt_login_response(Channel * gc, CptPacket * packet, int id);
-
+int cpt_login_response(void * server_info, char * name);
 
 
 /**
@@ -62,23 +62,15 @@ int cpt_login_response(Channel * gc, CptPacket * packet, int id);
  * a LOGOUT protocol message from a connected client.
  * If successful, will remove any instance of the user
  * specified by the user <id> from the GlobalChannel
- * and the ChannelDirectory.
+ * and any other relevant data structures.
  *
- * @param gc        The GlobalChannel (pointer to a Channel)
- * @param dir       A linked list of Channel objects.
- * @param id        User ID.
+ * @param server_info   Server data structures and information.
  * @return Status Code (0 if successful, other if failure).
  */
-int cpt_logout_response(Channel *gc, Channels * dir, int id);
+int cpt_logout_response(void * server_info);
 
 
 /**
- * Handle a received 'SEND' protocol message.
- *
- * Uses information in the CptPacket to handle
- * a SEND protocol message from a connected client.
- * If successful, will accept the tcp connection and
- * push a new User object into the GlobalChannel.
  *
  * @param gc            The GlobalChannel (pointer to a Channel)
  * @param cpt_packet    Pointer to a CptPacket object.
@@ -90,9 +82,9 @@ uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result);
 /**
  * Handle a received 'GET_USERS' protocol message.
  *
- * Uses information in the CptPacket to handle
- * a SEND a list of users back to the requesting
- * client in the format:
+ * Retrieves all users in the specified <chan_id>,
+ * placing them in a buffer for the CptResponse packet
+ * in the format:
  *      < user_id >< whitespace >< username >< newline >
  *
  * Example given:
@@ -100,10 +92,8 @@ uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result);
  *      2 'Bruce Wayne'
  *      3 'Fakey McFakerson'
  *
- * @param dir       A linked list of Channel objects.
- * @param user      User making request.
- * @param packet    Packet sent by requesting user.
- * @return 0 on success, error code on failure.
+ * @param server_info   Server data structures and information.
+ * @return Status Code (0 if successful, other if failure).
  */
 int cpt_get_users_response(void * server_info, int chan_id);
 
@@ -111,19 +101,17 @@ int cpt_get_users_response(void * server_info, int chan_id);
 /**
  * Handle a received 'CREATE_CHANNEL' protocol message.
  *
- * Handles a CREATE_CHANNEL protocol message from a connected
- * client. Will check the CptPacket msg body for a list of
- * requested user IDs. If no User IDs have been requested,
- * A new channel is created containing only the client user
- * that made the request.
+ * If a <user_list> was received in the GET_CHANNEL body,
+ * function will also parse the <user_list> string and attempt
+ * to add the requested user IDs to the channel.
  *
- * @param gc        The GlobalChannel.
- * @param dir       The ChannelDirectory (Pointer to a LinkedList of Channel(s))
- * @param user      The client User object who made the request.
- * @param packet    The Received client packet.
- * @return 0 on success, error code on failure.
+ * If <id_list> is NULL, function will create a new channel with
+ * only the requesting user within it.
+ *
+ * @param server_info   Server data structures and information.
+ * @return Status Code (0 if successful, other if failure).
  */
-int cpt_create_channel_response(Channel * gc, Channels * dir, CptPacket * packet, int id);
+int cpt_create_channel_response(void * server_info, char * id_list);
 
 
 /**

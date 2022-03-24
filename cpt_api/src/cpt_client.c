@@ -4,20 +4,20 @@
 
 #include "cpt_client.h"
 
-size_t cpt_login(void * cpt, char * name, uint8_t * serial_buf)
+size_t cpt_login(void * cpt, uint8_t * serial_buf, char * name)
 {
     uint8_t serial_size;
     CptClientInfo * client_info;
     client_info = (CptClientInfo *)cpt;
 
-    client_info->packet = cpt_packet_init();
-    cpt_packet_chan(client_info->packet, (uint16_t) CHANNEL_ZERO);
-    cpt_packet_version(client_info->packet, VER_MAJ_LAT, VER_MIN_LAT);
-    cpt_packet_cmd(client_info->packet, (uint8_t)LOGIN);
+    client_info->packet = cpt_request_init();
+    cpt_request_chan(client_info->packet, (uint16_t) CHANNEL_ZERO);
+    cpt_request_version(client_info->packet, VER_MAJ_LAT, VER_MIN_LAT);
+    cpt_request_cmd(client_info->packet, (uint8_t) LOGIN);
 
     ( name )
-        ? cpt_packet_msg(client_info->packet, name)
-        : cpt_packet_msg(client_info->packet, DEFAULT_USERNAME);
+        ? cpt_request_msg(client_info->packet, name)
+        : cpt_request_msg(client_info->packet, DEFAULT_USERNAME);
 
     serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
     return serial_size;
@@ -32,10 +32,10 @@ size_t cpt_logout(void * cpt, uint8_t * serial_buf)
 
     client_info = (CptClientInfo *)cpt;
 
-    cpt_packet_cmd(client_info->packet, (uint8_t) LOGOUT);
+    cpt_request_cmd(client_info->packet, (uint8_t) LOGOUT);
     serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
 
-    cpt_packet_reset(client_info->packet);
+    cpt_request_reset(client_info->packet);
     return serial_size;
 }
 
@@ -49,10 +49,10 @@ size_t cpt_get_users(void * cpt, uint8_t * serial_buf, uint16_t channel_id)
     client_info = (CptClientInfo *)cpt;
     packet = client_info->packet;
 
-    cpt_packet_cmd(packet, (uint8_t) GET_USERS);
+    cpt_request_cmd(packet, (uint8_t) GET_USERS);
     if (channel_id >= CHANNEL_ZERO)
     {
-        cpt_packet_chan(packet, channel_id);
+        cpt_request_chan(packet, channel_id);
         serial_size = cpt_serialize_packet(packet, serial_buf);
         return serial_size;
     } else { return 0; }
@@ -76,12 +76,12 @@ int cpt_send_msg(void * cpt, char * msg)
         return EXIT_FAILURE;
     }
 
-    cpt_packet_cmd(packet, (uint8_t) SEND);
-    cpt_packet_msg(packet, msg);
+    cpt_request_cmd(packet, (uint8_t) SEND);
+    cpt_request_msg(packet, msg);
     serial_size = cpt_serialize_packet(packet, buffer);
 
     tcp_client_send(client_info->fd, buffer, serial_size);
-    cpt_packet_reset(packet);
+    cpt_request_reset(packet);
 
     return 0;
 }
@@ -120,14 +120,14 @@ size_t cpt_create_channel(void * cpt, uint8_t * serial_buf, char * user_list)
     CptClientInfo * client_info;
 
     client_info = (CptClientInfo *) cpt;
-    client_info->packet = cpt_packet_init();
-    cpt_packet_chan(client_info->packet, (uint16_t) CHANNEL_ZERO);
-    cpt_packet_version(client_info->packet, VER_MAJ_LAT, VER_MIN_LAT);
-    cpt_packet_cmd(client_info->packet, (uint8_t) CREATE_CHANNEL);
+    client_info->packet = cpt_request_init();
+    cpt_request_chan(client_info->packet, (uint16_t) CHANNEL_ZERO);
+    cpt_request_version(client_info->packet, VER_MAJ_LAT, VER_MIN_LAT);
+    cpt_request_cmd(client_info->packet, (uint8_t) CREATE_CHANNEL);
 
     if ( user_list )
     {
-        cpt_packet_msg(client_info->packet, (char *) user_list);
+        cpt_request_msg(client_info->packet, (char *) user_list);
     }
     serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
     return serial_size;
@@ -144,11 +144,11 @@ int cpt_leave_channel(void * cpt, int channel_id)
     client_info = (CptClientInfo *)cpt;
     packet = client_info->packet;
 
-    cpt_packet_cmd(packet, (uint8_t) LEAVE_CHANNEL);
+    cpt_request_cmd(packet, (uint8_t) LEAVE_CHANNEL);
     serial_size = cpt_serialize_packet(packet, req_buffer);
     tcp_client_send(client_info->fd, req_buffer, serial_size);
 
-    cpt_packet_reset(packet);
+    cpt_request_reset(packet);
     delete_node(
             client_info->channels,
             (Comparator) compare_channels,
@@ -174,7 +174,7 @@ CptClientInfo * cpt_init_client_info(char * port, char * ip)
         return NULL;
     }
 
-    if ( !(client_info->packet = cpt_packet_init()) ) { return NULL; }
+    if ( !(client_info->packet = cpt_request_init()) ) { return NULL; }
     client_info->channel = global_id;
     client_info->port = strdup(port); // !
     client_info->ip = strdup(ip);
@@ -192,7 +192,7 @@ void cpt_destroy_client_info(CptClientInfo * client_info)
     {
         if ( client_info->packet )
         {
-            cpt_packet_destroy(client_info->packet);
+            cpt_request_destroy(client_info->packet);
         }
         if ( client_info->ip )
         {

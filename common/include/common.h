@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <memory.h>
-#include <bits/stdint-uintn.h>
+#include <stdint.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -32,6 +32,7 @@
 #define CPT_CPT_CHAT_SERVER_H
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>

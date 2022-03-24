@@ -17,10 +17,10 @@
 #define VERSION_MINOR_MAX 15
 #define VERSION_MAJOR_MAX 15
 #define MAX_SERVER_FDS 2048
-#define VER_MAJ_LAT 1
-#define VER_MIN_LAT 1
 #define MAX_NAME_SIZE 12
 #define CHANNEL_ZERO 0
+#define VER_MAJ_LAT 1
+#define VER_MIN_LAT 1
 /* ============================== */
 
 
@@ -28,8 +28,8 @@
  * Valid parsing/serialization formats.
  */
 /* ============================ */
-#define SERIAL_RES_FMT "HCs"
-#define PARSE_RES_FMT "HC512s"
+#define SERIAL_RES_FMT "Cs"
+#define PARSE_RES_FMT "C512s"
 #define SERIAL_PACKET_FMT "CCHCs"
 #define SERIAL_MSG_RES_FMT "HHHs"
 #define PARSE_PACKET_FMT "CCHC512s"

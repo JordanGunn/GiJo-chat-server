@@ -13,9 +13,13 @@
 
 void run();
 
-int login_event(Channel * gc);
+bool is_revent_POLLIN(int index);
 
-void logout_event(Channel * gc, Channels * dir, int id);
+int login_event(CptServerInfo * info);
+
+void logout_event(CptServerInfo * info);
+
+void create_channel_event(CptServerInfo * info, char * id_list);
 
 void get_users_event(CptServerInfo * info, int chan_id);
 
