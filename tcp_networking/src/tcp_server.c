@@ -120,7 +120,6 @@ int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd)
 
 ssize_t tcp_server_recv(int sock_fd, uint8_t * req_buf)
 {
-    char * received;
     ssize_t req_size;
 
     req_size = (int) recv(sock_fd, req_buf, LG_BUFF_SIZE, 0);
@@ -131,9 +130,6 @@ ssize_t tcp_server_recv(int sock_fd, uint8_t * req_buf)
         write(STDERR_FILENO, msg, strlen(msg));
     }
 
-    received = malloc(req_size);
-    memset(received, 0, req_size);
-    memmove(received, req_buf, req_size);
     return req_size;
 }
 
