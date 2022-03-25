@@ -12,6 +12,7 @@ add_subdirectory(tcp_networking/)
 add_subdirectory(cpt_api/)
 add_subdirectory(cpt_app/)
 add_subdirectory(interface/)
+add_subdirectory(testing/)
 
 
 # To be honest I have no idea what this does
@@ -31,7 +32,7 @@ ENDIF()
 # Make a executables
 add_executable(cpt_chat_server ${CHAT_SERVER_TARGET} ${TCP_SERVER_TARGETS} ${CPT_API_SERVER_TGT} ${CPT_COMMON_TARGET})
 add_executable(cpt_chat_client ${CHAT_CLIENT_TARGET} ${TCP_CLIENT_TARGETS}  ${CPT_API_CLIENT_TGT} ${CPT_COMMON_TARGET} ${CLI_TARGET})
-#add_executable(sandbox ${CPT_API_TARGETS} ${TCP_CLIENT_TARGETS} ${TCP_SERVER_TARGETS} ${SANDBOX_TARGETS}  common.h app/sandbox.h common.c)
+add_executable(test ${TEST_TARGET})
 
 # =========================================
 # Directory inclusion for server executable
@@ -86,16 +87,18 @@ target_link_directories(cpt_chat_client PRIVATE tcp_networking/src/)
 
 
 # ==========================================
-# Directory inclusion for sandbox executable
+# Directory inclusion for testing executable
 # ==========================================
 ## Tell the compiler to check these dirs for any header files
-#target_include_directories(sandbox PRIVATE ./include)
-#target_include_directories(sandbox PRIVATE /usr/include)
-#target_include_directories(sandbox PRIVATE /usr/local/include)
+target_include_directories(test PRIVATE /usr/include)
+target_include_directories(test PRIVATE /usr/local/include)
+target_include_directories(test PRIVATE testing/include/)
 #
 ## tell the compiler to check here for 3rd party source files
-#target_link_directories(sandbox PRIVATE /usr/lib)
-#target_link_directories(sandbox PRIVATE /usr/local/lib)
+target_link_directories(test PRIVATE /usr/lib)
+target_link_directories(test PRIVATE /usr/local/lib)
+target_link_directories(test PRIVATE testing/src/)
+target_link_directories(test PRIVATE testing/)
 
 # =========================================
 # Additional compile options for server

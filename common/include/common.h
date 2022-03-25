@@ -36,7 +36,6 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <bits/stdint-uintn.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <stdbool.h>
