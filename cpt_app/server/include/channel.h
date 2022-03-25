@@ -112,9 +112,30 @@ void push_channel(Channels * channels, Channel * channel);
 ChannelNode * create_channel_node(Channel * channel);
 
 
+/**
+ * Push a User object onto the Channel->users.
+ *
+ * An interface for pushing users onto a channel by
+ * referencing the Channel, rather than the Channel->users.
+ * Behaviour is identical to push_user().
+ *
+ * @param channel   Pointer to a Channel object.
+ * @param user      Pointer to a User object.
+ */
 void push_channel_user(Channel * channel, User * user);
 
 
+
+/**
+ * Get head node from a LinkedList of Channel objects.
+ *
+ * Gets the de-referenced head node from a Channels
+ * object - a LinkedList of type Channel, and returns
+ * the ChannelNode at the head of the list.
+ *
+ * @param channels  Pointer to a LinkedList of Channel objects.
+ * @return Pointer to the ChannelNode object at the head.
+ */
 ChannelNode * get_head_channel(Channels * channels);
 
 
@@ -148,6 +169,19 @@ Channel * find_channel(Channels * dir, uint16_t id);
  * @param channel A Channel object.
  */
 char * channel_to_string(Channel * channel);
+
+
+/**
+ * A helper for cpt_leave_channel.
+ *
+ * comparator function pointer that compares
+ * channel IDs in a LinkedList object.
+ *
+ * @param channel_id      A channel ID.
+ * @param target_channel  Another channel ID.
+ * @return
+ */
+bool compare_channels(const uint16_t * channel_id, const uint16_t * target_channel);
 
 
 // =====================

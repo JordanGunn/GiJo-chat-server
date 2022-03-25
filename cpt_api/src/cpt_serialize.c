@@ -44,18 +44,3 @@ size_t cpt_serialize_msg(CptMsgResponse * msg_response, uint8_t * buffer) // !
 
     return serial_size;
 }
-
-
-///**
-// * Message response sub-packet.
-// *
-// * Valid pre-serialized format for server
-// * transmission of SEND cpt packets.
-// */
-//struct cpt_msg_response {
-//    uint16_t channel_id;
-//    uint16_t user_id;
-//    uint16_t msg_len;
-//    uint8_t * msg;
-//};
-

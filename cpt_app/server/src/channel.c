@@ -2,7 +2,7 @@
 // Created by jordan on 2022-03-18.
 //
 
-#include "../include/channel.h"
+#include "channel.h"
 
 
 Channel * init_global_channel()
@@ -199,6 +199,7 @@ void channels_destroy(Channels * channels)
 
     free(channels); channels = NULL;
 }
+
 
 Channel * find_channel(Channels * dir, uint16_t id)
 {

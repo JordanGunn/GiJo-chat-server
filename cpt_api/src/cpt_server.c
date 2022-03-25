@@ -55,7 +55,7 @@ int cpt_logout_response(void * server_info)
 }
 
 
-int cpt_get_users_response(void * server_info, int chan_id)
+int cpt_get_users_response(void * server_info, uint16_t chan_id)
 {
     char * users_str;
     Channel * channel;
@@ -78,36 +78,6 @@ int cpt_get_users_response(void * server_info, int chan_id)
     info->res->code = (uint8_t) SUCCESS;
     return info->res->code;
 }
-
-//TODO update cpt_msg_response input/output params
-//uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result)
-//{
-//    CptMsgResponse * msg_res;
-//    uint8_t res_buf[LG_BUFF_SIZE] = {0};
-//    uint8_t res_msg_buf[LG_BUFF_SIZE] = {0};
-//
-//    if ( !res ) { *result = BAD_PACKET; return NULL; }
-//    if ( res->data )
-//    {
-//        memset(res->data, 0, strlen((char *) res->data));
-//    }
-//
-//    msg_res = cpt_msg_response_init(packet->msg, packet->channel_id, res->fd);
-//    if ( !msg_res ) { *result = BAD_PACKET; }
-//
-//    cpt_serialize_msg(msg_res, res_msg_buf); // !
-//    if ( strlen((char *)res_msg_buf) > 0 )
-//    {
-//        res->data = (uint8_t *)
-//                strdup((char *) res_msg_buf);
-//    }
-//
-//    cpt_serialize_response(res, res_buf);
-//    cpt_response_destroy(res);
-//    *result = SUCCESS;
-//
-//    return (uint8_t *) strdup((char *) res_buf);
-//}
 
 
 int cpt_create_channel_response(void * server_info, char * id_list)
@@ -198,6 +168,28 @@ int cpt_leave_channel_response(void * server_info, uint16_t channel_id)
 
     return ( del_res != SYS_CALL_FAIL ) ? SUCCESS : FAILURE;
 }
+
+
+int cpt_send_response(void * server_info, uint16_t channel_id)
+{
+    int del_res;
+    Channel * channel;
+    CptServerInfo * info;
+
+    info = (CptServerInfo *) server_info;
+
+    if ( channel_id == 0 ) { return BAD_CHANNEL; }
+
+    del_res = SUCCESS;
+    channel = find_channel(info->dir, channel_id);
+    if ( !channel )
+    { return UKNOWN_CHANNEL; }
+    else
+    { del_res = delete_user(channel->users, info->current_id); }
+
+    return ( del_res != SYS_CALL_FAIL ) ? SUCCESS : FAILURE;
+}
+
 
 
 size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf)

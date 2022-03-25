@@ -101,7 +101,7 @@ int tcp_server_listen(int listen_fd)
 
 int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd)
 {
-    int fd;
+    int fd, flags;
     socklen_t addr_len;
 
     addr_len = sizeof(*client_addr);

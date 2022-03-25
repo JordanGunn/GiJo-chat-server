@@ -5,8 +5,8 @@
 #ifndef CPT_LINKED_LIST_H
 #define CPT_LINKED_LIST_H
 
-#include "../include/common.h"
-#include "../include/linked_list_types.h"
+#include "common.h"
+#include "linked_list_types.h"
 
 
 /**

@@ -2,7 +2,7 @@
 // Created by jordan on 2022-03-18.
 //
 
-#include "../include/user.h"
+#include "user.h"
 
 User * user_init(int id, int fd, char * name)
 {

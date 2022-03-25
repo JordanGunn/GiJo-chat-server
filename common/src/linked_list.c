@@ -247,7 +247,6 @@ int delete_node(LinkedList * list, Comparator comparator, void * test_param)
     {
         *(list->head) = middle;
         destroy_node(previous);
-        return 0;
     }
     else
     {
@@ -267,7 +266,6 @@ int delete_node(LinkedList * list, Comparator comparator, void * test_param)
         destroy_node(middle);
         list->length--;
     }
-    else { return -1; }
 
-    return 0;
+    return (found) ? 0 : -1;
 }

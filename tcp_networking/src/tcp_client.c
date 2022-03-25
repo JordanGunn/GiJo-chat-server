@@ -2,7 +2,7 @@
 // Created by jordan on 2022-03-08.
 //
 
-#include "../include/tcp_client.h"
+#include "tcp_client.h"
 
 
 struct addrinfo * tcp_client_addr(const char * host, const char * port)

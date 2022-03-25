@@ -48,7 +48,7 @@ void run()
         active_nfds = nfds; /* Number of fds with events ready */
         for (i = 0; i < active_nfds; i++)
         {
-
+            server_info->current_id = poll_fds[i].fd;
             /* -------------------------------------------------- */
             /* No event on current socket, go back to top of loop */
             /* -------------------------------------------------- */
@@ -71,8 +71,6 @@ void run()
                 printf("  New connections found...\n");
                 printf("Checking queued login attempts...\n");
                 do { /* Check accept backlog queue for incoming login attempts */
-
-                    server_info->current_id = poll_fds[i].fd;
                     result = login_event( server_info );
                 } while ( (result != FAILURE) );
             }
@@ -152,9 +150,11 @@ void run()
                             close_conn = true;
                             break;
                         }
+
+                        break;
                     } else { break; }
                 //TODO Make sure the loop-breaking condition below doesn't completely break everything
-                } while ( req_size != SYS_CALL_FAIL );
+                } while ( true );
 
                 if ( close_conn )
                 { /* handle close connection flag if set */
@@ -202,7 +202,7 @@ void join_channel_event(CptServerInfo *info, uint16_t channel_id)
     else
     {
         msg = "Failed to join channel";
-        memcpy(res.data, msg, sizeof((uint8_t *)msg));
+        res.data = (uint8_t *) msg;
     }
 
     res_size = cpt_serialize_response(&res, res_buf);
@@ -253,7 +253,7 @@ int login_event(CptServerInfo * info)
         {
             poll_fds[nfds].fd = new_fd;
             poll_fds[nfds].events = POLLIN;
-            poll_fds[CHANNEL_ZERO].revents &= 0;
+            // poll_fds[CHANNEL_ZERO].revents &= 0; TODO make sure this commented out code didn't break anything
             nfds++;
         }
 
@@ -270,9 +270,8 @@ int login_event(CptServerInfo * info)
 void logout_event(CptServerInfo * info)
 {
     int lo_res;
-    CptResponse res;
     lo_res = cpt_logout_response(info);
-    res.code = lo_res;
+    info->res->code = lo_res;
     if ( lo_res == SUCCESS )
     {
         printf("  User with ID %d logged out...\n", info->current_id);
@@ -348,13 +347,10 @@ bool is_revent_POLLOUT(int index)
 
 bool is_revent_POLLIN(int index)
 {
-    if (poll_fds[index].fd >= 0)
-    {
-        return (
-                poll_fds[index].revents ==
-                (poll_fds[index].revents & POLLIN)
-        );
-    } else { return false; }
+    return (
+        poll_fds[index].revents ==
+        ((uint16_t) poll_fds[index].revents & POLLIN)
+    );
 }
 
 
