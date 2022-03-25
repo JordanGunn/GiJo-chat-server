@@ -65,7 +65,7 @@ void run()
             /* ------------------------------------------------ */
             /* Event on listener socket, new connection arrived */
             /* ------------------------------------------------ */
-            if (poll_fds[i].fd == GCFD )
+            if ( poll_fds[i].fd == GCFD )
             {
                 printf("  New connections found...\n");
                 printf("Checking queued login attempts...\n");
@@ -82,13 +82,12 @@ void run()
             /* ----------------------------------------------- */
             else
             {
-                size_t req_size;
+                ssize_t req_size;
                 CptPacket * req;
                 uint8_t req_buf[LG_BUFF_SIZE] = {0};
 
                 req = NULL;
                 close_conn = false; // !
-
                 do
                 { /* Receive all incoming data from socket */
                     if ( is_revent_POLLIN(i) )
@@ -125,7 +124,8 @@ void run()
 
                         if ( req->command == LEAVE_CHANNEL )
                         {
-                            puts("LEAVE_CHANNEL event");
+                            leave_channel_event(server_info, req->channel_id);
+                            cpt_request_destroy(req);
                         }
 
                         if ( req->command == JOIN_CHANNEL )
@@ -182,6 +182,28 @@ void run()
     server_destroy( dir );  /* Close existing sockets before ending */
 }
 
+void leave_channel_event(CptServerInfo * info, uint16_t channel_id)
+{
+    int lc_res;
+    size_t res_size;
+    CptResponse res;
+    uint8_t res_buf[MD_BUFF_SIZE] = {0};
+    char res_msg_buf[SM_BUFF_SIZE] = {0};
+    lc_res = cpt_leave_channel_response(info, channel_id);
+
+    res.code = lc_res;
+    if ( lc_res == SUCCESS )
+    { /* Send back confirmation if successful */
+        sprintf(res_msg_buf,
+                "Successfully left channel %d", channel_id);
+        res.data = (uint8_t *) strdup(res_msg_buf);
+    }
+    else { res.data = (uint8_t *) strdup("Failed to leave channel"); }
+
+    res_size = cpt_serialize_response(&res, res_buf);
+    tcp_server_send(info->current_id, res_buf, res_size);
+}
+
 
 int login_event(CptServerInfo * info)
 {
@@ -198,7 +220,7 @@ int login_event(CptServerInfo * info)
         info->current_id = new_fd;
         req_size = tcp_server_recv(new_fd, req_buf);
         packet = cpt_parse_packet(req_buf, req_size);
-        login_res = cpt_login_response(info->gc, (char *) packet->msg);
+        login_res = cpt_login_response(info, (char *) packet->msg);
 
         if (login_res == SUCCESS)
         {
@@ -304,8 +326,6 @@ bool is_revent_POLLIN(int index)
         );
     } else { return false; }
 }
-
-
 
 
 int handle_new_accept()

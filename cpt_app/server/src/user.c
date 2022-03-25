@@ -106,12 +106,12 @@ int delete_user(Users * users, int id)
     int result;
     Comparator find_id;
 
-    result = SYS_CALL_FAIL;
+    result = SYS_CALL_FAIL; /* will overwrite on success */
     find_id = (Comparator) find_user_id;
     if ( users )
     {
         result = delete_node((LinkedList *) users, find_id, &id);
-        users->length--;
+        if ( result != SYS_CALL_FAIL ) { users->length--; }
     }
 
     return result;

@@ -75,7 +75,7 @@ int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd);
  * @param sock_fd   Socket file descriptor.
  * @return          Pointer to received data.
  */
-size_t tcp_server_recv(int sock_fd, uint8_t * req_buf);
+ssize_t tcp_server_recv(int sock_fd, uint8_t * req_buf);
 
 
 /**

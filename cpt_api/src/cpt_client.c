@@ -134,28 +134,23 @@ size_t cpt_create_channel(void * cpt, uint8_t * serial_buf, char * user_list)
 }
 
 
-int cpt_leave_channel(void * cpt, int channel_id)
+size_t cpt_leave_channel(void * cpt, uint8_t * serial_buf, uint16_t channel_id)
 {
-    size_t serial_size;
-    CptPacket * packet;
+    uint8_t serial_size;
     CptClientInfo * client_info;
-    uint8_t req_buffer[LG_BUFF_SIZE];
 
-    client_info = (CptClientInfo *)cpt;
-    packet = client_info->packet;
+    client_info = (CptClientInfo *) cpt;
 
-    cpt_request_cmd(packet, (uint8_t) LEAVE_CHANNEL);
-    serial_size = cpt_serialize_packet(packet, req_buffer);
-    tcp_client_send(client_info->fd, req_buffer, serial_size);
+    if ( channel_id == CHANNEL_ZERO ) { return SYS_CALL_FAIL; }
 
-    cpt_request_reset(packet);
-    delete_node(
-            client_info->channels,
-            (Comparator) compare_channels,
-            &channel_id
-        ); // !
+    client_info->packet = cpt_request_init();
+    cpt_request_chan(client_info->packet, channel_id);
+    cpt_request_version(client_info->packet, VER_MAJ_LAT, VER_MIN_LAT);
+    cpt_request_cmd(client_info->packet, (uint8_t) LEAVE_CHANNEL);
+    cpt_request_msg(client_info->packet, "leave channel");
 
-    return 0;
+    serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
+    return serial_size;
 }
 
 

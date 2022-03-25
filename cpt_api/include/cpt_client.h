@@ -141,7 +141,7 @@ int cpt_join_channel(void * cpt, int channel_id);
  * @param channel_id    The ID of the intended channel to be removed from.
  * @return A status code. Either from server, or user defined.
  */
-int cpt_leave_channel(void * cpt, int channel_id);
+size_t cpt_leave_channel(void * cpt, uint8_t * serial_buf, uint16_t channel_id);
 
 
 /**

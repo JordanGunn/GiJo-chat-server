@@ -108,8 +108,6 @@ struct dc_application_settings * create_settings(const struct dc_posix_env *env,
 }
 
 
-bool is_cmd(Command *command, char *cli_cmd);
-
 int destroy_settings(const struct dc_posix_env *env, __attribute__((unused)) struct dc_error *err,
                      struct dc_application_settings **psettings)
 {
@@ -278,6 +276,35 @@ void get_users_handler()
 }
 
 
+void leave_channel_handler()
+{
+    int result;
+    CptResponse * res;
+    size_t req_size, res_size;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+
+    req_size = cpt_leave_channel(
+            user.client_info, req_buf, user.channel);
+
+    result = tcp_client_send(
+            user.client_info->fd, req_buf, req_size);
+
+    if ( result != SYS_CALL_FAIL )
+    {
+        res_size = tcp_client_recv(
+                user.client_info->fd, res_buf);
+
+        res = cpt_parse_response(res_buf, res_size);
+        if ( res->code == SUCCESS )
+        {
+            printf("%s\n", (char *)res->data);
+            user.channel = CHANNEL_ZERO;
+        } else { printf("Failed to leave channel with code: %d\n", res->code); }
+    }
+}
+
+
 void handle_cmd(Command * cmd)
 {
     if ( is_cmd(cmd, cli_cmds[MENU]           )) { menu();                      }
@@ -286,8 +313,7 @@ void handle_cmd(Command * cmd)
     if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler();         }
     if ( is_cmd(cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(cmd); }
     if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { puts("JOIN_CHANNEL");        }
-    if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { puts("LEAVE_CHANNEL");       }
-    if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { puts("GET_USERS");           }
+    if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { leave_channel_handler();     }
 }
 
 

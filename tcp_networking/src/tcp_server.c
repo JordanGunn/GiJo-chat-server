@@ -118,10 +118,10 @@ int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd)
 }
 
 
-size_t tcp_server_recv(int sock_fd, uint8_t * req_buf)
+ssize_t tcp_server_recv(int sock_fd, uint8_t * req_buf)
 {
     char * received;
-    size_t req_size;
+    ssize_t req_size;
 
     req_size = (int) recv(sock_fd, req_buf, LG_BUFF_SIZE, 0);
     if ( req_size < 0 )

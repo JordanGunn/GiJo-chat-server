@@ -216,6 +216,15 @@ void handle_cmd(Command * cmd);
 void create_channel_handler(Command * cmd);
 
 
+/**
+ * Check if two cmd strings are equal.
+ *
+ * @param command
+ * @param cli_cmd
+ * @return
+ */
+bool is_cmd(Command *command, char * cli_cmd);
+
 // ========================================================================================
 // D C   A P P L I C A T I O N   F R A M E W O R K    I N T E R F A C E   F U N C T I O N S
 // ========================================================================================

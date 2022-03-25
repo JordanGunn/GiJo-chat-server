@@ -167,22 +167,24 @@ int cpt_handle_join_channel(Channels * dir, User * user, CptPacket * packet)
 }
 
 
-int cpt_handle_leave_channel(Channels * dir, User * user, CptPacket * packet)
+int cpt_leave_channel_response(void * server_info, uint16_t channel_id)
 {
-    int result;
+    int del_res;
     Channel * channel;
-    Comparator find_id;
+    CptServerInfo * info;
 
-    if ( !packet )                  { return BAD_PACKET;  }
-    if ( !user )                    { return BAD_USER;    }
-    if ( packet->channel_id == 0 )  { return BAD_CHANNEL; }
+    info = (CptServerInfo *) server_info;
 
-    channel = find_channel(dir, packet->channel_id);
-    if ( !channel ) { return UKNOWN_CHANNEL; }
+    if ( channel_id == 0 ) { return BAD_CHANNEL; }
 
-    result = delete_user(channel->users, packet->channel_id);
+    del_res = SUCCESS;
+    channel = find_channel(info->dir, channel_id);
+    if ( !channel )
+        { return UKNOWN_CHANNEL; }
+    else
+        { del_res = delete_user(channel->users, info->current_id); }
 
-    return ( result < 0 ) ? SERVER_ERROR : SUCCESS;
+    return ( del_res != SYS_CALL_FAIL ) ? SUCCESS : FAILURE;
 }
 
 

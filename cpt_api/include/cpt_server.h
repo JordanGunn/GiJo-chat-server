@@ -132,16 +132,17 @@ int cpt_handle_join_channel(Channels * dir, User * user, CptPacket * packet);
 /**
  * Handle a received 'LEAVE_CHANNEL' protocol message.
  *
- * Handles a LEAVE_CHANNEL request, checking if the requesting user
- * exists, in the channel, before deleting the corresponding UserNode
- * in the channel.
+ * Use information in the CptPacket to handle
+ * a LEAVE_CHANNEL protocol message from a connected client.
+ * If successful, will remove any instance of the user
+ * specified by the user <id> from the GlobalChannel
+ * and any other relevant data structures.
  *
- * @param dir       The ChannelDirectory (Pointer to a LinkedList of Channel(s))
- * @param user      The client User object who made the request.
- * @param packet    The Received client packet.
- * @return 0 on success, error code on failure.
+ * @param server_info   Server data structures and information.
+ * @param channel_id    Target channel ID.
+ * @return Status Code (0 if successful, other if failure).
  */
-int cpt_handle_leave_channel(Channels * dir, User * user, CptPacket * packet);
+int cpt_leave_channel_response(void * server_info, uint16_t channel_id);
 
 
 /**
