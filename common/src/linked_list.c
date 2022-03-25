@@ -221,28 +221,16 @@ Node * get_head_node(LinkedList * list)
 Node * find_node(LinkedList * list, Comparator comparator, void * test_param)
 {
     Node * node_iterator;
-    Node * next_iterator;
 
     node_iterator = get_head_node(list);
-
-    if ( !node_iterator->next )
+    while ( (node_iterator) )
     {
         if ( comparator(node_iterator->data, test_param) )
         {
             return node_iterator;
         }
+        node_iterator = node_iterator->next;
     }
-
-    while ( (next_iterator = node_iterator->next) )
-    {
-        if ( comparator(node_iterator->data, test_param) )
-        {
-            return node_iterator;
-        }
-
-        node_iterator = next_iterator;
-    }
-
     return NULL;
 }
 

@@ -314,19 +314,27 @@ void handle_cmd(Command * cmd)
     if ( is_cmd(cmd, cli_cmds[SEND]           )) { puts("SEND");                }
     if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler();         }
     if ( is_cmd(cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(cmd); }
-    if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { join_channel_handler();        }
+    if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { join_channel_handler(cmd);   }
     if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { leave_channel_handler();     }
 }
 
-void join_channel_handler() {
+void join_channel_handler(Command * cmd) {
+
     int result;
+    uint16_t cid;
+    char * args_end;
     CptResponse * res;
+    uint16_t channel_id;
+
     size_t req_size, res_size;
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
+    channel_id = (uint16_t) strtol(cmd->args, &args_end, 10);
+
+
     req_size = cpt_join_channel(
-            user.client_info, req_buf, user.channel);
+            user.client_info, req_buf, channel_id);
 
     result = tcp_client_send(
             user.client_info->fd, req_buf, req_size);
@@ -339,8 +347,9 @@ void join_channel_handler() {
         res = cpt_parse_response(res_buf, res_size);
         if ( res->code == SUCCESS )
         {
-            printf("%s\n", (char *)res->data);
-            user.channel = (uint16_t ) *(res->data);
+            cid = (uint16_t) ( *(res->data) );
+            user.channel = cid;
+
         } else { printf("Failed to join channel with code: %d\n", res->code); }
     }
 }

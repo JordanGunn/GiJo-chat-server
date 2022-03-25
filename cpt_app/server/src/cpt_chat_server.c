@@ -153,8 +153,8 @@ void run()
                             break;
                         }
                     } else { break; }
-
-                } while ( true );
+                //TODO Make sure the loop-breaking condition below doesn't completely break everything
+                } while ( req_size != SYS_CALL_FAIL );
 
                 if ( close_conn )
                 { /* handle close connection flag if set */
@@ -187,25 +187,26 @@ void run()
 
 void join_channel_event(CptServerInfo *info, uint16_t channel_id)
 {
+    char * msg;
     int join_res;
     size_t res_size;
     CptResponse res;
     uint8_t res_buf[MD_BUFF_SIZE] = {0};
-    char res_msg_buf[SM_BUFF_SIZE] = {0};
     join_res = cpt_join_channel_response(info, channel_id);
 
     res.code = join_res;
     if ( join_res == SUCCESS )
     { /* Send back confirmation if successful */
-        sprintf(res_msg_buf,
-                "%d", channel_id);
-        res.data = (uint8_t *) strdup(res_msg_buf);
+        res.data = (uint8_t *) &channel_id;
     }
-    else { res.data = (uint8_t *) strdup("Failed to join channel"); }
+    else
+    {
+        msg = "Failed to join channel";
+        memcpy(res.data, msg, sizeof((uint8_t *)msg));
+    }
 
     res_size = cpt_serialize_response(&res, res_buf);
     tcp_server_send(info->current_id, res_buf, res_size);
-    cpt_response_reset(&res);
 }
 
 void leave_channel_event(CptServerInfo * info, uint16_t channel_id)
@@ -282,13 +283,16 @@ void logout_event(CptServerInfo * info)
 void create_channel_event(CptServerInfo * info, char * id_list)
 {
     int cc_res;
+    uint16_t ncid;
     size_t res_size;
     CptResponse res;
     uint8_t res_buf[MD_BUFF_SIZE] = {0};
     cc_res = cpt_create_channel_response(info, id_list);
 
     res.code = cc_res;
-    res.data = (uint8_t *) &(info->dir->length);
+
+    ncid = (info->dir->length - 1);
+    res.data = (uint8_t *) &ncid;
     res_size = cpt_serialize_response(&res, res_buf);
     tcp_server_send(info->current_id, res_buf, res_size);
 }

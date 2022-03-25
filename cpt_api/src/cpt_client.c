@@ -94,8 +94,6 @@ size_t cpt_join_channel(void * client_info, uint8_t * serial_buf, uint16_t chann
 
     info = (CptClientInfo *) client_info;
 
-    if ( channel_id == CHANNEL_ZERO ) { return SYS_CALL_FAIL; }
-
     info->packet = cpt_request_init();
     cpt_request_chan(info->packet, channel_id);
     cpt_request_version(info->packet, VER_MAJ_LAT, VER_MIN_LAT);

@@ -142,7 +142,7 @@ int cpt_create_channel_response(void * server_info, char * id_list)
     }
 
     new_channel = channel_init(
-        (info->dir->length + 1), users, "Channel", false);
+        (info->dir->length), users, "Channel", false);
 
     if ( new_channel )
     {
