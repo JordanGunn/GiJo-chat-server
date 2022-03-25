@@ -152,17 +152,29 @@ int cpt_create_channel_response(void * server_info, char * id_list)
 }
 
 
-int cpt_handle_join_channel(Channels * dir, User * user, CptPacket * packet)
+int cpt_join_channel_response(void * server_info, uint16_t channel_id)
 {
     Channel * channel;
+    CptServerInfo * info;
+    User* user;
 
-    if ( !packet ) { return BAD_PACKET; }
-    if ( !user )   { return BAD_USER;   }
+    info = (CptServerInfo *) server_info;
 
-    channel = find_channel(dir, packet->channel_id);
-    if ( !channel ) { return UKNOWN_CHANNEL; }
-    push_channel_user(channel, user);
-
+    channel = find_channel(info->dir, channel_id);
+    if ( !channel )
+    { return UKNOWN_CHANNEL; }
+    else
+    {
+        user = find_user(info->gc->users, info->current_id);
+        if ( user )
+        {
+            push_user(channel->users, user);
+        }
+        else
+        {
+            return FAILURE;
+        }
+    }
     return SUCCESS;
 }
 

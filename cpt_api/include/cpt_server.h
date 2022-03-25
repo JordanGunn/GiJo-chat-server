@@ -9,9 +9,9 @@
 
 #include "cpt_packet_builder.h"
 #include "cpt_serialize.h"
-#include "../../cpt_app/server/include/channel.h"
+#include "channel.h"
 #include "cpt_parse.h"
-#include "../../cpt_app/server/include/user.h"
+#include "user.h"
 
 
 typedef struct cpt_server_info CptServerInfo;
@@ -97,7 +97,7 @@ uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result);
  */
 int cpt_get_users_response(void * server_info, int chan_id);
 
-
+//TODO doxygen needs to be updated.
 /**
  * Handle a received 'CREATE_CHANNEL' protocol message.
  *
@@ -126,7 +126,7 @@ int cpt_create_channel_response(void * server_info, char * id_list);
  * @param packet    The Received client packet.
  * @return 0 on success, error code on failure.
  */
-int cpt_handle_join_channel(Channels * dir, User * user, CptPacket * packet);
+int cpt_join_channel_response(void * server_info, uint16_t channel_id);
 
 
 /**

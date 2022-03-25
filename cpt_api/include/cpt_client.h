@@ -104,7 +104,7 @@ size_t cpt_logout(void * cpt, uint8_t * serial_buf);
 */
 int cpt_send_msg(void * cpt, char * msg);
 
-
+//TODO this doxygen needs to be updated.
 /**
 * Add a user to the channel on the server.
 *
@@ -123,7 +123,7 @@ int cpt_send_msg(void * cpt, char * msg);
 * @param channel_id  The ID of the intended channel to be removed from.
 * @return 		   A status code. Either from server, or user defined.
 */
-int cpt_join_channel(void * cpt, int channel_id);
+size_t cpt_join_channel(void * cpt, uint8_t * serial_buf, uint16_t channel_id);
 
 
 /**

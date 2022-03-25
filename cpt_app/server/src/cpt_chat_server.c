@@ -8,6 +8,7 @@ static int GCFD;
 static int nfds;
 static struct pollfd poll_fds[MAX_SERVER_FDS];
 
+
 int main(void)
 {
     run();
@@ -131,6 +132,8 @@ void run()
                         if ( req->command == JOIN_CHANNEL )
                         {
                             puts("JOIN_CHANNEL event");
+                            join_channel_event(server_info, req->channel_id);
+                            cpt_request_destroy(req);
                         }
 
                         if ( req_size < 0 )
@@ -180,6 +183,29 @@ void run()
     } while ( !is_fatal_error );
 
     server_destroy( dir );  /* Close existing sockets before ending */
+}
+
+void join_channel_event(CptServerInfo *info, uint16_t channel_id)
+{
+    int join_res;
+    size_t res_size;
+    CptResponse res;
+    uint8_t res_buf[MD_BUFF_SIZE] = {0};
+    char res_msg_buf[SM_BUFF_SIZE] = {0};
+    join_res = cpt_join_channel_response(info, channel_id);
+
+    res.code = join_res;
+    if ( join_res == SUCCESS )
+    { /* Send back confirmation if successful */
+        sprintf(res_msg_buf,
+                "%d", channel_id);
+        res.data = (uint8_t *) strdup(res_msg_buf);
+    }
+    else { res.data = (uint8_t *) strdup("Failed to join channel"); }
+
+    res_size = cpt_serialize_response(&res, res_buf);
+    tcp_server_send(info->current_id, res_buf, res_size);
+    cpt_response_reset(&res);
 }
 
 void leave_channel_event(CptServerInfo * info, uint16_t channel_id)

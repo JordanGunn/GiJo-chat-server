@@ -37,6 +37,7 @@ void server_destroy(Channels * dir);
 
 bool should_end_event_loop(int poll_result);
 
+void join_channel_event(CptServerInfo *info, uint16_t channel_id);
 
 
 
