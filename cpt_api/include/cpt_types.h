@@ -12,7 +12,7 @@ typedef struct cpt_packet CptPacket;
 typedef struct cpt_response CptResponse;
 typedef struct cpt_client_info CptClientInfo;
 typedef struct cpt_server_info CptServerInfo;
-typedef struct cpt_msg_response CptMsgResponse;
+typedef struct cpt_msg_sub_packet CptMsgSubPacket;
 typedef struct username_id_pair UserNameIdPair;
 
 
@@ -77,7 +77,7 @@ struct cpt_response
  * Valid pre-serialized format for server
  * transmission of SEND cpt packets.
  */
-struct cpt_msg_response
+struct cpt_msg_sub_packet
 {
     uint16_t channel_id;
     uint16_t user_id;

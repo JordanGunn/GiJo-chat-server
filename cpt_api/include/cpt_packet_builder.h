@@ -171,7 +171,7 @@ void cpt_response_reset(CptResponse * res);
  * @param data      Data being sent to client.
  * @return          CptResponse object.
  */
-CptMsgResponse * cpt_msg_response_init(uint8_t * msg, uint16_t chan_id, uint16_t user_id);
+CptMsgSubPacket * cpt_msg_sp_init();
 
 
 /**
@@ -182,7 +182,7 @@ CptMsgResponse * cpt_msg_response_init(uint8_t * msg, uint16_t chan_id, uint16_t
  *
  * @param msg_res  Pointer to a CptResponse object.
  */
-void cpt_msg_response_destroy(CptMsgResponse * msg_res);
+void cpt_msg_sp_destroy(CptMsgSubPacket * msg_res);
 
 
 #endif //CPT_CPT_packet_H

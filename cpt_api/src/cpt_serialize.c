@@ -32,7 +32,7 @@ size_t cpt_serialize_response(CptResponse * res, uint8_t * buffer)
 }
 
 
-size_t cpt_serialize_msg(CptMsgResponse * msg_response, uint8_t * buffer) // !
+size_t cpt_serialize_msg(CptMsgSubPacket * msg_response, uint8_t * buffer) // !
 {
     size_t serial_size;
 

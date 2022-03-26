@@ -177,24 +177,19 @@ void cpt_response_reset(CptResponse * res)
 // ============================
 
 
-CptMsgResponse * cpt_msg_response_init(uint8_t * msg, uint16_t chan_id, uint16_t user_id)
+CptMsgSubPacket * cpt_msg_sp_init()
 {
     size_t num_bytes;
-    CptMsgResponse * msg_res;
+    CptMsgSubPacket * msg_res;
 
-    if ( !msg ) { return NULL; }
-    num_bytes = sizeof(struct cpt_msg_response);
+    num_bytes = sizeof(struct cpt_msg_sub_packet);
     if ( !(msg_res = malloc(num_bytes)) ) { return NULL; }
-
-    msg_res->msg = (uint8_t *) strdup((char *) msg);
-    msg_res->channel_id = chan_id;
-    msg_res->channel_id = user_id;
 
     return msg_res;
 }
 
 
-void cpt_msg_response_destroy(CptMsgResponse * msg_res)
+void cpt_msg_sp_destroy(CptMsgSubPacket * msg_res)
 {
     if ( msg_res )
     {
