@@ -148,12 +148,12 @@ CptClientInfo * cpt_init_client_info(char * port, char * ip);
 
 
 /**
- * Destroy CptPacketInfo object.
+ * Destroy CptRequestInfo object.
  *
  * Frees any memory necessary for the
  * object and set all pointers to NULL.
  *
- * @param packet_info CptPacketInfo object.
+ * @param packet_info CptRequestInfo object.
  */
 void cpt_destroy_client_info(CptClientInfo * client_info);
 

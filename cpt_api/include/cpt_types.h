@@ -8,7 +8,7 @@
 #include "linked_list.h"
 
 
-typedef struct cpt_packet CptPacket;
+typedef struct cpt_request CptRequest;
 typedef struct cpt_response CptResponse;
 typedef struct cpt_client_info CptClientInfo;
 typedef struct cpt_server_info CptServerInfo;
@@ -25,12 +25,12 @@ typedef struct username_id_pair UserNameIdPair;
  * to a cpt server.
  *
  */
-struct cpt_packet
+struct cpt_request
 {
     uint8_t   version;
     uint8_t   command ;
     uint16_t  channel_id;
-    uint8_t   msg_len;
+    uint16_t   msg_len;
     uint8_t * msg;
 };
 
@@ -51,7 +51,7 @@ struct cpt_client_info
     char * port;
     char * name;
     uint16_t channel;
-    CptPacket * packet;
+    CptRequest * packet;
     LinkedList * channels;
 };
 
@@ -67,12 +67,13 @@ struct cpt_client_info
 struct cpt_response
 {
     uint8_t code;
+    uint16_t data_size;
     uint8_t * data;
 };
 
 
 /**
- * Message response sub-packet.\n\n
+ * Message response sub-packet.
  *
  * Valid pre-serialized format for server
  * transmission of SEND cpt packets.

@@ -101,7 +101,7 @@ int tcp_server_listen(int listen_fd)
 
 int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd)
 {
-    int fd, flags;
+    int fd;
     socklen_t addr_len;
 
     addr_len = sizeof(*client_addr);
@@ -109,7 +109,7 @@ int tcp_server_accept(struct sockaddr_storage * client_addr, int listen_fd)
 
     if ( fd < 0 )
     {
-        const char * msg = "  No new client connections...\n";
+        const char * msg = "  Done checking accept queue...\n";
         write(STDOUT_FILENO, msg, strlen(msg));
         return -1;
     }

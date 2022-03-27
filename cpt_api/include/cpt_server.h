@@ -29,7 +29,7 @@ struct cpt_server_info
 /**
  * Handle a received 'LOGIN' protocol message.
  *
- * Use information in the CptPacket to handle
+ * Use information in the CptRequest to handle
  * a LOGIN protocol message from a connected client.
  *
  * If successful, the protocol request will be fulfilled,
@@ -109,7 +109,7 @@ int cpt_create_channel_response(void * server_info, char * id_list);
  * a JOIN_CHANNEL protocol message from a connected client.
  * If successful, function should add the requesting client
  * user into the channel specified by the CHANNEL_ID field
- * in the CptPacket <channel_id>.
+ * in the CptRequest <channel_id>.
  *
  * @param server_info   Server data structures and information.
  * @param channel_id    Target channel ID.
@@ -121,7 +121,7 @@ int cpt_join_channel_response(void * server_info, uint16_t channel_id);
 /**
  * Handle a received 'LEAVE_CHANNEL' protocol message.
  *
- * Use information in the CptPacket to handle
+ * Use information in the CptRequest to handle
  * a LEAVE_CHANNEL protocol message from a connected client.
  * If successful, will remove any instance of the user
  * specified by the user <id> from the GlobalChannel
@@ -134,21 +134,21 @@ int cpt_join_channel_response(void * server_info, uint16_t channel_id);
 int cpt_leave_channel_response(void * server_info, uint16_t channel_id);
 
 
-/**
- * Handle a received 'SEND' protocol message.
- *
- * Uses information in a received CptRequest to handle
- * a SEND protocol message from a connected client.
- *
- * If successful, function will send the message in the
- * MSG field of the received packet to every user in the
- * CHAN_ID field of the received packet.
- *
- * @param server_info   Server data structures and information.
- * @param channel_id    Target channel for chat message.
- * @return Status Code (0 if successful, other if failure).
- */
-int cpt_send_response(void * server_info, uint16_t channel_id);
+///**
+// * Handle a received 'SEND' protocol message.
+// *
+// * Uses information in a received CptRequest to handle
+// * a SEND protocol message from a connected client.
+// *
+// * If successful, function will send the message in the
+// * MSG field of the received packet to every user in the
+// * CHAN_ID field of the received packet.
+// *
+// * @param server_info   Server data structures and information.
+// * @param channel_id    Target channel for chat message.
+// * @return Status Code (0 if successful, other if failure).
+// */
+//int cpt_send_response(void * server_info, uint16_t channel_id);
 
 /**
  * Generate a simple response message for client.
@@ -163,16 +163,27 @@ size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf);
 
 
 /**
- * Send serialized server response to client.
+ * Initialize and allocate all necessary server data structures.
  *
- * Serializes a CptResponse object and sends
- * it to a connected client.
+ * Initializes and allocates necessary memory for data structure
+ * object pointers.
  *
- * @param user      Pointer to a User object.
- * @param response  Pointer to a CptResponse object.
- * @return          0 if successful, error code on failure.
+ * @param gc   Pointer to the GlobalChannel object.
+ * @param dir  Pointer to a LinkedList of Channel objects.
+ * @return     Pointer to CptServerInfo object.
  */
 CptServerInfo * cpt_server_info_init(Channel * gc, Channels * dir);
+
+
+/**
+ * Destroy te ServerInfo object.
+ *
+ * Free any allocated memory and set pointer to NULL.
+ *
+ * @param gc   Pointer to the GlobalChannel object.
+ * @return     Pointer to CptServerInfo object.
+ */
+CptServerInfo * cpt_server_info_destroy(CptServerInfo * server_info);
 
 
 #endif //CPT_CPT_SERVER_H

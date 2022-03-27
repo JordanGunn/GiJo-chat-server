@@ -24,13 +24,8 @@ struct channel_struct /* may consider adding a fd to this object... */
 {
     int      fd;
     uint16_t id;
-    char *   name;
     Users *  users;
-    bool     is_private;
 };
-
-
-int delete_channel(Channels * channels, int id);
 
 
 struct channels
@@ -82,11 +77,35 @@ Channels * init_channel_directory(Channel * gc);
  *
  * @param id         The channel id.
  * @param users      A Users object (pointer to a LinkedList).
+ * @return Pointer to a Channel object.
+ */
+Channel * channel_init(uint16_t id, Users * users);
+
+
+/**
+ * Destroy Channel object.
+ *
+ * Initialize a Channel object, allocating
+ * any necessary memory and initializing data
+ * members.
+ *
+ * @param id         The channel id.
+ * @param users      A Users object (pointer to a LinkedList).
  * @param name       Name of the channel.
  * @param is_private Privacy setting of channel.
  * @return Pointer to a Channel object.
  */
-Channel * channel_init(uint16_t id, Users * users, char * name, bool is_private);
+void channel_destroy(Channel * channel);
+
+
+/**
+ * Remove a ChannelNode from a LinkedList of Channel objects.
+ *
+ * @param channels    Pointer to a LinkedList of Channel objects.
+ * @param channel_id
+ * @return
+ */
+int channel_delete(Channels * channels, int channel_id);
 
 
 /**
@@ -95,7 +114,7 @@ Channel * channel_init(uint16_t id, Users * users, char * name, bool is_private)
  * @param users Pointer to a linked list of User objects.
  * @param user  New user to add.
  */
-void push_channel(Channels * channels, Channel * channel);
+int push_channel(Channels * channels, Channel * channel);
 
 
 /**
@@ -151,6 +170,18 @@ ChannelNode * get_head_channel(Channels * channels);
 Channels * channels_init(ChannelNode * channel_node);
 
 
+
+/**
+ * Destroy Channels object.
+ *
+ * Destroy Channels object, freeing any dynamically
+ * allocated memory.
+ *
+ * @param channels  A LinkedList of Channel objects.
+ */
+void channels_destroy(Channels * channels);
+
+
 /**
  * Find a channel in a list of channels.
  *
@@ -183,6 +214,24 @@ char * channel_to_string(Channel * channel);
  */
 bool compare_channels(const uint16_t * channel_id, const uint16_t * target_channel);
 
+
+/**
+ * Parse requested user IDs from body of
+ * CREATE_CHANNEL cpt protocol message.
+ *
+ * @param id_list  MSG field of received CREATE_CHANNEL request.
+ * @return Number of requested IDs in the id_buf.
+ */
+Users * filter_channel_users(Channel * channel, uint16_t * id_buf, char * id_list);
+
+
+/**
+ *
+ * @param id_list
+ * @param id_buf
+ * @return
+ */
+uint16_t parse_channel_query(char * id_list, uint16_t * id_buf);
 
 // =====================
 // C O M P A R A T O R S

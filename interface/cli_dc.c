@@ -250,16 +250,22 @@ void create_channel_handler(Command * cmd)
 }
 
 
-void get_users_handler()
+void get_users_handler(Command * cmd)
 {
     int result;
+    char * args_end;
     CptResponse * res;
+    uint16_t channel_id;
     size_t req_size, res_size;
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
-    req_size = cpt_get_users( /* !!! This needs to be changed for different channels !!! */
-            user.client_info, req_buf, user.channel);
+    channel_id = ( cmd->args )
+    ? (uint16_t) strtol(cmd->args, &args_end, 10)
+    : user.channel;
+
+    req_size = cpt_get_users(
+            user.client_info, req_buf, channel_id);
 
     result = tcp_client_send(
             user.client_info->fd, req_buf, req_size);
@@ -312,7 +318,7 @@ void handle_cmd(Command * cmd)
     if ( is_cmd(cmd, cli_cmds[MENU]           )) { menu();                      }
     if ( is_cmd(cmd, cli_cmds[LOGOUT]         )) { logout_handler();            }
     if ( is_cmd(cmd, cli_cmds[SEND]           )) { puts("SEND");                }
-    if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler();         }
+    if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler(cmd);      }
     if ( is_cmd(cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(cmd); }
     if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { join_channel_handler(cmd);   }
     if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { leave_channel_handler();     }

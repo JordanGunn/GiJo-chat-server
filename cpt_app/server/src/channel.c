@@ -12,12 +12,12 @@ Channel * init_global_channel()
     User * root_user;
     UserNode * user_node;
 
-    root_user = user_init(GC_ROOT_USER_ID, (uint16_t)GC_ROOT_USER_FD, GC_ROOT_USER_NAME);
+    root_user = user_init(GC_ROOT_USR_ID, (uint16_t) GC_ROOT_USR_FD, GC_ROOT_USR_NAME);
     user_node = create_user_node(root_user);
-    if (!root_user) { return NULL ;}
-    gc_users = users_init(user_node);
+    if ( !root_user ) { return NULL ;}
 
-    gc = channel_init(GC_ID, gc_users, GC_NAME, GC_ACCESS);
+    gc_users = users_init(user_node);
+    gc = channel_init(GC_ID, gc_users);
 
     return gc;
 }
@@ -39,7 +39,7 @@ Channels * init_channel_directory(Channel * gc)
 }
 
 
-Channel * channel_init(uint16_t id, Users * users, char * name, bool is_private)
+Channel * channel_init(uint16_t id, Users * users)
 {
     Channel * channel;
 
@@ -52,8 +52,6 @@ Channel * channel_init(uint16_t id, Users * users, char * name, bool is_private)
     memset(channel, 0, sizeof(struct channel_struct));
     channel->id = id;
     channel->users = users;
-    channel->name = strdup(name);
-    channel->is_private = is_private;
 
     return channel;
 }
@@ -63,12 +61,6 @@ void channel_destroy(Channel * channel)
 {
     if (channel)
     {
-        if (channel->name)
-        {
-            free(channel->name);
-            channel->name = NULL;
-        }
-
         if (channel->users)
         {
             destroy_list((LinkedList *) channel->users);
@@ -99,42 +91,86 @@ ChannelNode * get_head_channel(Channels * channels)
 }
 
 
-void push_channel(Channels * channels, Channel * channel)
+int push_channel(Channels * channels, Channel * channel)
 {
+    int push_res;
     LinkedList * list;
     list = (LinkedList *) channels;
-    push_data(list, channel, sizeof(struct channel_struct));
+    push_res = push_data(list, channel, sizeof(struct channel_struct));
+
+    return ( push_res ) ? 1 : 0;
+}
+
+Users * filter_channel_users(Channel * channel, uint16_t * id_buf, char * id_list)
+{
+    LinkedList * list;
+    FilterQuery idq;
+    Users * users;
+
+    idq.num_params = parse_channel_query(id_list, id_buf);
+    idq.params = calloc(idq.num_params, sizeof(uint16_t));
+    memcpy(idq.params, id_buf, sizeof(uint16_t) * idq.num_params);
+
+    users = NULL;
+    if ( channel )
+    {
+        list = (LinkedList *) channel->users;
+        users = (Users *) filter(list, filter_user_id, &idq, idq.num_params);
+    }
+
+    if (idq.params)
+        { free(idq.params); idq.params = NULL; }
+
+    return ( users ) ? users : NULL;
+}
+
+
+uint16_t parse_channel_query(char * id_list, uint16_t * id_buf)
+{
+    char * id_str;
+    int id_count;
+    uint16_t id;
+
+    id_count = 0;
+    while ( strlen(id_list) )
+    {
+        id = strtol((char *)id_list, &id_str, 10);
+        id_list = id_str;
+        if ( id != 0 )
+        {
+            if ( id != id_buf[0] )
+            {
+                id_buf[id_count] = id;
+            }
+            id_count++;
+        }
+    }
+
+    return id_count;
 }
 
 
 void print_channel(Channel * channel)
 {
     char buffer[LG_BUFF_SIZE] = {0};
-    char * channel_access;
 
-    channel_access = (channel->is_private) ? ACCESS_PRIVATE : ACCESS_PUBLIC;
-
-    sprintf(buffer,
-        "ID: %d\t"          \
-        "NAME: %s\t"        \
-        "ACCESS: %s\n",     \
-        channel->id, channel->name, channel_access
-    );
+    sprintf(buffer, "CHANNEL ID: %d\t", channel->id);
     printf("%s\n", buffer);
-    for_each((LinkedList *)channel->users, (Consumer) print_user); // !!!!!!!!!!!!!!!!!!
+
+    for_each((LinkedList *) channel->users, (Consumer) print_user); // !
 }
 
 
-int delete_channel(Channels * channels, int id)
+int channel_delete(Channels * channels, int channel_id)
 {
     int result;
     Comparator find_id;
 
     result = SYS_CALL_FAIL;
-    find_id = (Comparator) find_user_id;
+    find_id = (Comparator) find_channel_id;
     if ( channels )
     {
-        result = delete_node((LinkedList *) channels, find_id, &id);
+        result = delete_node((LinkedList *) channels, find_id, &channel_id);
     }
 
     return result;
@@ -157,13 +193,16 @@ char * channel_to_string(Channel * channel)
         return strdup(user_str);
     }
 
-    while (user_iterator->next_user)
+    while ( user_iterator )
     { /* If multiple users in channel */
         user = user_iterator->user;
-        user_str = user_to_string(user);
-        strncat(buffer, user_str, strlen(user_str));
-        free(user_str);   // !
-        user_str = NULL;
+        if ( user )
+        {
+            user_str = user_to_string(user);
+            strncat(buffer, user_str, strlen(user_str));
+            free(user_str);   // !
+            user_str = NULL;
+        }
         user_iterator = user_iterator->next_user;
     }
 
@@ -215,15 +254,18 @@ Channel * find_channel(Channels * dir, uint16_t id)
     channel_node = (ChannelNode *) find_node(list, find_id, &id); // !
 
     if ( channel_node )
-    { channel = channel_node->chan; }
+        { channel = channel_node->chan; }
     else
-    { channel = NULL; }
+        { channel = NULL; }
 
     return channel;
 }
 
 bool find_channel_id(Channel * channel, const int * id)
 {
-    return (channel->id == *id);
+    uint16_t target_id;
+
+    target_id = (uint16_t) (*id);
+    return (channel->id == target_id);
 }
 

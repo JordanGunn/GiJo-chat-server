@@ -24,25 +24,24 @@ size_t cpt_login(void * cpt, uint8_t * serial_buf, char * name)
 }
 
 
-size_t cpt_logout(void * cpt, uint8_t * serial_buf)
+size_t cpt_logout(void * client_info, uint8_t * serial_buf)
 {
-
     size_t serial_size;
-    CptClientInfo * client_info;
+    CptClientInfo * info;
 
-    client_info = (CptClientInfo *)cpt;
+    info = (CptClientInfo *) client_info;
 
-    cpt_request_cmd(client_info->packet, (uint8_t) LOGOUT);
-    serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
+    cpt_request_cmd(info->packet, (uint8_t) LOGOUT);
+    serial_size = cpt_serialize_packet(info->packet, serial_buf);
 
-    cpt_request_reset(client_info->packet);
+    cpt_request_reset(info->packet);
     return serial_size;
 }
 
 
 size_t cpt_get_users(void * cpt, uint8_t * serial_buf, uint16_t channel_id)
 {
-    CptPacket * packet;
+    CptRequest * packet;
     size_t serial_size;
     CptClientInfo * client_info;
 
@@ -62,7 +61,7 @@ size_t cpt_get_users(void * cpt, uint8_t * serial_buf, uint16_t channel_id)
 int cpt_send_msg(void * cpt, char * msg)
 {
     size_t serial_size;
-    CptPacket * packet;
+    CptRequest * packet;
     CptClientInfo * client_info;
     uint8_t buffer[LG_BUFF_SIZE];
 

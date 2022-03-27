@@ -5,35 +5,33 @@
 #include "cpt_packet_builder.h"
 
 
-CptPacket * cpt_request_init()
+CptRequest * cpt_request_init()
 {
-    CptPacket * cpt_packet;
-    if ( (cpt_packet = malloc(sizeof(struct cpt_packet))) )
-    {
-        cpt_packet->msg = NULL;
-    }
+    CptRequest * req;
 
-    return cpt_packet;
+    req = malloc(sizeof(struct cpt_request));
+    if ( req )
+        { req->msg = NULL; }
+
+    return req;
 }
 
 
 
-void cpt_request_destroy(CptPacket * cpt)
+void cpt_request_destroy(CptRequest * req)
 {
-    if (cpt)
+    if (req)
     {
-        if (cpt->msg)
-        {
-            free(cpt->msg);
-            cpt->msg = NULL;
-        }
-        free(cpt);
-        cpt = NULL;
+        if (req->msg)
+            { free(req->msg); req->msg = NULL; }
+
+        free(req);
+        req = NULL;
     }
 }
 
 
-void cpt_request_cmd(CptPacket * cpt, uint8_t cmd)
+void cpt_request_cmd(CptRequest * cpt, uint8_t cmd)
 {
     if ( (cmd >= SEND) && (cmd <= LOGIN) )
     {
@@ -42,7 +40,7 @@ void cpt_request_cmd(CptPacket * cpt, uint8_t cmd)
 }
 
 
-void cpt_request_version(CptPacket * cpt, uint8_t version_major, uint8_t version_minor)
+void cpt_request_version(CptRequest * cpt, uint8_t version_major, uint8_t version_minor)
 {
     bool exceeds_major;
     bool exceeds_minor;
@@ -57,13 +55,13 @@ void cpt_request_version(CptPacket * cpt, uint8_t version_major, uint8_t version
 }
 
 
-void cpt_request_chan(CptPacket * cpt, uint16_t channel_id)
+void cpt_request_chan(CptRequest * cpt, uint16_t channel_id)
 {
     cpt->channel_id = channel_id;
 }
 
 
-void cpt_request_msg(CptPacket * cpt, char * msg)
+void cpt_request_msg(CptRequest * cpt, char * msg)
 {
     char * msg_field;
 
@@ -76,12 +74,12 @@ void cpt_request_msg(CptPacket * cpt, char * msg)
     if (msg_field)
     {
         cpt->msg = (uint8_t *)msg_field;
-        cpt->msg_len = strlen((char *)cpt->msg);
+        cpt->msg_len = strlen(msg);
     }
 }
 
 
-void cpt_request_reset(CptPacket * packet)
+void cpt_request_reset(CptRequest * packet)
 {
     if ( packet->msg ) { free(packet->msg); packet->msg = NULL; }
     packet->msg_len = 0;
@@ -89,7 +87,7 @@ void cpt_request_reset(CptPacket * packet)
 }
 
 
-char * cpt_to_string(CptPacket * cpt)
+char * cpt_to_string(CptRequest * cpt)
 {
     char * msg, * cpt_str;
     int cmd, msg_len, chan_id;
@@ -130,13 +128,13 @@ char * cpt_to_string(CptPacket * cpt)
 // ==================================
 
 
-CptResponse * cpt_response_init(uint16_t res_code)
+CptResponse * cpt_response_init()
 {
     CptResponse * res;
 
     if ( !(res = malloc(sizeof(struct cpt_response))) ) { return NULL; }
-
-    res->code = res_code;
+    memset(res, 0, sizeof(struct cpt_response));
+    res->code = 0;
     res->data = NULL;
 
     return res;
@@ -146,15 +144,7 @@ CptResponse * cpt_response_init(uint16_t res_code)
 void cpt_response_destroy(CptResponse * res)
 {
     if ( res )
-    {
-        if ( res->data )
-        {
-            free(res->data);
-            res->data = NULL;
-        }
-        free(res);
-        res = NULL;
-    }
+        { free(res); res = NULL; }
 }
 
 
