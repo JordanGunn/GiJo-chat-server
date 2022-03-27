@@ -27,16 +27,6 @@ CptResponse * cpt_parse_response(uint8_t * buffer, size_t data_size);
 * @param packet    A serialized cpt protocol message.
 * @return A pointer to a cpt struct.
 */
-CptPacket * cpt_parse_packet(uint8_t * req_buf, size_t req_size);
-
-
-/**
- * Parse requested user IDs from body of
- * CREATE_CHANNEL cpt protocol message.
- *
- * @param id_list  MSG field of received CREATE_CHANNEL request.
- * @return Number of requested IDs in the id_buf.
- */
-uint16_t cpt_parse_channel_query(char * id_list, uint16_t * id_buf);
+CptRequest * cpt_parse_request(uint8_t * req_buf, size_t req_size);
 
 #endif //CPT_CPT_PARSE_H

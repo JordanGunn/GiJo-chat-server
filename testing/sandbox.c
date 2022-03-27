@@ -172,14 +172,14 @@ bool filter_IDs(void * data, void * params)
 //  C P T   B U I L D E R   T E S T I N G    F U N C T I O N S
 // ============================================================
 
-CptPacket * test_create_cpt_packet()
+CptRequest * test_create_cpt_packet()
 {
     uint8_t serial_buffer[LG_BUFF_SIZE];
     uint8_t  version_major, version_minor;
     uint8_t  command;
     uint16_t channel_id;
     char * msg, * first_cpt, * second_cpt;
-    CptPacket * cpt_parsed;
+    CptRequest * cpt_parsed;
 
     command = SEND;
     channel_id = 3;
@@ -188,12 +188,12 @@ CptPacket * test_create_cpt_packet()
     msg = "Hello, World!";
 
     // build the stupid thing
-    CptPacket * cpt;
-    cpt = cpt_packet_init();
-    cpt_packet_chan(cpt, channel_id);
-    cpt_packet_cmd(cpt, command);
-    cpt_packet_version(cpt, version_major, version_minor);
-    cpt_packet_msg(cpt, msg);
+    CptRequest * cpt;
+    cpt = cpt_request_init();
+    cpt_request_chan(cpt, channel_id);
+    cpt_request_cmd(cpt, command);
+    cpt_request_version(cpt, version_major, version_minor);
+    cpt_request_msg(cpt, msg);
 
     // print the stupid thing
     first_cpt = cpt_to_string(cpt);
@@ -204,7 +204,7 @@ CptPacket * test_create_cpt_packet()
     cpt_serialize_packet(cpt, serial_buffer);
 
     // convert back to unpacked serial
-    cpt_parsed = cpt_packet_parse(serial_buffer);
+    cpt_parsed = cpt_request_parse(serial_buffer);
     second_cpt = cpt_to_string(cpt_parsed);
     puts(second_cpt);
     free(second_cpt);

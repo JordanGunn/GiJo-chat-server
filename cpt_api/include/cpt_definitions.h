@@ -17,6 +17,7 @@
 #define VERSION_MINOR_MAX 15
 #define VERSION_MAJOR_MAX 15
 #define MAX_SERVER_FDS 2048
+#define MAX_ID_NUM 65535
 #define MAX_NAME_SIZE 12
 #define CHANNEL_ZERO 0
 #define VER_MAJ_LAT 1
@@ -28,11 +29,11 @@
  * Valid parsing/serialization formats.
  */
 /* ============================ */
-#define SERIAL_RES_FMT "Cs"
-#define PARSE_RES_FMT "C512s"
-#define SERIAL_PACKET_FMT "CCHCs"
+#define SERIAL_RES_FMT "CHs"
+#define PARSE_RES_FMT "CH512s"
+#define SERIAL_REQ_FMT "CCHHs"
 #define SERIAL_MSG_RES_FMT "HHHs"
-#define PARSE_PACKET_FMT "CCHC512s"
+#define PARSE_REQ_FMT "CCHH512s"
 #define PARSE_MSG_RES_FMT "HHH512s"
 /* ============================ */
 
@@ -70,9 +71,9 @@
 /**
  * Global Channel Definitions
  */
-#define GC_ROOT_USER_ID 0
-#define GC_ROOT_USER_FD 16383
-#define GC_ROOT_USER_NAME "ROOT_USER"
+#define GC_ROOT_USR_ID 0
+#define GC_ROOT_USR_FD 16383
+#define GC_ROOT_USR_NAME "ROOT_USER"
 #define GC_NAME "Global Channel"
 #define GC_MAX_USERS 4096
 #define GC_ACCESS 0

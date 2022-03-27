@@ -135,38 +135,48 @@ void destroy_list(LinkedList * list)
 }
 
 
-void push_data(LinkedList * list, void * data, size_t data_size)
+int push_data(LinkedList * list, void * data, size_t data_size)
 {
     Node * new_node;
     Node * next_node;
 
     new_node = create_node(data, data_size);
-    next_node = *(list->head);
-    (*list->head) = new_node;
-    (*list->head)->next = next_node;
 
-    if ( list->length == 1 )
+    if ( new_node )
     {
-        (*list->tail) = next_node;   // set the first tail
+        next_node = *(list->head);
+        (*list->head) = new_node;
+        (*list->head)->next = next_node;
+
+        if ( list->length == 1 )
+        {
+            (*list->tail) = next_node;   // set the first tail
+        }
+
+        list->length++;
     }
 
-    list->length++;
+    return ( new_node ) ? 1 : 0;
 }
 
 
-void push_node(LinkedList * list, Node * node)
+int push_node(LinkedList * list, Node * node)
 {
     Node * next_node;
-    next_node = get_head_node(list);
-    (*list->head) = node;
-    node->next = next_node;
 
-    if ( list->length == 1 )
+    next_node = get_head_node(list);
+
+    if ( next_node )
     {
-        (*list->tail) = node->next;   // set the first tail
+        (*list->head) = node;
+        node->next = next_node;
+
+        if ( list->length == 1 )
+            { (*list->tail) = node->next; } // set the first tail if needed
+        list->length++;
     }
 
-    list->length++;
+    return ( next_node ) ? 1 : 0;
 }
 
 
@@ -202,6 +212,8 @@ LinkedList * filter(LinkedList * list, Comparator comparator, void * params, siz
         node_iterator = node_iterator->next;
     }
 
+    if ( filtered ) { filtered->length = (int) found;  }
+
     return filtered;
 }
 
@@ -221,28 +233,16 @@ Node * get_head_node(LinkedList * list)
 Node * find_node(LinkedList * list, Comparator comparator, void * test_param)
 {
     Node * node_iterator;
-    Node * next_iterator;
 
     node_iterator = get_head_node(list);
-
-    if ( !node_iterator->next )
+    while ( node_iterator )
     {
         if ( comparator(node_iterator->data, test_param) )
         {
             return node_iterator;
         }
+        node_iterator = node_iterator->next;
     }
-
-    while ( (next_iterator = node_iterator->next) )
-    {
-        if ( comparator(node_iterator->data, test_param) )
-        {
-            return node_iterator;
-        }
-
-        node_iterator = next_iterator;
-    }
-
     return NULL;
 }
 
@@ -250,36 +250,42 @@ Node * find_node(LinkedList * list, Comparator comparator, void * test_param)
 int delete_node(LinkedList * list, Comparator comparator, void * test_param)
 {
     bool found;
-    Node * previous, * middle, * next;
+    Node  * node_iter, * next_next_node;
 
-    previous = get_head_node(list);
-    middle = previous->next;
-    found = comparator(previous->data, test_param);
+    node_iter = get_head_node(list);
+    found = comparator(node_iter->data, test_param);
     if ( found )
     {
-        *(list->head) = middle;
-        destroy_node(previous);
-        return 0;
+        *(list->head) = node_iter->next;
+        destroy_node(node_iter);
+        node_iter = NULL;
     }
     else
     {
-        while ( (next = middle->next) )
+        while ( node_iter->next->next )
         {
-            if ( (found = (comparator(middle->data, test_param))) )
-            { break; }
-
-            previous = middle;
-            middle = previous->next;
+            found = comparator(node_iter->next->data, test_param);
+            if ( found ) { break; }
+            node_iter = node_iter->next;
+        }
+        if ( found )
+        {
+            next_next_node = node_iter->next->next;
+            destroy_node(node_iter->next); node_iter->next = NULL;
+            node_iter->next = next_next_node;
+        }
+        else
+        {
+            found = comparator(node_iter->next->data, test_param);
+            if ( found )
+            {
+                *(list->tail) = node_iter;
+                destroy_node(node_iter->next);
+                node_iter->next = NULL;
+            }
         }
     }
 
-    if ( found ) /* Check if any were found */
-    {
-        previous->next = next;
-        destroy_node(middle);
-        list->length--;
-    }
-    else { return -1; }
-
-    return 0;
+    if ( found ) { list->length--; }
+    return (found) ? 1 : 0;
 }

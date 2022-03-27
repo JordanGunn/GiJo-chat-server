@@ -2,7 +2,7 @@
 // Created by jordan on 2022-03-18.
 //
 
-#include "../include/user.h"
+#include "user.h"
 
 User * user_init(int id, int fd, char * name)
 {
@@ -61,11 +61,14 @@ UserNode * get_head_user(Users * users)
 }
 
 
-void push_user(Users * users, User * user)
+int push_user(Users * users, User * user)
 {
+    int push_res;
     LinkedList * list;
     list = (LinkedList *) users;
-    push_data(list, user, sizeof(struct user_struct));
+    push_res = push_data(list, user, sizeof(struct user_struct));
+
+    return ( push_res ) ? 1 : 0;
 }
 
 
@@ -97,11 +100,11 @@ User * find_user(Users * users, int id)
     user_node = (UserNode *)
             find_node((LinkedList *) users, find_user_id, &id);
 
-    return user_node->user;
+    return ( user_node ) ? user_node->user : NULL;
 }
 
 
-int delete_user(Users * users, int id)
+int user_delete(Users * users, int id)
 {
     int result;
     Comparator find_id;
@@ -110,8 +113,8 @@ int delete_user(Users * users, int id)
     find_id = (Comparator) find_user_id;
     if ( users )
     {
-        result = delete_node((LinkedList *) users, find_id, &id);
-        if ( result != SYS_CALL_FAIL ) { users->length--; }
+        result = delete_node(
+                (LinkedList *) users, find_id, &id);
     }
 
     return result;
@@ -124,8 +127,8 @@ char * user_to_string(User * user)
 
     sprintf(buffer,
             "ID: %d\t"    \
-        "NAME: %s\n", \
-        user->id, user->name
+            "NAME: %s\n", \
+            user->id, user->name
     );
 
     return strdup(buffer);
@@ -136,12 +139,24 @@ Users * users_init(UserNode * user_node)
 {
     Users * users;
 
-    if (!user_node) { return NULL; }
-    users = (Users *) init_list_node(
-        (Node *) user_node
-    );
+    if (!user_node)
+        { return NULL; }
+
+    users = (Users *) init_list_node((Node *) user_node);
+    if ( users )
+        { users->length = 1; }
 
     return (users) ? users : NULL;
+}
+
+
+void users_destroy(Users * users)
+{
+
+    if ( users )
+    {
+        destroy_list((LinkedList *) users);
+    }
 }
 
 
@@ -156,7 +171,7 @@ bool find_user_id(void * data, void * test)
 
     user = (User *) data;
     id = (int *) test;
-    return (user->id == *id);
+    return  ( user ) ? (user->id == *id) : false;
 }
 
 
@@ -182,7 +197,11 @@ bool filter_user_id(void * data, void * params)
     id_crawler = IDs;
     for (i = 0; i < num_IDs; i++)
     {
-        if ( user->id == *(id_crawler) ) { return true; }
+        if ( user->id == *(id_crawler) )
+        {
+            *id_crawler = MAX_ID_NUM;
+            return true;
+        }
         id_crawler++;
     }
     return false;
