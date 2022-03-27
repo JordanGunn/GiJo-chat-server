@@ -31,8 +31,8 @@ int cpt_login_response(void * server_info, char * name)
 
 int cpt_logout_response(void * server_info)
 {
-    int result;
-    Channel * channel;
+    int lo_res;
+    Channel * chan;
     CptServerInfo * info;
     ChannelNode * chan_iter;
 
@@ -41,129 +41,119 @@ int cpt_logout_response(void * server_info)
 
     chan_iter = get_head_channel(info->dir); // !
     if ( !chan_iter->next_chan )
-        { result = delete_user(info->gc->users, info->current_id); }
-
+    {
+        lo_res = user_delete(info->gc->users, info->current_id);
+    }
     else
     {
-        while (chan_iter->next_chan) /* Remove User from all channels */
+        lo_res = false;
+        while ( chan_iter ) /* Remove User from all channels */
         {
-            channel = chan_iter->chan;
-            result = delete_user(channel->users, info->current_id);
+            chan = chan_iter->chan;
+            if (chan->id != CHANNEL_ZERO )
+            {
+                user_delete(chan->users, info->current_id);
+                if (chan->users->length == 0 )
+                    { channel_delete(info->dir, chan->id); }
+            }
+            chan_iter = chan_iter->next_chan;
         }
+        lo_res = user_delete(info->gc->users, info->current_id);
     }
-    return (result >= 0) ? SUCCESS : result;
+    return (lo_res) ? SUCCESS : FAILURE;
 }
 
 
-int cpt_get_users_response(void * server_info, int chan_id)
+int cpt_get_users_response(void * server_info, uint16_t channel_id)
 {
-    char * users_str;
+
+    char * res_str;
     Channel * channel;
     CptServerInfo * info;
 
     info = (CptServerInfo *) server_info;
-    if ( !info->dir )
+
+    channel = find_channel(info->dir, channel_id);
+    if ( channel )
     {
-        return SERVER_ERROR;
+        res_str = channel_to_string(channel);
+        if ( res_str )
+            { info->res->code = SUCCESS; }
+        else
+            { info->res->code = CHAN_EMPTY; }
+    }
+    else { info->res->code = BAD_CHANNEL; }
+
+    if ( info->res->code != SUCCESS )
+    {
+        res_str = strdup("Failed to get users...");
     }
 
-    channel = (Channel *) find_channel(info->dir, chan_id);
-    users_str = channel_to_string(channel);
+    info->res->data = (uint8_t *) res_str;
+    info->res->data_size = strlen(res_str);
 
-    if ( !users_str )
-        { info->res->code = (uint8_t)CHAN_EMPTY; }
-    else
-        { info->res->data = (uint8_t *)users_str; }
-
-    info->res->code = (uint8_t) SUCCESS;
     return info->res->code;
 }
-
-//TODO update cpt_msg_response input/output params
-//uint8_t * cpt_msg_response(CptPacket * packet, CptResponse * res, int * result)
-//{
-//    CptMsgResponse * msg_res;
-//    uint8_t res_buf[LG_BUFF_SIZE] = {0};
-//    uint8_t res_msg_buf[LG_BUFF_SIZE] = {0};
-//
-//    if ( !res ) { *result = BAD_PACKET; return NULL; }
-//    if ( res->data )
-//    {
-//        memset(res->data, 0, strlen((char *) res->data));
-//    }
-//
-//    msg_res = cpt_msg_response_init(packet->msg, packet->channel_id, res->fd);
-//    if ( !msg_res ) { *result = BAD_PACKET; }
-//
-//    cpt_serialize_msg(msg_res, res_msg_buf); // !
-//    if ( strlen((char *)res_msg_buf) > 0 )
-//    {
-//        res->data = (uint8_t *)
-//                strdup((char *) res_msg_buf);
-//    }
-//
-//    cpt_serialize_response(res, res_buf);
-//    cpt_response_destroy(res);
-//    *result = SUCCESS;
-//
-//    return (uint8_t *) strdup((char *) res_buf);
-//}
 
 
 int cpt_create_channel_response(void * server_info, char * id_list)
 {
-    FilterQuery idq;
-    uint16_t num_IDs;
+    int push_res;
     CptServerInfo * info;
     Channel * new_channel;
     User * user; Users * users;
     uint16_t id_buf[SM_BUFF_SIZE] = {0};
 
+    users = NULL; push_res = 1;
     info = (CptServerInfo *) server_info;
 
-    if ( !info->gc )     { return BAD_CHANNEL; }
-    users = NULL;
-    if ( id_list )
-    { /* If id_list passed, filter out the User IDs */
-        id_buf[0] = info->current_id;
-        num_IDs = cpt_parse_channel_query(id_list, id_buf);
+    if ( !info->gc )
+        { return BAD_CHANNEL; }
 
-        idq.num_params = num_IDs;
-        idq.params = calloc(num_IDs, sizeof(uint16_t));
-        memcpy(idq.params, id_buf, sizeof(uint16_t) * num_IDs);
-        users = (Users *) filter( (LinkedList *)
-                info->gc->users, filter_user_id, &idq, idq.num_params);
+    if ( id_list )
+    {   /* If id_list passed, filter out the User IDs */
+        id_buf[0] = info->current_id;
+        users = filter_channel_users(info->gc, id_buf, id_list);
     }
 
     if ( !users )
-    { /* if filter found requested IDs. */
+    {   /* if users not found, add the requesting user only. */
         user = find_user(info->gc->users, info->current_id);
         users = users_init( create_user_node(user) );
     }
 
-    new_channel = channel_init(
-        (info->dir->length + 1), users, "Channel", false);
-
+    new_channel = channel_init((info->dir->length), users);
     if ( new_channel )
-    {
-        push_channel(info->dir, new_channel);
-        return SUCCESS;
-    } else { return FAILURE; }
+        { push_res = push_channel(info->dir, new_channel); }
+
+    return ( push_res ) ? SUCCESS : FAILURE;
 }
 
 
-int cpt_handle_join_channel(Channels * dir, User * user, CptPacket * packet)
+int cpt_join_channel_response(void * server_info, uint16_t channel_id)
 {
+    int result;
+    User * user;
     Channel * channel;
+    CptServerInfo * info;
 
-    if ( !packet ) { return BAD_PACKET; }
-    if ( !user )   { return BAD_USER;   }
+    result = false;
+    info = (CptServerInfo *) server_info;
 
-    channel = find_channel(dir, packet->channel_id);
-    if ( !channel ) { return UKNOWN_CHANNEL; }
-    push_channel_user(channel, user);
-
-    return SUCCESS;
+    channel = find_channel(info->dir, channel_id);
+    if ( channel )
+    {
+        user = find_user(channel->users, info->current_id);
+        if ( user ) /* User is already part of channel */
+            { result = true; }
+        else
+        { /* Find user in gc and push them onto requested channel */
+            user = find_user(info->gc->users, info->current_id);
+            if ( user )
+                { result = push_user(channel->users, user); }
+        }
+    }
+    return ( result ) ? SUCCESS : FAILURE;
 }
 
 
@@ -175,17 +165,38 @@ int cpt_leave_channel_response(void * server_info, uint16_t channel_id)
 
     info = (CptServerInfo *) server_info;
 
-    if ( channel_id == 0 ) { return BAD_CHANNEL; }
+    del_res = false;
+    if ( channel_id == CHANNEL_ZERO ) { return BAD_CHANNEL; }
 
-    del_res = SUCCESS;
     channel = find_channel(info->dir, channel_id);
-    if ( !channel )
-        { return UKNOWN_CHANNEL; }
-    else
-        { del_res = delete_user(channel->users, info->current_id); }
-
-    return ( del_res != SYS_CALL_FAIL ) ? SUCCESS : FAILURE;
+    if ( channel )
+    {
+        del_res = user_delete(channel->users, info->current_id);
+        if ( del_res )
+        {
+            if ( channel->users->length == 0 )
+            { /* If a channel becomes empty, it ceases to exist */
+                channel_delete(info->dir, channel_id);
+            }
+        }
+    }
+    return ( del_res ) ? SUCCESS : FAILURE;
 }
+
+
+//int cpt_send_response(void * server_info, uint16_t channel_id)
+//{
+////    int del_res;
+////    Channel * channel;
+////    CptServerInfo * info;
+////
+////    info = (CptServerInfo *) server_info;
+//
+//    if ( channel_id == 0 ) { return BAD_CHANNEL; }
+//
+//    return SUCCESS;
+//}
+
 
 
 size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf)
@@ -197,6 +208,7 @@ size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf)
             : (uint8_t *) strdup(GENERIC_FAIL_MSG);
 
     serial_size = cpt_serialize_response(res, res_buf);
+    if ( res->data ) { free(res->data); res->data = NULL; }
 
     return serial_size;
 }
@@ -226,8 +238,18 @@ CptServerInfo * cpt_server_info_destroy(CptServerInfo * server_info)
     {
         if ( server_info->dir )
         {
-            destroy_list((LinkedList *) server_info->dir);
+            channels_destroy(server_info->dir);
             server_info->dir = NULL;
+        }
+
+        if ( server_info->gc )
+        {
+            if ( server_info->gc->users )
+            {
+                users_destroy(server_info->gc->users);
+            }
+
+            channel_destroy(server_info->gc);
         }
     }
 

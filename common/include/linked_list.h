@@ -5,8 +5,8 @@
 #ifndef CPT_LINKED_LIST_H
 #define CPT_LINKED_LIST_H
 
-#include "../include/common.h"
-#include "../include/linked_list_types.h"
+#include "common.h"
+#include "linked_list_types.h"
 
 
 /**
@@ -103,7 +103,7 @@ Node * get_head_node(LinkedList * list);
  * @param data      Data for the LinkedList.
  * @param data_size Size od the data in bytes.
  */
-void push_data(LinkedList * list, void * data, size_t data_size);
+int push_data(LinkedList * list, void * data, size_t data_size);
 
 
 /**
@@ -113,7 +113,7 @@ void push_data(LinkedList * list, void * data, size_t data_size);
  * @param data      Data for the LinkedList.
  * @param data_size Size od the data in bytes.
  */
-void push_node(LinkedList * list, Node * node);
+int push_node(LinkedList * list, Node * node);
 
 
 /**
@@ -149,7 +149,7 @@ LinkedList * filter(LinkedList * list, Comparator comparator, void * params, siz
  * @param list     A LinkedList object.
  * @param target   The target Node to delete.
  * @param supplier A supplier function pointer.
- * @return 0 on success, -1 on failure.
+ * @return 1 on success, 0 on failure.
  */
 int delete_node(LinkedList * list, Comparator comparator, void * test_param);
 

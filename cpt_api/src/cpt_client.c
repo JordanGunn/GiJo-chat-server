@@ -24,25 +24,24 @@ size_t cpt_login(void * cpt, uint8_t * serial_buf, char * name)
 }
 
 
-size_t cpt_logout(void * cpt, uint8_t * serial_buf)
+size_t cpt_logout(void * client_info, uint8_t * serial_buf)
 {
-
     size_t serial_size;
-    CptClientInfo * client_info;
+    CptClientInfo * info;
 
-    client_info = (CptClientInfo *)cpt;
+    info = (CptClientInfo *) client_info;
 
-    cpt_request_cmd(client_info->packet, (uint8_t) LOGOUT);
-    serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
+    cpt_request_cmd(info->packet, (uint8_t) LOGOUT);
+    serial_size = cpt_serialize_packet(info->packet, serial_buf);
 
-    cpt_request_reset(client_info->packet);
+    cpt_request_reset(info->packet);
     return serial_size;
 }
 
 
 size_t cpt_get_users(void * cpt, uint8_t * serial_buf, uint16_t channel_id)
 {
-    CptPacket * packet;
+    CptRequest * packet;
     size_t serial_size;
     CptClientInfo * client_info;
 
@@ -62,7 +61,7 @@ size_t cpt_get_users(void * cpt, uint8_t * serial_buf, uint16_t channel_id)
 int cpt_send_msg(void * cpt, char * msg)
 {
     size_t serial_size;
-    CptPacket * packet;
+    CptRequest * packet;
     CptClientInfo * client_info;
     uint8_t buffer[LG_BUFF_SIZE];
 
@@ -87,31 +86,22 @@ int cpt_send_msg(void * cpt, char * msg)
 }
 
 
-//int cpt_join_channel(void * cpt, int channel_id)
-//{
-//    CptResponse * res;
-//    size_t serial_size;
-//    uint8_t * res_msg;
-//    CptClientInfo * client_info;
-//    uint8_t req_buffer[LG_BUFF_SIZE];
-//
-//    client_info = (CptClientInfo *) cpt;
-//
-//    cpt_packet_cmd(client_info->packet, (uint8_t) JOIN_CHANNEL);
-//    serial_size = cpt_serialize_packet(client_info->packet, req_buffer);
-//
-//    tcp_client_send(client_info->fd, req_buffer, serial_size);
-//    res_msg = (uint8_t *)tcp_client_recv(client_info->fd);
-//    res = cpt_parse_response(res_msg);
-//
-//    cpt_packet_reset(client_info->packet);
-//    if (res->code == (uint8_t) SUCCESS)
-//    {
-//        client_info->channel = channel_id;
-//    } else { return -1; }
-//
-//    return 0;
-//}
+size_t cpt_join_channel(void * client_info, uint8_t * serial_buf, uint16_t channel_id)
+{
+    uint8_t serial_size;
+    CptClientInfo * info;
+
+    info = (CptClientInfo *) client_info;
+
+    info->packet = cpt_request_init();
+    cpt_request_chan(info->packet, channel_id);
+    cpt_request_version(info->packet, VER_MAJ_LAT, VER_MIN_LAT);
+    cpt_request_cmd(info->packet, (uint8_t) JOIN_CHANNEL);
+    cpt_request_msg(info->packet, "join channel");
+
+    serial_size = cpt_serialize_packet(info->packet, serial_buf);
+    return serial_size;
+}
 
 
 size_t cpt_create_channel(void * cpt, uint8_t * serial_buf, char * user_list)

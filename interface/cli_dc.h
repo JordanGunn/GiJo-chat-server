@@ -69,7 +69,7 @@ struct application_settings
 struct command
 {
     char * cmd;
-    void * args;
+    char * args;
     char * input;
     char * p_input;
 };

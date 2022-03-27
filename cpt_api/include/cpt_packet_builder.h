@@ -17,22 +17,22 @@
 
 
 /**
- * Initialize CptPacket object.
+ * Initialize CptRequest object.
  *
  * Dynamically allocates a cpt struct and
  * initializes all fields.
  *
  * @return Pointer to cpt struct.
 */
-CptPacket * cpt_request_init(void);
+CptRequest * cpt_request_init(void);
 
 
 /**
  * Free all memory and set fields to null.
  *
- * @param cpt   Pointer to a cpt structure.
+ * @param req   Pointer to a cpt structure.
 */
-void cpt_request_destroy(CptPacket * cpt);
+void cpt_request_destroy(CptRequest * req);
 
 
 /**
@@ -41,7 +41,7 @@ void cpt_request_destroy(CptPacket * cpt);
  * @param cpt   Pointer to a cpt structure.
  * @param cmd   From enum commands.
 */
-void cpt_request_cmd(CptPacket * cpt, uint8_t cmd);
+void cpt_request_cmd(CptRequest * cpt, uint8_t cmd);
 
 
 /**
@@ -51,7 +51,7 @@ void cpt_request_cmd(CptPacket * cpt, uint8_t cmd);
  * @param version_major From enum version.
  * @param version_minor From enum version.
 */
-void cpt_request_version(CptPacket * cpt, uint8_t version_major, uint8_t version_minor);
+void cpt_request_version(CptRequest * cpt, uint8_t version_major, uint8_t version_minor);
 
 
 /**
@@ -60,7 +60,7 @@ void cpt_request_version(CptPacket * cpt, uint8_t version_major, uint8_t version
  * @param cpt       Pointer to a cpt structure.
  * @param msg_len   An 8-bit integer.
 */
-void cpt_packet_len(CptPacket * cpt, uint8_t msg_len);
+void cpt_request_len(CptRequest * cpt, uint8_t msg_len);
 
 
 /**
@@ -69,7 +69,7 @@ void cpt_packet_len(CptPacket * cpt, uint8_t msg_len);
  * @param cpt           Pointer to a cpt structure.
  * @param channel_id    A 16-bit integer.
 */
-void cpt_request_chan(CptPacket * cpt, uint16_t channel_id);
+void cpt_request_chan(CptRequest * cpt, uint16_t channel_id);
 
 
 /**
@@ -80,7 +80,7 @@ void cpt_request_chan(CptPacket * cpt, uint16_t channel_id);
  * @param cpt  Pointer to a cpt structure.
  * @param msg  Pointer to an array of characters.
 */
-void cpt_request_msg(CptPacket * cpt, char * msg);
+void cpt_request_msg(CptRequest * cpt, char * msg);
 
 
 /**
@@ -93,11 +93,11 @@ int cpt_validate(void * packet);
 
 
 /**
- * Convert CptPacket object to a string representation.\n\n
+ * Convert CptRequest object to a string representation.\n\n
  *
- * Converts a CptPacket object to a string, returning
+ * Converts a CptRequest object to a string, returning
  * a char pointer to the dynamically allocated memory.
- * If fields are missing from the CptPacket, they will
+ * If fields are missing from the CptRequest, they will
  * be filled with default values to signify as such.
  *
  * If call fails for any reason, function returns NULL.
@@ -106,7 +106,7 @@ int cpt_validate(void * packet);
  * @param packet    A serialized cpt protocol message.
  * @return Char pointer to dynamically allocated string.
 */
-char * cpt_to_string(CptPacket * cpt);
+char * cpt_to_string(CptRequest * cpt);
 
 
 /**
@@ -115,9 +115,9 @@ char * cpt_to_string(CptPacket * cpt);
  * Reset the packet parameters,
  * and free memory for certain params.
  *
- * @param packet    A CptPacket struct.
+ * @param packet    A CptRequest struct.
 */
-void cpt_request_reset(CptPacket * packet);
+void cpt_request_reset(CptRequest * packet);
 
 
 // ===================================
@@ -134,7 +134,7 @@ void cpt_request_reset(CptPacket * packet);
  * @param res_code    Received client-side packet.
  * @return CptResponse object.
  */
-CptResponse * cpt_response_init(uint16_t res_code);
+CptResponse * cpt_response_init();
 
 
 /**
@@ -143,9 +143,9 @@ CptResponse * cpt_response_init(uint16_t res_code);
  * Destroys CptResponse object, freeing any allocated memory
  * and setting all pointers to null.
  *
- * @param response  Pointer to a CptResponse object.
+ * @param res  Pointer to a CptResponse object.
  */
-void cpt_response_destroy(CptResponse * response);
+void cpt_response_destroy(CptResponse * res);
 
 
 /**
@@ -171,7 +171,7 @@ void cpt_response_reset(CptResponse * res);
  * @param data      Data being sent to client.
  * @return          CptResponse object.
  */
-CptMsgResponse * cpt_msg_response_init(uint8_t * msg, uint16_t chan_id, uint16_t user_id);
+CptMsgSubPacket * cpt_msg_sp_init();
 
 
 /**
@@ -182,7 +182,7 @@ CptMsgResponse * cpt_msg_response_init(uint8_t * msg, uint16_t chan_id, uint16_t
  *
  * @param msg_res  Pointer to a CptResponse object.
  */
-void cpt_msg_response_destroy(CptMsgResponse * msg_res);
+void cpt_msg_sp_destroy(CptMsgSubPacket * msg_res);
 
 
 #endif //CPT_CPT_packet_H

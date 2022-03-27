@@ -110,7 +110,7 @@ UserNode * create_user_node(User * user);
  * @param id
  * @return
  */
-int delete_user(Users * users, int id);
+int user_delete(Users * users, int id);
 
 
 UserNode * get_head_user(Users * users);
@@ -129,12 +129,23 @@ Users * users_init(UserNode * user_node);
 
 
 /**
+ * Destroy users object.
+ *
+ * A wrapper for destroy_list.
+ * Frees any dynamic memory and set pointers to NULL.
+ *
+ * @param users     Pointer to a  LinkedList of User objects.
+ */
+void users_destroy(Users * users);
+
+
+/**
  * Push a user onto a Users list.
  *
  * @param users Pointer to a linked list of User objects.
  * @param user  New user to add.
  */
-void push_user(Users * users, User * user);
+int push_user(Users * users, User * user);
 
 
 /**

@@ -34,7 +34,7 @@ void test_linked_list_find(LinkedList *linked_list);
 void test_linked_list_filter(LinkedList *linked_list);
 
 // CPT packet
-CptPacket * test_create_cpt_packet();
+CptRequest * test_create_cpt_packet();
 
 
 

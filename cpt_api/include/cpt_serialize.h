@@ -11,12 +11,12 @@
 
 
 /**
-* Serialize a CptPacket struct for transmission.
+* Serialize a CptRequest struct for transmission.
 *
-* @param cpt    A CptPacket struct.
+* @param cpt    A CptRequest struct.
 * @return       Size of the serialized packet.
 */
-size_t cpt_serialize_packet(CptPacket * cpt, uint8_t * buffer);
+size_t cpt_serialize_packet(CptRequest * cpt, uint8_t * buffer);
 
 
 /**
@@ -34,7 +34,7 @@ size_t cpt_serialize_response(CptResponse * res, uint8_t * buffer);
 * @param cpt    A CptResponse object.
 * @return       Size of the serialized packet.
 */
-size_t cpt_serialize_msg(CptMsgResponse * response, uint8_t * buffer);
+size_t cpt_serialize_msg(CptMsgSubPacket * response, uint8_t * buffer);
 
 
 #endif //CPT_CPT_SERIALIZE_H
