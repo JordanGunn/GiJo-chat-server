@@ -28,8 +28,6 @@ struct addrinfo * tcp_server_addr(const char * ip, const char * port)
 }
 
 
-void check_fd_err(int fd, int res);
-
 int tcp_listen_socket(struct addrinfo * serv_info)
 {
     int server_listen_fd;
@@ -136,14 +134,27 @@ ssize_t tcp_server_recv(int sock_fd, uint8_t * req_buf)
 
 int tcp_server_send(int sock_fd, uint8_t * data, size_t data_size)
 {
-    ssize_t bytes_sent;
+    ssize_t bytes_sent, bytes_left;
 
-    bytes_sent = send(sock_fd, data, data_size, 0);
+    bytes_left = (ssize_t) data_size;
+    while ( bytes_left > 0 )
+    {
+        bytes_sent = send(sock_fd, data, data_size, 0);
+        if ( bytes_sent < 0 )
+            { break; }
+        else
+            {  bytes_left -= bytes_sent; }
+    }
+
     if (bytes_sent < 0)
     {
-        const char * err_msg = "Failed to send bytes to server...";
-        write(STDERR_FILENO, err_msg, strlen(err_msg));
-        exit(EXIT_FAILURE);
+        if ( errno != 0 )
+        {
+            printf("%s\n", strerror(errno));
+            const char * err_msg = "Failed to send bytes to server...";
+            write(STDERR_FILENO, err_msg, strlen(err_msg));
+            exit(EXIT_FAILURE);
+        }
     }
 
     return (bytes_sent) ? 0 : -1;

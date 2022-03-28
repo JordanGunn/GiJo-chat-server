@@ -101,7 +101,6 @@ void run()
                 {
                     if ( is_revent_POLLIN(i) )
                     {   /* Receive incoming data from sockets */
-
                         CptRequest * req;
                         server_info->current_id = id;
                         req_size = tcp_server_recv(id, req_buf);
@@ -118,6 +117,8 @@ void run()
                         if ( req->command == SEND )
                         {
                             puts("  SEND event");
+                            send_event(server_info, (char *) req->msg, req->channel_id);
+                            cpt_request_destroy(req);
                         }
 
                         if ( req->command == GET_USERS )
@@ -200,6 +201,7 @@ void run()
     cpt_server_info_destroy(server_info);  /* Close existing sockets before ending */
 }
 
+
 void join_channel_event(CptServerInfo *info, uint16_t channel_id)
 {
     char * msg;
@@ -225,6 +227,7 @@ void join_channel_event(CptServerInfo *info, uint16_t channel_id)
     tcp_server_send(info->current_id, res_buf, res_size);
     cpt_response_destroy(res);
 }
+
 
 void leave_channel_event(CptServerInfo * info, uint16_t channel_id)
 {
@@ -345,31 +348,39 @@ void get_users_event(CptServerInfo * info, int chan_id)
 }
 
 
-void server_destroy(Channels * dir)
+void send_event(CptServerInfo * info, char * msg, int channel_id)
 {
-    for (int ifd = 0; ifd < nfds; ifd++)
+    User * user;
+    size_t res_size;
+    uint16_t dest_id;
+    Channel * channel;
+    UserNode * user_node;
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+
+    channel = find_channel(info->dir, channel_id);
+    if ( channel )
     {
-        if ( (poll_fds[ifd].fd >= 0) )
+        user_node = get_head_user(channel->users);
+        if ( user_node )
         {
-            close(poll_fds[ifd].fd);
+            info->res = cpt_response_init();
+            info->res->data_size = strlen(msg);
+            info->res->data = (uint8_t *) strdup(msg);
+            res_size = cpt_serialize_response(info->res, res_buf);
+
+            while ( user_node )
+            {
+                user = user_node->user;
+                dest_id = user->id;
+                if ( dest_id != GC_ROOT_USR_ID )
+                {
+                    tcp_server_send(
+                            dest_id, res_buf, res_size);
+                }
+                user_node = user_node->next_user;
+            }
         }
     }
-
-    if (dir)
-    {
-        destroy_list((LinkedList *) dir);
-    }
-}
-
-
-
-
-bool is_revent_POLLOUT(int index)
-{
-    return (
-            poll_fds[index].revents ==
-            ( ((uint16_t) poll_fds[index].revents) & POLLOUT )
-    );
 }
 
 

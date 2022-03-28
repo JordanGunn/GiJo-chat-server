@@ -3,6 +3,8 @@
 //
 
 #include "cli_dc.h"
+#include "command.h"
+#include "pthread.h"
 
 // =============================
 // I N I T   U S E R   S T A T E
@@ -12,6 +14,495 @@ static UserState user =
     .LOGGED_IN =  false,
 };
 // ===========================
+
+pthread_mutex_t mutex;
+
+void destroy_cli_user(UserState state);
+
+int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
+{
+    pthread_t th[NUM_MSG_THREADS];
+    char * host, * port, * login;
+    Command * command;
+
+    struct application_settings * app_settings;
+    app_settings = (struct application_settings *) settings;
+
+    host  = dc_setting_string_get(env, app_settings->host );
+    port  = dc_setting_string_get(env, app_settings->port );
+    login = dc_setting_string_get(env, app_settings->login);
+
+    if ( !user.LOGGED_IN )
+    {
+        user_login(host, port, login);
+    }
+
+    while ( user.LOGGED_IN )
+    {
+        command = cmd_init();
+
+        chat_prompt();
+        command->input = get_user_input();
+        parse_cmd_input(command);
+        if ( !is_valid_cmd(command) )
+        {
+            if ( strlen(command->input) )
+            {
+                thread_msgs(th, command->input);
+            }
+        } else { handle_cmd(command); }
+
+        cmd_destroy(command);
+    }
+
+    close(user.client_info->fd);  // close the connection
+    destroy_cli_user(user);
+    return EXIT_SUCCESS;
+}
+
+void destroy_cli_user()
+{
+
+    if ( user.client_info )
+    {
+        cpt_destroy_client_info(user.client_info);
+        user.client_info = NULL;
+    }
+
+    if (user.messenger)
+    {
+        messenger_destroy(user.messenger);
+        user.messenger = NULL;
+    }
+
+    if (user.name)
+    {
+        free(user.name);
+        user.name = NULL;
+    }
+
+}
+
+void recv_handler()
+{
+    int on;
+    char * shmem_p;
+    ssize_t recv_size;
+    CptResponse * res;
+    MsgProducer * prod;
+    uint8_t recv_buf[MD_BUFF_SIZE];
+
+    on = 1;
+    shmem_p = NULL;
+    ioctl(user.client_info->fd, FIONBIO, (char *)&on);
+    recv_size = tcp_client_recv(user.client_info->fd, recv_buf);
+    on &= ~O_NONBLOCK;
+    if ( recv_size != SYS_CALL_FAIL  )
+    {
+        res = cpt_parse_response(recv_buf, recv_size);
+        if ( res )
+        {
+            prod = user.messenger->producer;
+            sprintf(prod->sh_mem, "%s\n", (char *) res->data);
+            shmem_p = (char *) prod->sh_mem;
+            shmem_p += strlen((char *) res->data);
+            prod->sh_mem = (void *) shmem_p;
+            printf("Server: %s\n", (char *) prod->sh_mem);
+        }
+    }
+}
+
+void thread_msgs(pthread_t th[NUM_MSG_THREADS], char * msg)
+{
+    int i;
+    pthread_mutex_init(&mutex, NULL);
+    for (i = 0; i< NUM_MSG_THREADS; i++)
+    {
+        if ( ((i % 2) == 0) )
+        {
+            if ( (pthread_create(&th[i], NULL, &produce_recvd_msg, NULL)) != 0 )
+            {
+                perror("Failed to create producer thread...");
+            }
+        }
+        else
+        {
+            if ( (pthread_create(&th[i], NULL, &produce_sent_msg, msg)) != 0 )
+            {
+                perror("Failed to create consumer thread...");
+            }
+        }
+    }
+
+    for (i = 0; i < NUM_MSG_THREADS; i++)
+    {
+        if ( (pthread_join(th[i], NULL) != 0) )
+        {
+            perror("Failed to join threads...");
+        }
+    }
+    pthread_mutex_destroy(&mutex);
+}
+
+
+void user_login(char * host, char * port, char * name)
+{
+    int fd;
+    MsgProducer * prod;
+
+    if ( name )
+    {
+        user.client_info = cpt_init_client_info(port, host);
+        fd = tcp_init_client(host, port);
+        user.client_info->fd = fd;
+
+        if (login_handler(name) < 0 )
+        {
+            printf("Failed to login to chat...\n");
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            user.LOGGED_IN = true;
+            user.name = strdup(name);
+            user.channel = CHANNEL_ZERO;
+            user.messenger = messenger_init();
+            if (user.messenger)
+            {
+                prod = producer_init(user.messenger);
+                if ( !prod )
+                {
+                    exit(EXIT_FAILURE);
+                }
+            } } }
+    else
+    {
+        printf("User not logged in!\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+void send_handler(char * msg)
+{
+    int send_res;
+    void * shmem;
+    char * shmem_p;
+    size_t req_size;
+    MsgProducer * prod;
+    CptClientInfo * info;
+    info = user.client_info;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
+
+    req_size = cpt_send(
+            info, req_buf, msg);
+
+    send_res = tcp_client_send(
+            info->fd, req_buf, req_size);
+
+    if ( send_res > 0 )
+    {
+        user.messenger->producer = producer_init(user.messenger);
+        prod = user.messenger->producer;
+        if (prod)
+        {
+            shmem = mmap(0, MAX_MSG_SIZE,
+                         PROT_READ, MAP_SHARED, prod->fd_o, 0);
+            sprintf(shmem, "%s\n", (char *) msg);
+            shmem_p = (char *) shmem;
+            shmem_p += strlen((char *) msg);
+
+            printf("Me: %s\n", (char *) msg);
+        }
+    }
+}
+
+
+
+int login_handler(char * name)
+{
+    int result;
+    CptResponse * res;
+    size_t res_size, req_size;
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+    uint8_t req_buf[LG_BUFF_SIZE] = {0};
+
+    // send data to server
+    res_size = 0; req_size = 0;
+    req_size = cpt_login(user.client_info, req_buf, name);
+    result = tcp_client_send(user.client_info->fd, req_buf, req_size);
+    user.client_info->channel = CHANNEL_ZERO;
+    user.client_info->name = strdup(name);
+
+    if (result != SYS_CALL_FAIL)
+    {
+        res_size = tcp_client_recv(user.client_info->fd, res_buf);
+        res = cpt_parse_response(res_buf, res_size);
+        if ( res )
+        {
+            if (res->code == SUCCESS)
+            {
+                printf("\n\nLogged in to chat server as %s@%s:%s\n\n",
+                       name, user.client_info->ip, user.client_info->port);
+            }
+            else
+            {
+                printf("Error from server with code %d\n", res->code);
+            }
+            cpt_response_destroy(res);
+        }
+    }
+
+    return result;
+}
+
+
+void logout_handler()
+{
+    size_t req_size;
+    uint8_t req_buf[LG_BUFF_SIZE] = {0};
+
+    req_size = cpt_logout(user.client_info, req_buf);
+    tcp_client_send(user.client_info->fd, req_buf, req_size);
+    user.LOGGED_IN = false;
+}
+
+
+void create_channel_handler(Command * cmd)
+{
+    int result;
+//    char * args_end;
+    uint16_t new_cid;
+    CptResponse * res;
+//    uint16_t channel_id;
+    size_t req_size, res_size;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
+    uint8_t res_buf[MD_BUFF_SIZE] = {0};
+
+//    channel_id = ( cmd->args )
+//            ? strtol(cmd->args, &args_end, 10)
+//            : user.channel;
+
+    res_size = 0; req_size = 0;
+    req_size = cpt_create_channel(
+            user.client_info, req_buf, (char *) cmd->args);
+
+    result = tcp_client_send(
+            user.client_info->fd, req_buf, req_size);
+
+    if ( result != SYS_CALL_FAIL )
+    {
+        res_size = tcp_client_recv(
+                user.client_info->fd, res_buf);
+
+        res = cpt_parse_response(res_buf, res_size);
+        if ( res->code == SUCCESS )
+        {
+            new_cid = (uint16_t) ( *(res->data) ); // new channel id is in response
+            user.channel = new_cid;
+            push_data(user.client_info->channels, &new_cid, sizeof(uint16_t));
+            printf("\nSuccessfully created channel with users: [ %s ]\n",
+                   (char *)cmd->args);
+        } else { printf("Failed to create channel with code: %d", res->code); }
+    }
+}
+
+
+void get_users_handler(Command * cmd)
+{
+    int result;
+    char * args_end;
+    CptResponse * res;
+    uint16_t channel_id;
+    size_t req_size, res_size;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+
+    res_size = 0; req_size = 0;
+    channel_id = ( cmd->args )
+    ? (uint16_t) strtol(cmd->args, &args_end, 10)
+    : user.channel;
+
+    req_size = cpt_get_users(
+            user.client_info, req_buf, channel_id);
+
+    result = tcp_client_send(
+            user.client_info->fd, req_buf, req_size);
+
+    if ( result != SYS_CALL_FAIL )
+    {
+        res_size = tcp_client_recv(
+                user.client_info->fd, res_buf);
+
+        res = cpt_parse_response(res_buf, res_size);
+        if ( res->code == SUCCESS )
+        {
+            printf("%s\n", (char *)res->data);
+        } else { printf("Failed to get users with code: %d\n", res->code); }
+    }
+}
+
+
+void leave_channel_handler()
+{
+    int result;
+    CptResponse * res;
+    size_t req_size, res_size;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+
+    req_size = 0, res_size = 0;
+    req_size = cpt_leave_channel(
+            user.client_info, req_buf, user.channel);
+
+    result = tcp_client_send(
+            user.client_info->fd, req_buf, req_size);
+
+    if ( result != SYS_CALL_FAIL )
+    {
+        res_size = tcp_client_recv(
+                user.client_info->fd, res_buf);
+
+        res = cpt_parse_response(res_buf, res_size);
+        if ( res->code == SUCCESS )
+        {
+            printf("%s\n", (char *)res->data);
+            user.channel = CHANNEL_ZERO;
+        } else { printf("Failed to leave channel with code: %d\n", res->code); }
+    }
+}
+
+
+void handle_cmd(Command * cmd)
+{
+    if ( is_cmd(cmd, cli_cmds[MENU]           )) { menu();                      }
+    if ( is_cmd(cmd, cli_cmds[LOGOUT]         )) { logout_handler();            }
+    if ( is_cmd(cmd, cli_cmds[SEND]           )) { puts("SEND");                }
+    if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler(cmd);      }
+    if ( is_cmd(cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(cmd); }
+    if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { join_channel_handler(cmd);   }
+    if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { leave_channel_handler();     }
+}
+
+
+void join_channel_handler(Command * cmd) {
+
+    int result;
+    uint16_t cid;
+    char * args_end;
+    CptResponse * res;
+    uint16_t channel_id;
+    size_t req_size, res_size;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+
+    req_size = 0; res_size = 0;
+    channel_id = (uint16_t) strtol(cmd->args, &args_end, 10);
+
+    req_size = cpt_join_channel(
+            user.client_info, req_buf, channel_id);
+
+    result = tcp_client_send(
+            user.client_info->fd, req_buf, req_size);
+
+    if ( result != SYS_CALL_FAIL )
+    {
+        res_size = tcp_client_recv(
+                user.client_info->fd, res_buf);
+
+        res = cpt_parse_response(res_buf, res_size);
+        if ( res->code == SUCCESS )
+        {
+            cid = (uint16_t) ( *(res->data) );
+            user.channel = cid;
+
+        } else { printf("Failed to join channel with code: %d\n", res->code); }
+    }
+}
+
+
+void menu()
+{
+    char menu_buf[XL_BUFF_SIZE] = {0};
+    static char * logout, * get_users, * create_channel, * join_channel;
+    static char * send, * title, * div, * leave_channel, * menu;
+
+    div = "==================================================";
+    title = "Choose from the following options...\n\n";
+    send           = "  [0] send <message>\n";
+    get_users      = "  [1] get-users <chan_id>\n";
+    create_channel = "  [2] create-channel \"<uid-1> <uid-2>.. <uid-n>\"\n";
+    join_channel   = "  [3] join-channel <chan_id>\n";
+    leave_channel  = "  [4] leave-channel <chan_id>\n";
+    logout         = "  [5] logout <name>\n";
+    menu           = "  [6] menu\n";
+
+    sprintf(menu_buf, "%s\n%s%s%s%s%s%s%s%s%s\n",
+            div,
+            title, send, get_users, create_channel,
+            join_channel, leave_channel, logout, menu,
+            div
+    );
+
+    printf("%s", menu_buf);
+    printf("\n");
+    fflush(stdout);
+}
+
+
+void chat_prompt()
+{
+    uint16_t channel;
+    char * name;
+    name = strdup(user.name);
+    channel = user.channel;
+
+    printf("[ %s | (channel %hu) ] $ ", name, channel);
+    fflush(stdout);
+
+    free(name); name = NULL;
+}
+
+
+char * get_user_input()
+{
+    char buf[SM_BUFF_SIZE];
+
+    read(STDIN_FILENO, buf, SM_BUFF_SIZE);
+    return strdup(buf);
+}
+
+
+void * produce_sent_msg(void * data)
+{
+    char * msg;
+    msg = (char *) data;
+
+
+    pthread_mutex_lock(&mutex);
+    send_handler(msg);
+    pthread_mutex_unlock(&mutex);
+
+    return (void *) msg;
+}
+
+
+void * produce_recvd_msg(void * data)
+{
+    Command * cmd;
+    cmd = (Command *) data;
+
+    pthread_mutex_lock(&mutex);
+    recv_handler();
+    pthread_mutex_unlock(&mutex);
+
+    return (void *) cmd;
+}
+
+
+// =====================================================================================================================
+// =====================================================================================================================
+
 
 
 int run_client_cli(int argc, char *argv[])
@@ -108,8 +599,6 @@ struct dc_application_settings * create_settings(const struct dc_posix_env *env,
 }
 
 
-void join_channel_handler();
-
 int destroy_settings(const struct dc_posix_env *env, __attribute__((unused)) struct dc_error *err,
                      struct dc_application_settings **psettings)
 {
@@ -133,435 +622,8 @@ int destroy_settings(const struct dc_posix_env *env, __attribute__((unused)) str
     return 0;
 }
 
-
-int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
-{
-    char * host, * port, * login;
-    Command * command;
-
-    struct application_settings * app_settings;
-    app_settings = (struct application_settings *) settings;
-
-    host  = dc_setting_string_get(env, app_settings->host );
-    port  = dc_setting_string_get(env, app_settings->port );
-    login = dc_setting_string_get(env, app_settings->login);
-
-    if ( !user.LOGGED_IN )
-    {
-        user_login(host, port, login);
-    }
-
-    while ( user.LOGGED_IN )
-    {
-        command = cmd_init();
-        while ( !is_valid_cmd(command) )
-        {
-            chat_prompt();
-            command->input = get_user_input();
-            parse_user_input(command);
-        }
-        handle_cmd(command);
-        cmd_destroy(command);
-    }
-    close(user.client_info->fd);  // close the connection
-    return EXIT_SUCCESS;
-}
-
-
-int login_handler(char * name)
-{
-    int result;
-    CptResponse * res;
-    size_t res_size, req_size;
-    uint8_t res_buf[LG_BUFF_SIZE] = {0};
-    uint8_t req_buf[LG_BUFF_SIZE] = {0};
-
-    // send data to server
-    req_size = cpt_login(user.client_info, req_buf, name);
-    result = tcp_client_send(user.client_info->fd, req_buf, req_size);
-    user.client_info->channel = CHANNEL_ZERO;
-    user.client_info->name = strdup(name);
-
-    if (result != SYS_CALL_FAIL)
-    {
-        res_size = tcp_client_recv(user.client_info->fd, res_buf);
-        res = cpt_parse_response(res_buf, res_size);
-        if ( res )
-        {
-            if (res->code == SUCCESS)
-            {
-                printf("\n\nLogged in to chat server as %s@%s:%s\n\n",
-                       name, user.client_info->ip, user.client_info->port);
-            }
-            else
-            {
-                printf("Error from server with code %d\n", res->code);
-            }
-            cpt_response_destroy(res);
-        }
-    }
-
-    return result;
-}
-
-
-void logout_handler()
-{
-    size_t req_size;
-    uint8_t req_buf[LG_BUFF_SIZE] = {0};
-
-    req_size = cpt_logout(user.client_info, req_buf);
-    tcp_client_send(user.client_info->fd, req_buf, req_size);
-    cpt_destroy_client_info(user.client_info);
-    user.LOGGED_IN = false;
-}
-
-
-void create_channel_handler(Command * cmd)
-{
-    int result;
-    CptResponse * res;
-    uint16_t new_cid;
-    size_t req_size, res_size;
-    uint8_t req_buf[MD_BUFF_SIZE] = {0};
-    uint8_t res_buf[MD_BUFF_SIZE] = {0};
-
-    req_size = cpt_create_channel(
-            user.client_info, req_buf, (char *) cmd->args);
-
-    result = tcp_client_send(
-            user.client_info->fd, req_buf, req_size);
-
-    if ( result != SYS_CALL_FAIL )
-    {
-        res_size = tcp_client_recv(
-                user.client_info->fd, res_buf);
-
-        res = cpt_parse_response(res_buf, res_size);
-        if ( res->code == SUCCESS )
-        {
-            new_cid = (uint16_t) ( *(res->data) ); // new channel id is in response
-            user.channel = new_cid;
-            push_data(user.client_info->channels, &new_cid, sizeof(uint16_t));
-            printf("\nSuccessfully created channel with users: [ %s ]\n",
-                   (char *)cmd->args);
-        } else { printf("Failed to create channel with code: %d", res->code); }
-    }
-}
-
-
-void get_users_handler(Command * cmd)
-{
-    int result;
-    char * args_end;
-    CptResponse * res;
-    uint16_t channel_id;
-    size_t req_size, res_size;
-    uint8_t req_buf[MD_BUFF_SIZE] = {0};
-    uint8_t res_buf[LG_BUFF_SIZE] = {0};
-
-    channel_id = ( cmd->args )
-    ? (uint16_t) strtol(cmd->args, &args_end, 10)
-    : user.channel;
-
-    req_size = cpt_get_users(
-            user.client_info, req_buf, channel_id);
-
-    result = tcp_client_send(
-            user.client_info->fd, req_buf, req_size);
-
-    if ( result != SYS_CALL_FAIL )
-    {
-        res_size = tcp_client_recv(
-                user.client_info->fd, res_buf);
-
-        res = cpt_parse_response(res_buf, res_size);
-        if ( res->code == SUCCESS )
-        {
-            printf("%s\n", (char *)res->data);
-        } else { printf("Failed to get users with code: %d\n", res->code); }
-    }
-}
-
-
-void leave_channel_handler()
-{
-    int result;
-    CptResponse * res;
-    size_t req_size, res_size;
-    uint8_t req_buf[MD_BUFF_SIZE] = {0};
-    uint8_t res_buf[LG_BUFF_SIZE] = {0};
-
-    req_size = cpt_leave_channel(
-            user.client_info, req_buf, user.channel);
-
-    result = tcp_client_send(
-            user.client_info->fd, req_buf, req_size);
-
-    if ( result != SYS_CALL_FAIL )
-    {
-        res_size = tcp_client_recv(
-                user.client_info->fd, res_buf);
-
-        res = cpt_parse_response(res_buf, res_size);
-        if ( res->code == SUCCESS )
-        {
-            printf("%s\n", (char *)res->data);
-            user.channel = CHANNEL_ZERO;
-        } else { printf("Failed to leave channel with code: %d\n", res->code); }
-    }
-}
-
-
-void handle_cmd(Command * cmd)
-{
-    if ( is_cmd(cmd, cli_cmds[MENU]           )) { menu();                      }
-    if ( is_cmd(cmd, cli_cmds[LOGOUT]         )) { logout_handler();            }
-    if ( is_cmd(cmd, cli_cmds[SEND]           )) { puts("SEND");                }
-    if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler(cmd);      }
-    if ( is_cmd(cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(cmd); }
-    if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { join_channel_handler(cmd);   }
-    if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { leave_channel_handler();     }
-}
-
-void join_channel_handler(Command * cmd) {
-
-    int result;
-    uint16_t cid;
-    char * args_end;
-    CptResponse * res;
-    uint16_t channel_id;
-
-    size_t req_size, res_size;
-    uint8_t req_buf[MD_BUFF_SIZE] = {0};
-    uint8_t res_buf[LG_BUFF_SIZE] = {0};
-
-    channel_id = (uint16_t) strtol(cmd->args, &args_end, 10);
-
-
-    req_size = cpt_join_channel(
-            user.client_info, req_buf, channel_id);
-
-    result = tcp_client_send(
-            user.client_info->fd, req_buf, req_size);
-
-    if ( result != SYS_CALL_FAIL )
-    {
-        res_size = tcp_client_recv(
-                user.client_info->fd, res_buf);
-
-        res = cpt_parse_response(res_buf, res_size);
-        if ( res->code == SUCCESS )
-        {
-            cid = (uint16_t) ( *(res->data) );
-            user.channel = cid;
-
-        } else { printf("Failed to join channel with code: %d\n", res->code); }
-    }
-}
-
-
-void user_login(char * host, char * port, char * name)
-{
-    int fd;
-
-    if ( name )
-    {
-        user.client_info = cpt_init_client_info(port, host);
-        fd = tcp_init_client(host, port);
-        user.client_info->fd = fd;
-
-        if (login_handler(name) < 0 )
-        {
-            printf("Failed to login to chat...\n");
-            exit(EXIT_FAILURE);
-        }
-        else
-        {
-            user.LOGGED_IN = true;
-            user.name = strdup(name);
-            user.channel = CHANNEL_ZERO;
-        }
-    }
-    else
-    {
-        printf("User not logged in!\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
-
-void menu()
-{
-    char menu_buf[XL_BUFF_SIZE] = {0};
-    static char * logout, * get_users, * create_channel, * join_channel;
-    static char * send, * title, * div, * leave_channel, * menu;
-
-    div = "==================================================";
-    title = "Choose from the following options...\n\n";
-    send           = "  [0] send <message>\n";
-    get_users      = "  [1] get-users <chan_id>\n";
-    create_channel = "  [2] create-channel \"<uid-1> <uid-2>.. <uid-n>\"\n";
-    join_channel   = "  [3] join-channel <chan_id>\n";
-    leave_channel  = "  [4] leave-channel <chan_id>\n";
-    logout         = "  [5] logout <name>\n";
-    menu           = "  [6] menu\n";
-
-    sprintf(menu_buf, "%s\n%s%s%s%s%s%s%s%s%s\n",
-            div,
-            title, send, get_users, create_channel,
-            join_channel, leave_channel, logout, menu,
-            div
-    );
-
-    printf("%s", menu_buf);
-    printf("\n");
-    fflush(stdout);
-}
-
-
-void chat_prompt()
-{
-    uint16_t channel;
-    char * name;
-    name = strdup(user.name);
-    channel = user.channel;
-
-    printf("[ %s | (channel %hu) ] $ ", name, channel);
-    fflush(stdout);
-
-    free(name); name = NULL;
-}
-
-
-char * get_user_input()
-{
-    char buf[SM_BUFF_SIZE];
-
-    read(STDIN_FILENO, buf, SM_BUFF_SIZE);
-    return strdup(buf);
-}
-
-
-void parse_user_input(Command * cmd)
-{
-    parse_cmd(cmd);
-    parse_cmd_args(cmd);
-}
-
-
-void parse_cmd_args(Command * cmd)
-{
-    char arg_buf[SM_BUFF_SIZE] = {0};
-    char * arg_start, * arg_end;
-
-    if ( cmd->p_input )
-    {
-        arg_start = cmd->p_input;
-        if ( !strchr(arg_start, '\"') )
-        {
-            arg_end = strchr(arg_start++, '\n');
-        }
-        else
-        {
-            arg_start = strchr(cmd->p_input, '\"'); arg_start++;
-            arg_end = strchr(arg_start + 1, '\"');
-        }
-        memcpy(arg_buf, arg_start, arg_end - arg_start);
-        cmd->args = strdup(arg_buf);
-        cmd->p_input = NULL;
-    }
-}
-
-
-bool is_cmd(Command * command, char * cli_cmd)
-{
-    return !( strcmp(command->cmd, cli_cmd) );
-}
-
-
-bool is_valid_cmd(Command * cmd) {
-
-    int i;
-    if ( !cmd->cmd ) { return false; }
-
-    for (i = 0; i < NUM_CMD; i++)
-    {
-        if ( !(strcmp(cmd->cmd, cli_cmds[i])) )
-        { return true; }
-    }
-
-    return false;
-}
-
-
-void parse_cmd(Command * cmd)
-{
-    char cmd_buf[SM_BUFF_SIZE] = {0};
-    char * cmd_start, * cmd_end;
-
-    cmd_start = cmd->input;
-    if ( !(cmd_end = strchr(cmd->input, ' ')) )
-    {
-        cmd_end = strchr(cmd->input, '\n');
-        memcpy(cmd_buf, cmd_start, cmd_end - cmd_start);
-        cmd->p_input = NULL;
-    }
-    else
-    {
-        memcpy(cmd_buf, cmd_start, cmd_end - cmd_start);
-        cmd->p_input = cmd_end;
-    }
-
-    cmd->cmd = strdup(cmd_buf);
-}
-
-
-Command * cmd_init()
-{
-    Command * command;
-    if ( (command = malloc(sizeof( struct command))) )
-    {
-        command->cmd = NULL;
-        command->args = NULL;
-    }
-
-    return command;
-}
-
-
-void cmd_destroy(Command * cmd)
-{
-    if ( cmd )
-    {
-        if ( cmd->cmd )
-        {
-            free(cmd->cmd); cmd->cmd = NULL;
-        }
-        if ( cmd->args )
-        {
-            free(cmd->args); cmd->args = NULL;
-        }
-
-        free(cmd);
-        cmd = NULL;
-    }
-}
-
-
-// =====================================================================================================================
-// =====================================================================================================================
-
-
 void error_reporter(const struct dc_error *err)
 {
     fprintf(stderr, "ERROR: %s : %s : @ %zu : %d\n", err->file_name, err->function_name, err->line_number, 0);
     fprintf(stderr, "ERROR: %s\n", err->message);
-}
-
-
-void trace_reporter(__attribute__((unused)) const struct dc_posix_env *env,
-                           const char *file_name, const char *function_name, size_t line_number)
-{
-    fprintf(stdout, "TRACE: %s : %s : @ %zu\n", file_name, function_name, line_number);
 }

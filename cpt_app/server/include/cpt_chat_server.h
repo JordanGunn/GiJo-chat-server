@@ -13,31 +13,111 @@
 #include "cpt_types.h"
 #include "cpt_server.h"
 
+
+/**
+ * Drive the program.
+ */
 void run();
 
 
+/**
+ *
+ * @return
+ */
+int handle_new_accept();
+
+
+/**
+ *
+ * @param index
+ * @return
+ */
+bool is_revent_POLLIN(int index);
+
+
+/**
+ *
+ * @param gc
+ */
+void listen_socket_init(Channel * gc);
+
+
+/**
+ *
+ * @param poll_result
+ * @return
+ */
+bool should_end_event_loop(int poll_result);
+
+
+
+// ==========================================
+//  S E R V E R    E V E N T S
+// ==========================================
+
+/**
+ *
+ * @param info
+ * @return
+ */
 int login_event(CptServerInfo * info);
 
+
+/**
+ *
+ * @param info
+ */
 void logout_event(CptServerInfo * info);
 
-void leave_channel_event(CptServerInfo * info, uint16_t id);
 
-void create_channel_event(CptServerInfo * info, char * id_list);
-
+/**
+ *
+ * @param info
+ * @param chan_id
+ */
 void get_users_event(CptServerInfo * info, int chan_id);
 
 
-bool is_revent_POLLIN(int index);
+/**
+ *
+ * @param info
+ * @param msg
+ */
+void send_message_event(CptServerInfo * info, char * msg);
 
-void listen_socket_init(Channel * gc);
 
-int handle_new_accept();
+/**
+ *
+ * @param info
+ * @param id
+ */
+void leave_channel_event(CptServerInfo * info, uint16_t id);
 
-void server_destroy(Channels * dir);
 
-bool should_end_event_loop(int poll_result);
+/**
+ *
+ * @param info
+ * @param id_list
+ */
+void create_channel_event(CptServerInfo * info, char * id_list);
 
+
+/**
+ *
+ * @param info
+ * @param channel_id
+ */
 void join_channel_event(CptServerInfo *info, uint16_t channel_id);
+
+
+/**
+ *
+ * @param info
+ * @param msg
+ * @param channel_id
+ */
+void send_event(CptServerInfo * info, char * msg, int channel_id);
+
 
 
 
