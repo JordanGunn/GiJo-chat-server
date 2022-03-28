@@ -49,6 +49,7 @@ size_t cpt_get_users(void * cpt, uint8_t * serial_buf, uint16_t channel_id)
     packet = client_info->packet;
 
     cpt_request_cmd(packet, (uint8_t) GET_USERS);
+    cpt_request_msg(packet, "GET_USERS");
     if (channel_id >= CHANNEL_ZERO)
     {
         cpt_request_chan(packet, channel_id);
@@ -58,31 +59,20 @@ size_t cpt_get_users(void * cpt, uint8_t * serial_buf, uint16_t channel_id)
 }
 
 
-int cpt_send_msg(void * cpt, char * msg)
+int cpt_send(void * client_info, uint8_t * serial_buf, char * msg)
 {
-    size_t serial_size;
-    CptRequest * packet;
-    CptClientInfo * client_info;
-    uint8_t buffer[LG_BUFF_SIZE];
+    uint8_t serial_size;
+    CptClientInfo * info;
 
-    client_info = (CptClientInfo *)cpt;
-    packet = client_info->packet;
+    info = (CptClientInfo *) client_info;
+    info->packet = cpt_request_init();
+    cpt_request_chan(info->packet, info->channel);
+    cpt_request_version(info->packet, VER_MAJ_LAT, VER_MIN_LAT);
+    cpt_request_cmd(info->packet, (uint8_t) SEND);
+    cpt_request_msg(info->packet, msg);
 
-    if ( !(client_info->fd) )
-    {
-        const char * message = "Not connected!";
-        write(STDERR_FILENO, message, strlen(message));
-        return EXIT_FAILURE;
-    }
-
-    cpt_request_cmd(packet, (uint8_t) SEND);
-    cpt_request_msg(packet, msg);
-    serial_size = cpt_serialize_packet(packet, buffer);
-
-    tcp_client_send(client_info->fd, buffer, serial_size);
-    cpt_request_reset(packet);
-
-    return 0;
+    serial_size = cpt_serialize_packet(info->packet, serial_buf);
+    return serial_size;
 }
 
 
@@ -98,8 +88,9 @@ size_t cpt_join_channel(void * client_info, uint8_t * serial_buf, uint16_t chann
     cpt_request_version(info->packet, VER_MAJ_LAT, VER_MIN_LAT);
     cpt_request_cmd(info->packet, (uint8_t) JOIN_CHANNEL);
     cpt_request_msg(info->packet, "join channel");
-
     serial_size = cpt_serialize_packet(info->packet, serial_buf);
+    cpt_request_reset(info->packet);
+
     return serial_size;
 }
 
@@ -137,7 +128,7 @@ size_t cpt_leave_channel(void * cpt, uint8_t * serial_buf, uint16_t channel_id)
     cpt_request_chan(client_info->packet, channel_id);
     cpt_request_version(client_info->packet, VER_MAJ_LAT, VER_MIN_LAT);
     cpt_request_cmd(client_info->packet, (uint8_t) LEAVE_CHANNEL);
-    cpt_request_msg(client_info->packet, "leave channel");
+    cpt_request_msg(client_info->packet, "LEAVE_CHANNEL");
 
     serial_size = cpt_serialize_packet(client_info->packet, serial_buf);
     return serial_size;

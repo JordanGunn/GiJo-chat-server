@@ -86,7 +86,7 @@ ChannelNode * get_head_channel(Channels * channels)
     ChannelNode * channel_node;
 
     list = (LinkedList *) channels;
-    channel_node = (ChannelNode *)get_head_node(list);
+    channel_node = (ChannelNode *) get_head_node(list);
     return channel_node;
 }
 

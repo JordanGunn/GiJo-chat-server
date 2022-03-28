@@ -186,12 +186,30 @@ int cpt_leave_channel_response(void * server_info, uint16_t channel_id)
 
 //int cpt_send_response(void * server_info, uint16_t channel_id)
 //{
-////    int del_res;
-////    Channel * channel;
-////    CptServerInfo * info;
-////
-////    info = (CptServerInfo *) server_info;
+//    int result;
+//    Users * users;
+//    Channel * channel;
+//    CptServerInfo * info;
+//    User * user, next_user;
 //
+//    result = false;
+//    info = (CptServerInfo *) server_info;
+//
+//
+//    channel = find_channel(info->dir, info->channel_id);
+//    if ( channel )
+//    {
+//        user = get_head_user()
+//
+//        if ( user ) /* User is already part of channel */
+//        { result = true; }
+//        else
+//        { /* Find user in gc and push them onto requested channel */
+//            user = find_user(info->gc->users, info->current_id);
+//            if ( user )
+//            { result = push_user(channel->users, user); }
+//        }
+//    }
 //    if ( channel_id == 0 ) { return BAD_CHANNEL; }
 //
 //    return SUCCESS;
@@ -226,6 +244,7 @@ CptServerInfo * cpt_server_info_init(Channel * gc, Channels * dir)
     server_info->gc = gc;
     server_info->dir = dir;
     server_info->current_id = gc->id;
+    server_info->channel_id = 0;
 
     return (server_info);
 }

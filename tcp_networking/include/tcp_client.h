@@ -105,7 +105,7 @@ long time_in_sec(char * client_time);
  * @param sock_fd   Socket file descriptor.
  * @return          Pointer to received data.
  */
-size_t tcp_client_recv(int sock_fd, uint8_t * buff);
+ssize_t tcp_client_recv(int sock_fd, uint8_t * buff);
 
 
 #endif //CPT_TCP_CLIENT_H

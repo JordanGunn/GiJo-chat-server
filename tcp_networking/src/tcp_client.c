@@ -83,11 +83,15 @@ int tcp_client_send(int sock_fd, uint8_t * data, size_t data_size)
 {
     ssize_t bytes_sent;
 
-    bytes_sent = send(sock_fd, data, data_size, 0);
-    if (bytes_sent < 0)
+    bytes_sent = (ssize_t) data_size;
+    while ( bytes_sent )
     {
-        const char * err_msg = "Failed to send bytes to server...\n";
-        write(STDERR_FILENO, err_msg, strlen(err_msg));
+        bytes_sent -= send(sock_fd, data, data_size, 0);
+        if (bytes_sent < 0)
+        {
+            const char * err_msg = "Failed to send bytes to server...\n";
+            write(STDERR_FILENO, err_msg, strlen(err_msg));
+        }
     }
 
     return (int) bytes_sent;
@@ -108,16 +112,20 @@ int tcp_init_client(const char * host, const char * port)
 }
 
 
-size_t tcp_client_recv(int sock_fd, uint8_t * buff)
+ssize_t tcp_client_recv(int sock_fd, uint8_t * buff)
 {
     ssize_t bytes_received;
 
     bytes_received = recv(sock_fd, buff, MD_BUFF_SIZE, 0);
     if ( bytes_received < 0 )
     {
-        const char * msg = "Failed to receive data from server...\n";
-        printf("  ERROR: %s\n", strerror(errno));
-        write(STDERR_FILENO, msg, strlen(msg));
+        if (errno != EWOULDBLOCK || errno != EAGAIN)
+        {
+            const char * msg = "Failed to receive data from server...\n";
+            printf("  ERROR: %s\n", strerror(errno));
+            write(STDERR_FILENO, msg, strlen(msg));
+        }
+
     }
 
     return bytes_received;

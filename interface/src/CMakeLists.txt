@@ -1,4 +1,4 @@
-#SET(INTERFACE_SRC
-#        ${CMAKE_CURRENT_SOURCE_DIR}/command.c
+SET(INTERFACE_SOURCE
+        ${CMAKE_CURRENT_SOURCE_DIR}/command.c
 #        ${CMAKE_CURRENT_SOURCE_DIR}/handlers.c
-#        PARENT_SCOPE)
+        PARENT_SCOPE)

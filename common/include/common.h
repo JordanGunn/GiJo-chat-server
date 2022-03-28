@@ -46,11 +46,7 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 
-
-
-
 #endif // CPT_CPT_CHAT_SERVER_H
-
 
 
 

@@ -102,4 +102,13 @@ int tcp_server_init(char * host, const char *port);
  */
 int tcp_server_send(int sock_fd, uint8_t * data, size_t data_size);
 
+
+/**
+ *
+ *
+ * @param fd
+ * @param res
+ */
+void check_fd_err(int fd, int res);
+
 #endif //CPT_TCP_SERVER_H

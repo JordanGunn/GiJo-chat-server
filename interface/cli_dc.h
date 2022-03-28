@@ -8,6 +8,7 @@
 #include "client_config.h"
 #include "cpt_client.h"
 #include "tcp_client.h"
+#include "messenger.h"
 
 #include <dc_application/command_line.h>
 #include <dc_application/config.h>
@@ -20,32 +21,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define NUM_MSG_THREADS 2
 #define NUM_CMD 7
 
-#define SEND 0
-#define GET_USERS 1
 #define CREATE_CHANNEL 2
-#define JOIN_CHANNEL 3
 #define LEAVE_CHANNEL 4
+#define JOIN_CHANNEL 3
+#define GET_USERS 1
 #define LOGOUT 5
 #define MENU 6
+#define SEND 0
 
-
-typedef void (* Prompt)(void);
 typedef struct command Command;
 typedef struct user_state UserState;
-
-
-static char * cli_cmds[] =
-{
-        "send",
-        "get-users",
-        "create-channel",
-        "join-channel",
-        "leave-channel",
-        "logout",
-        "menu"
-};
 
 
 struct user_state
@@ -53,6 +41,7 @@ struct user_state
     char * name;
     bool LOGGED_IN;
     uint16_t channel;
+    Messenger * messenger;
     CptClientInfo * client_info;
 };
 
@@ -64,48 +53,6 @@ struct application_settings
     struct dc_setting_string * host;
     struct dc_setting_string * login;
 };
-
-
-struct command
-{
-    char * cmd;
-    char * args;
-    char * input;
-    char * p_input;
-};
-
-typedef struct command Command;
-
-
-/**
- * Check user input against valid CLI commands.
- *
- * @param cmd     string from get_user_input().
- * @return true or false.
- */
-bool is_valid_cmd(Command * cmd);
-
-
-/**
- * Initialize command object.
- *
- * Allocates necessary memory and initialize all
- * pointers to NULL.
- *
- * @return Pointer to command object.
- */
-Command * cmd_init();
-
-
-/**
- * Destroy Command object.
- *
- * Free any dynamically allocated memory
- * and set all pointer to NULL.
- *
- * @param cmd   Pointer to Command object.
- */
-void cmd_destroy(Command * cmd);
 
 
 /**
@@ -132,7 +79,13 @@ void logout_handler();
  *
  * @param cmd
  */
-void get_users_handler();
+void get_users_handler(Command * cmd);
+
+
+/**
+ *
+ */
+void join_channel_handler(Command * cmd);
 
 
 /**
@@ -146,11 +99,11 @@ void user_login(char * host, char * port, char * name);
 
 
 /**
- * Execute user entered commands.
  *
- * @param user_commands Commands from user input.
+ *
+ * @param cmd
  */
-void handle_commands(Command * command);
+void send_handler(char * msg);
 
 
 /**
@@ -167,45 +120,10 @@ void menu();
 char * get_user_input();
 
 
-
-/**
- * Parse user input from stdin.
- *
- * Calls parse_cmd_args() and parse_cmd().
- *
- * @param cmd   Pointer to Command object.
- */
-void parse_user_input(Command * cmd);
-
-
 /**
  * Print prompt to stdout.
  */
 void chat_prompt();
-
-
-/**
- * Parse command from user input.
- *
- * @param cmd   Pointer to Command object.
- */
-void parse_cmd(Command * cmd);
-
-
-/**
- * Parse arguments from user input.
- *
- * @param cmd   Pointer to Command object.
- */
-void parse_cmd_args(Command * cmd);
-
-
-/**
- * Handle parsed commands.
- *
- * @param cmd   Pointer to Command object.
- */
-void handle_cmd(Command * cmd);
 
 
 /**
@@ -214,6 +132,35 @@ void handle_cmd(Command * cmd);
  * @param cmd   Pointer to command object.
  */
 void create_channel_handler(Command * cmd);
+
+
+/**
+ *
+ * @param data
+ * @return
+ */
+void * produce_sent_msg(void * data);
+
+
+/**
+ *
+ * @param data
+ * @return
+ */
+void * produce_recvd_msg(void * data);
+
+
+/**
+ *
+ * @param th
+ */
+void thread_msgs(pthread_t th[NUM_MSG_THREADS], char * msg);
+
+
+/**
+ *
+ */
+void recv_handler();
 
 
 /**

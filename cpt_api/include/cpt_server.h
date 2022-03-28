@@ -20,6 +20,7 @@ typedef struct cpt_server_info CptServerInfo;
 struct cpt_server_info
 {
     int current_id;
+    int channel_id;
     CptResponse * res;
     Channels * dir;
     Channel * gc;
