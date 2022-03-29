@@ -65,7 +65,8 @@ void run()
             /* ------------------------------------ */
             if ( !(is_revent_POLLIN(i)) )
             {
-                printf("Unexpected event: %d\n", poll_fds[i].revents);
+                short test = poll_fds[i].revents;
+                printf("Unexpected event: %d\n", test);
                 is_fatal_error = true; break;
             }
 
@@ -158,14 +159,12 @@ void run()
                             }
                             break;
                         }
-
                         if (req_size == 0 )
                         { /* Check if connection closed by client */
                             printf("  Connection closed\n");
                             close_conn = true;
                             break;
                         }
-
                         break;
                     }
                 //TODO Make sure the loop-breaking condition below doesn't completely break everything

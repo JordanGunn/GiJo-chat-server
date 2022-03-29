@@ -236,7 +236,8 @@ void channels_destroy(Channels * channels)
         destroy_list((LinkedList *) channels);
     }
 
-    free(channels); channels = NULL;
+    //TODO this was being freed inside destroy_list
+    //free(channels); channels = NULL;
 }
 
 

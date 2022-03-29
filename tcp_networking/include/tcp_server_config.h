@@ -8,6 +8,7 @@
 #define IP_LOCAL_INET    "192.168.1.106"
 #define IP_LOCAL_LB      "127.0.0.1"
 #define IP_LOCAL_BC      "192.168.1.255"
+#define IP_LAB_1         "192.168.0.13"
 #define PORT_8080        "8080"
 #define PORT_8888        "8888"
 #define PORT_TO_HELL     "666"
