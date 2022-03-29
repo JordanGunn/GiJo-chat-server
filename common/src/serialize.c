@@ -20,8 +20,8 @@ unsigned int serialize(unsigned char * buf, char * format, ...)
 
     unsigned int H;
 
-    char * s;                    // strings
-    unsigned int len;
+    char * s = NULL;                    // strings
+    unsigned int len = 0;
 
     unsigned int size = 0;
 
@@ -49,7 +49,10 @@ unsigned int serialize(unsigned char * buf, char * format, ...)
 
             case 's': // string
                 s = va_arg(ap, char*);
-                len = strlen(s);
+                if (s)
+                {
+                    len = strlen(s);
+                }
                 size += len + 2;
                 packi16(buf, len);
                 buf += 2;

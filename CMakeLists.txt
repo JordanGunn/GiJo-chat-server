@@ -196,7 +196,6 @@ target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_APPLICATION})
 
 if(UNIX AND NOT APPLE)
     find_library(LIB_RT rt REQUIRED)
-    target_link_libraries(LIB rt)
     target_link_libraries(cpt_messenger PRIVATE ${LIB_RT})
     target_link_libraries(cpt_chat_client PRIVATE ${LIB_RT})
 endif()
