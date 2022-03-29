@@ -121,6 +121,4 @@ void handle_cmd(Command * cmd);
 bool is_cmd(Command * command, char * cli_cmd);
 
 
-
-
 #endif //CPT_COMMAND_H

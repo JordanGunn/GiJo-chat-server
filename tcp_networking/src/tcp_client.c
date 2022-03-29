@@ -81,17 +81,22 @@ int tcp_client_connect(int sock_fd, struct addrinfo * serv_info)
 
 int tcp_client_send(int sock_fd, uint8_t * data, size_t data_size)
 {
-    ssize_t bytes_sent;
+    ssize_t bytes_sent, bytes_left;
 
-    bytes_sent = (ssize_t) data_size;
-    while ( bytes_sent )
+    bytes_left = (ssize_t) data_size;
+    while ( bytes_left > 0 )
     {
-        bytes_sent -= send(sock_fd, data, data_size, 0);
-        if (bytes_sent < 0)
-        {
-            const char * err_msg = "Failed to send bytes to server...\n";
-            write(STDERR_FILENO, err_msg, strlen(err_msg));
-        }
+        bytes_sent = send(sock_fd, data, data_size, 0);
+        if ( bytes_sent < 0 )
+        { break; }
+        else
+        {  bytes_left -= bytes_sent; }
+    }
+
+    if (bytes_sent < 0)
+    {
+        const char * err_msg = "Failed to send bytes to server...\n";
+        write(STDERR_FILENO, err_msg, strlen(err_msg));
     }
 
     return (int) bytes_sent;

@@ -1,5 +1,5 @@
-add_subdirectory(src)
-add_subdirectory(include)
+add_subdirectory(src/)
+add_subdirectory(include/)
 
 SET(TCP_CLIENT_TARGETS
         ${TCP_CLIENT_HEADERS}

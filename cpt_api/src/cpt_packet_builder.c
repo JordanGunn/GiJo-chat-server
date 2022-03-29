@@ -81,9 +81,14 @@ void cpt_request_msg(CptRequest * cpt, char * msg)
 
 void cpt_request_reset(CptRequest * packet)
 {
-    if ( packet->msg ) { free(packet->msg); packet->msg = NULL; }
+    if ( packet->msg )
+    {
+        free(packet->msg);
+        packet->msg = NULL;
+    }
     packet->msg_len = 0;
     packet->command = 0;
+    packet->channel_id = 0;
 }
 
 
@@ -156,6 +161,7 @@ void cpt_response_reset(CptResponse * res)
         res->data = NULL;
     }
 
+    res->data_size = 0;
     res->code = 0;
 }
 

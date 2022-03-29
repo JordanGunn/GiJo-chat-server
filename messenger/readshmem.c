@@ -4,16 +4,16 @@
 #include <stdio.h>
 #include "shared_memory.h"
 
-int main (int argc, char *argvp[])
-{
-    char *block = shmem_attach(FILENAME, BLOCK_SIZE);
-    if (!block)
-    {
-        return -1;
-    }
-
-    printf("Reading: \"%s\"\n", block);
-
-    shmem_detach(block);
-    return 0;
-}
+//int main (int argc, char *argvp[])
+//{
+//    char *block = shmem_attach(FILENAME, BLOCK_SIZE);
+//    if (!block)
+//    {
+//        return -1;
+//    }
+//
+//    printf("Reading: \"%s\"\n", block);
+//
+//    shmem_detach(block);
+//    return 0;
+//}

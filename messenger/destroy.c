@@ -5,15 +5,15 @@
 #include <stdio.h>
 #include "shared_memory.h"
 
-int main (int argc, char *argv[])
-{
-    if (shmem_destroy(FILENAME))
-    {
-        printf("Destroyed block: %s\n", FILENAME);
-    }
-    else
-    {
-        printf("Could not destroy block: %s\n", FILENAME);
-    }
-    return 0;
-}
+//int main (int argc, char *argv[])
+//{
+//    if (shmem_destroy(FILENAME))
+//    {
+//        printf("Destroyed block: %s\n", FILENAME);
+//    }
+//    else
+//    {
+//        printf("Could not destroy block: %s\n", FILENAME);
+//    }
+//    return 0;
+//}

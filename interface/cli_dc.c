@@ -1,10 +1,8 @@
 //
 // Created by jordan on 2022-02-10.
 //
-
 #include "cli_dc.h"
-#include "command.h"
-#include "pthread.h"
+
 
 // =============================
 // I N I T   U S E R   S T A T E
@@ -16,8 +14,6 @@ static UserState user =
 // ===========================
 
 pthread_mutex_t mutex;
-
-void destroy_cli_user(UserState state);
 
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
@@ -69,12 +65,6 @@ void destroy_cli_user()
         user.client_info = NULL;
     }
 
-    if (user.messenger)
-    {
-        messenger_destroy(user.messenger);
-        user.messenger = NULL;
-    }
-
     if (user.name)
     {
         free(user.name);
@@ -86,31 +76,50 @@ void destroy_cli_user()
 void recv_handler()
 {
     int on;
-    char * shmem_p;
+    char * block;
     ssize_t recv_size;
     CptResponse * res;
-    MsgProducer * prod;
     uint8_t recv_buf[MD_BUFF_SIZE];
 
     on = 1;
-    shmem_p = NULL;
-    ioctl(user.client_info->fd, FIONBIO, (char *)&on);
     recv_size = tcp_client_recv(user.client_info->fd, recv_buf);
-    on &= ~O_NONBLOCK;
     if ( recv_size != SYS_CALL_FAIL  )
     {
         res = cpt_parse_response(recv_buf, recv_size);
         if ( res )
         {
-            prod = user.messenger->producer;
-            sprintf(prod->sh_mem, "%s\n", (char *) res->data);
-            shmem_p = (char *) prod->sh_mem;
-            shmem_p += strlen((char *) res->data);
-            prod->sh_mem = (void *) shmem_p;
-            printf("Server: %s\n", (char *) prod->sh_mem);
+            //TODO SHMEM HERE!!!
+            block = shmem_attach(FILENAME, BLOCK_SIZE);
+            strncpy(block, (char *) res->data, BLOCK_SIZE);
+            shmem_detach(block);
         }
+        cpt_response_reset(res);
     }
 }
+
+
+void send_handler(char * msg)
+{
+    int send_res;
+    char * block;
+    size_t req_size;
+    CptClientInfo * info;
+    info = user.client_info;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
+
+    req_size = cpt_send(info, req_buf, msg);
+    send_res = tcp_client_send(
+            info->fd, req_buf, req_size);
+
+    if ( send_res > 0 )
+    {
+        block = shmem_attach(FILENAME, BLOCK_SIZE);
+        strncpy(block, msg, BLOCK_SIZE);
+        shmem_detach(block);
+    }
+    cpt_request_reset(info->packet);
+}
+
 
 void thread_msgs(pthread_t th[NUM_MSG_THREADS], char * msg)
 {
@@ -148,7 +157,6 @@ void thread_msgs(pthread_t th[NUM_MSG_THREADS], char * msg)
 void user_login(char * host, char * port, char * name)
 {
     int fd;
-    MsgProducer * prod;
 
     if ( name )
     {
@@ -166,54 +174,12 @@ void user_login(char * host, char * port, char * name)
             user.LOGGED_IN = true;
             user.name = strdup(name);
             user.channel = CHANNEL_ZERO;
-            user.messenger = messenger_init();
-            if (user.messenger)
-            {
-                prod = producer_init(user.messenger);
-                if ( !prod )
-                {
-                    exit(EXIT_FAILURE);
-                }
-            } } }
+        }
+    }
     else
     {
         printf("User not logged in!\n");
         exit(EXIT_FAILURE);
-    }
-}
-
-
-void send_handler(char * msg)
-{
-    int send_res;
-    void * shmem;
-    char * shmem_p;
-    size_t req_size;
-    MsgProducer * prod;
-    CptClientInfo * info;
-    info = user.client_info;
-    uint8_t req_buf[MD_BUFF_SIZE] = {0};
-
-    req_size = cpt_send(
-            info, req_buf, msg);
-
-    send_res = tcp_client_send(
-            info->fd, req_buf, req_size);
-
-    if ( send_res > 0 )
-    {
-        user.messenger->producer = producer_init(user.messenger);
-        prod = user.messenger->producer;
-        if (prod)
-        {
-            shmem = mmap(0, MAX_MSG_SIZE,
-                         PROT_READ, MAP_SHARED, prod->fd_o, 0);
-            sprintf(shmem, "%s\n", (char *) msg);
-            shmem_p = (char *) shmem;
-            shmem_p += strlen((char *) msg);
-
-            printf("Me: %s\n", (char *) msg);
-        }
     }
 }
 
@@ -271,17 +237,11 @@ void logout_handler()
 void create_channel_handler(Command * cmd)
 {
     int result;
-//    char * args_end;
     uint16_t new_cid;
     CptResponse * res;
-//    uint16_t channel_id;
     size_t req_size, res_size;
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
     uint8_t res_buf[MD_BUFF_SIZE] = {0};
-
-//    channel_id = ( cmd->args )
-//            ? strtol(cmd->args, &args_end, 10)
-//            : user.channel;
 
     res_size = 0; req_size = 0;
     req_size = cpt_create_channel(
@@ -314,32 +274,36 @@ void get_users_handler(Command * cmd)
     char * args_end;
     CptResponse * res;
     uint16_t channel_id;
+    CptClientInfo * info;
     size_t req_size, res_size;
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
+    info = user.client_info;
     res_size = 0; req_size = 0;
     channel_id = ( cmd->args )
     ? (uint16_t) strtol(cmd->args, &args_end, 10)
     : user.channel;
 
     req_size = cpt_get_users(
-            user.client_info, req_buf, channel_id);
+            info, req_buf, channel_id);
 
     result = tcp_client_send(
-            user.client_info->fd, req_buf, req_size);
+            info->fd, req_buf, req_size);
 
     if ( result != SYS_CALL_FAIL )
     {
         res_size = tcp_client_recv(
-                user.client_info->fd, res_buf);
+                info->fd, res_buf);
 
         res = cpt_parse_response(res_buf, res_size);
         if ( res->code == SUCCESS )
         {
             printf("%s\n", (char *)res->data);
+            cpt_response_reset(res);
         } else { printf("Failed to get users with code: %d\n", res->code); }
     }
+
 }
 
 
@@ -466,7 +430,7 @@ void chat_prompt()
 
 char * get_user_input()
 {
-    char buf[SM_BUFF_SIZE];
+    char buf[SM_BUFF_SIZE] = {0};
 
     read(STDIN_FILENO, buf, SM_BUFF_SIZE);
     return strdup(buf);

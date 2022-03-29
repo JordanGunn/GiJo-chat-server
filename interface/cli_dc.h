@@ -8,7 +8,10 @@
 #include "client_config.h"
 #include "cpt_client.h"
 #include "tcp_client.h"
-#include "messenger.h"
+
+#include "command.h"
+#include "pthread.h"
+#include "shared_memory.h"
 
 #include <dc_application/command_line.h>
 #include <dc_application/config.h>
@@ -41,7 +44,6 @@ struct user_state
     char * name;
     bool LOGGED_IN;
     uint16_t channel;
-    Messenger * messenger;
     CptClientInfo * client_info;
 };
 
@@ -164,13 +166,9 @@ void recv_handler();
 
 
 /**
- * Check if two cmd strings are equal.
  *
- * @param command
- * @param cli_cmd
- * @return
  */
-bool is_cmd(Command *command, char * cli_cmd);
+void destroy_cli_user();
 
 // ========================================================================================
 // D C   A P P L I C A T I O N   F R A M E W O R K    I N T E R F A C E   F U N C T I O N S

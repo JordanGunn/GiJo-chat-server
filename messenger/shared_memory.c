@@ -4,6 +4,7 @@
 #include <sys/shm.h>
 #include <string.h>
 
+
 #include "shared_memory.h"
 
 #define IPC_ERROR (-1)
@@ -23,6 +24,7 @@ static int get_shared_block(char *filename, int size)
     //   get shared block ---- create it if it doesn't exist.
     return shmget(key, size, 0644 | IPC_CREAT);
 }
+
 
 char * shmem_attach(char *filename, int size)
 {
@@ -44,10 +46,15 @@ char * shmem_attach(char *filename, int size)
 
     return result;
 }
+
+
+
 int shmem_detach(char * block)
 {
     return (shmdt(block) != IPC_ERROR);
 }
+
+
 
 int shmem_destroy(char * name)
 {

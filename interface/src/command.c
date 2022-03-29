@@ -100,11 +100,13 @@ void cmd_destroy(Command * cmd)
     {
         if ( cmd->cmd )
         {
-            free(cmd->cmd); cmd->cmd = NULL;
+            free(cmd->cmd);
+            cmd->cmd = NULL;
         }
         if ( cmd->args )
         {
-            free(cmd->args); cmd->args = NULL;
+            free(cmd->args);
+            cmd->args = NULL;
         }
 
         free(cmd);

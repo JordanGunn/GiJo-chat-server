@@ -42,12 +42,13 @@ add_executable(cpt_chat_client
         ${TCP_CLIENT_TARGETS}
         ${CPT_API_CLIENT_TGT}
         ${CPT_COMMON_TARGET}
-        ${MESSAGE_TARGET}
+        ${MESSAGE_SOURCE}
         ${CLI_TARGET})
 
 add_executable(cpt_messenger
+        ${CPT_COMMON_TARGET}
         ${MESSAGE_TARGET}
-        ${CPT_COMMON_TARGET})
+        ${MESSAGE_SOURCE})
 
 #add_executable(test ${TEST_TARGET})
 

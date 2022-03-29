@@ -6,7 +6,6 @@
 #define CPT_CPT_CHAT_CLIENT_H
 
 #include "client_config.h"
-#include "messenger.h"
 #include "cli_dc.h"
 
 #endif //CPT_CPT_CHAT_CLIENT_H
