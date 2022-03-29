@@ -141,7 +141,7 @@ void create_channel_handler(Command * cmd);
  * @param data
  * @return
  */
-void * produce_sent_msg(void * data);
+void * send_thread(void * data);
 
 
 /**
@@ -149,14 +149,14 @@ void * produce_sent_msg(void * data);
  * @param data
  * @return
  */
-void * produce_recvd_msg(void * data);
+void * command_thread(void * data);
 
 
 /**
  *
  * @param th
  */
-void thread_msgs(pthread_t th[NUM_MSG_THREADS], char * msg);
+void thread_msgs(pthread_t th[NUM_MSG_THREADS], Command *cmd);
 
 
 /**

@@ -40,14 +40,7 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
         chat_prompt();
         command->input = get_user_input();
         parse_cmd_input(command);
-        if ( !is_valid_cmd(command) )
-        {
-            if ( strlen(command->input) )
-            {
-                thread_msgs(th, command->input);
-            }
-        } else { handle_cmd(command); }
-
+        thread_msgs(th, command);
         cmd_destroy(command);
     }
 
@@ -82,7 +75,10 @@ void recv_handler()
     uint8_t recv_buf[MD_BUFF_SIZE];
 
     on = 1;
+    ioctl(user.client_info->fd, FIONBIO, (char *)&on);
     recv_size = tcp_client_recv(user.client_info->fd, recv_buf);
+    on &= ~O_NONBLOCK;
+
     if ( recv_size != SYS_CALL_FAIL  )
     {
         res = cpt_parse_response(recv_buf, recv_size);
@@ -121,7 +117,7 @@ void send_handler(char * msg)
 }
 
 
-void thread_msgs(pthread_t th[NUM_MSG_THREADS], char * msg)
+void thread_msgs(pthread_t th[NUM_MSG_THREADS], Command *cmd)
 {
     int i;
     pthread_mutex_init(&mutex, NULL);
@@ -129,14 +125,14 @@ void thread_msgs(pthread_t th[NUM_MSG_THREADS], char * msg)
     {
         if ( ((i % 2) == 0) )
         {
-            if ( (pthread_create(&th[i], NULL, &produce_recvd_msg, NULL)) != 0 )
+            if ((pthread_create(&th[i], NULL, &command_thread, cmd)) != 0 )
             {
                 perror("Failed to create producer thread...");
             }
         }
         else
         {
-            if ( (pthread_create(&th[i], NULL, &produce_sent_msg, msg)) != 0 )
+            if ((pthread_create(&th[i], NULL, &send_thread, cmd)) != 0 )
             {
                 perror("Failed to create consumer thread...");
             }
@@ -337,17 +333,6 @@ void leave_channel_handler()
 }
 
 
-void handle_cmd(Command * cmd)
-{
-    if ( is_cmd(cmd, cli_cmds[MENU]           )) { menu();                      }
-    if ( is_cmd(cmd, cli_cmds[LOGOUT]         )) { logout_handler();            }
-    if ( is_cmd(cmd, cli_cmds[SEND]           )) { puts("SEND");                }
-    if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler(cmd);      }
-    if ( is_cmd(cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(cmd); }
-    if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { join_channel_handler(cmd);   }
-    if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { leave_channel_handler();     }
-}
-
 
 void join_channel_handler(Command * cmd) {
 
@@ -437,27 +422,38 @@ char * get_user_input()
 }
 
 
-void * produce_sent_msg(void * data)
+void * send_thread(void * data)
 {
-    char * msg;
-    msg = (char *) data;
+    Command * cmd;
 
+    cmd = (Command *) data;
 
     pthread_mutex_lock(&mutex);
-    send_handler(msg);
+    if (!is_valid_cmd(cmd))
+    {
+        send_handler(cmd->input);
+    }
+
     pthread_mutex_unlock(&mutex);
 
-    return (void *) msg;
+    return (void *) cmd;
 }
 
 
-void * produce_recvd_msg(void * data)
+void * command_thread(void * data)
 {
     Command * cmd;
     cmd = (Command *) data;
 
     pthread_mutex_lock(&mutex);
-    recv_handler();
+    if ( is_cmd(cmd, cli_cmds[MENU]           )) { menu();                      }
+    else if ( is_cmd(cmd, cli_cmds[LOGOUT]         )) { logout_handler();            }
+    else if ( is_cmd(cmd, cli_cmds[SEND]           )) { puts("SEND");                }
+    else if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler(cmd);      }
+    else if ( is_cmd(cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(cmd); }
+    else if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { join_channel_handler(cmd);   }
+    else if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { leave_channel_handler();     }
+    else { recv_handler(); }
     pthread_mutex_unlock(&mutex);
 
     return (void *) cmd;
