@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define NUM_MSG_THREADS 2
+#define NUM_MSG_THREADS 3
 #define NUM_CMD 7
 
 #define CREATE_CHANNEL 2
@@ -91,6 +91,12 @@ void join_channel_handler(Command * cmd);
 
 
 /**
+ *
+ */
+void leave_channel_handler();
+
+
+/**
  * Call the login_handler() function and control result.
  *
  * @param host  Server host address.
@@ -141,7 +147,7 @@ void create_channel_handler(Command * cmd);
  * @param data
  * @return
  */
-void * produce_sent_msg(void * data);
+void * send_msg_thread(void * data);
 
 
 /**
@@ -149,14 +155,14 @@ void * produce_sent_msg(void * data);
  * @param data
  * @return
  */
-void * produce_recvd_msg(void * data);
+void * recv_msg_thread(void * data);
 
 
 /**
  *
  * @param th
  */
-void thread_msgs(pthread_t th[NUM_MSG_THREADS], char * msg);
+void thread_input(pthread_t th[NUM_MSG_THREADS], Command * cmd);
 
 
 /**

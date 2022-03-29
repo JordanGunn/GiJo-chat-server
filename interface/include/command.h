@@ -106,9 +106,9 @@ void parse_cmd_args(Command * cmd);
 /**
  * Handle parsed commands.
  *
- * @param cmd   Pointer to Command object.
+ * @param command   Pointer to Command object.
  */
-void handle_cmd(Command * cmd);
+void * handle_cmd_thread(void * cmd);
 
 
 /**
