@@ -1,4 +1,4 @@
 SET(INTERFACE_INCLUDE
         ${CMAKE_CURRENT_SOURCE_DIR}/command.h
-#        ${CMAKE_CURRENT_SOURCE_DIR}/handlers.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/handlers.h
         PARENT_SCOPE)
