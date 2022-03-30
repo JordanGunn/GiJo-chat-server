@@ -83,14 +83,14 @@ void * send_thread(void * user_state)
 
     while ( ustate->LOGGED_IN )
     {
-        pthread_mutex_lock(&mutex);
+//        pthread_mutex_lock(&mutex);
         command_handler(ustate);
-        while ( is_receiving )
-        {
-            printf("Waiting for response...\n");
-            pthread_cond_wait(&receiving, &mutex);
-        }
-        pthread_mutex_unlock(&mutex);
+//        while ( is_receiving )
+//        {
+//            printf("Waiting for response...\n");
+//            pthread_cond_wait(&receiving, &mutex);
+//        }
+//        pthread_mutex_unlock(&mutex);
     }
 
 
@@ -111,6 +111,8 @@ void command_handler(UserState * ustate)
 
     if ( ustate->cmd )
     {
+        pthread_mutex_lock(&mutex);
+
         if (is_valid_cmd(ustate->cmd))
         {
             if ( is_cmd(ustate->cmd, cli_cmds[MENU_CMD]           )) { menu();                         }
@@ -131,8 +133,9 @@ void command_handler(UserState * ustate)
             }
         }
         //TODO try
-        is_receiving = true;
+//        is_receiving = true;
         cmd_destroy(ustate->cmd);
+        pthread_mutex_unlock(&mutex);
     }
 //    cmd_destroy(ustate->cmd);
 }
@@ -145,13 +148,13 @@ void * recv_thread(void * user_state)
 
     ustate = (UserState *) user_state;
 
-    while ( ustate->LOGGED_IN )
-    {
-        pthread_mutex_lock(&mutex);
+//    while ( ustate->LOGGED_IN )
+//    {
+//        pthread_mutex_lock(&mutex);
         recv_handler(ustate);
-        pthread_mutex_unlock(&mutex);
-        pthread_cond_signal(&receiving);
-    }
+//        pthread_mutex_unlock(&mutex);
+//        pthread_cond_signal(&receiving);
+//    }
 
     return (void *) ustate;
 }
@@ -166,54 +169,58 @@ void recv_handler(UserState * ustate)
     int cid;
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
-
-    res_size = tcp_client_recv(ustate->client_info->fd, res_buf);
-
-    if (res_size > 0)
+    while (ustate->LOGGED_IN)
     {
-        is_receiving = true;
+        res_size = tcp_client_recv(ustate->client_info->fd, res_buf);
 
-        res = cpt_parse_response(res_buf, res_size);
-        if ( res )
+        if (res_size > 0)
         {
-            if ( res->code == (uint8_t) GET_USERS )
-            {
-                printf("%s\n", (char *)res->data);
-            }
+            //is_receiving = true;
+            pthread_mutex_lock(&mutex);
 
-            if ( res->code == (uint8_t) CREATE_CHANNEL )
+            res = cpt_parse_response(res_buf, res_size);
+            if ( res )
             {
-                cid = (uint16_t) ( *(res->data) ); // new channel id is in response
-                ustate->channel = cid;
-                printf("\nSuccessfully created channel %d\n", cid);
-            }
+                if ( res->code == (uint8_t) GET_USERS )
+                {
+                    printf("%s\n", (char *)res->data);
+                }
 
-            if ( res->code == (uint8_t) JOIN_CHANNEL )
-            {
-                cid = (uint16_t) ( *(res->data) );
-                ustate->channel = cid;
-            }
+                if ( res->code == (uint8_t) CREATE_CHANNEL )
+                {
+                    cid = (uint16_t) ( *(res->data) ); // new channel id is in response
+                    ustate->channel = cid;
+                    printf("\nSuccessfully created channel %d\n", cid);
+                }
 
-            if ( res->code == (uint8_t) LEAVE_CHANNEL )
-            {
-                printf("%s\n", (char *)res->data);
-                ustate->channel = CHANNEL_ZERO;
-            }
+                if ( res->code == (uint8_t) JOIN_CHANNEL )
+                {
+                    cid = (uint16_t) ( *(res->data) );
+                    ustate->channel = cid;
+                }
 
-            if ( res->code == (uint8_t) SEND )
-            {
-                block = shmem_attach(FILENAME, BLOCK_SIZE);
-                strncpy(block, (char *) res->data, BLOCK_SIZE);
-                shmem_detach(block);
-            }
+                if ( res->code == (uint8_t) LEAVE_CHANNEL )
+                {
+                    printf("%s\n", (char *)res->data);
+                    ustate->channel = CHANNEL_ZERO;
+                }
 
-            cpt_response_reset(res);
+                if ( res->code == (uint8_t) SEND )
+                {
+                    block = shmem_attach(FILENAME, BLOCK_SIZE);
+                    strncpy(block, (char *) res->data, BLOCK_SIZE);
+                    shmem_detach(block);
+                }
+
+                cpt_response_reset(res);
+            }
+            pthread_mutex_unlock(&mutex);
         }
-
-    } else {
-        is_receiving = false;
+//        else
+//        {
+//            is_receiving = false;
+//        }
     }
-
 }
 
 // ========================================================================
