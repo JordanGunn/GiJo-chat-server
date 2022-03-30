@@ -73,7 +73,7 @@ void recv_handler(UserState * ustate)
         res = cpt_parse_response(recv_buf, recv_size);
         if ( res )
         {
-            if (res->code == (uint8_t) 3)
+            if (res->code == (uint8_t) 10)
             {
                 //TODO SHMEM HERE!!!
                 block = shmem_attach(FILENAME, BLOCK_SIZE);

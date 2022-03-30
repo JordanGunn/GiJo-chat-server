@@ -104,6 +104,14 @@ void send_handler(UserState * ustate, char * msg);
 
 
 /**
+ *
+ *
+ * @param cmd
+ */
+void recv_handler(UserState * ustate, uint8_t code);
+
+
+/**
  * Print the menu and all CLI options.
  */
 void menu();

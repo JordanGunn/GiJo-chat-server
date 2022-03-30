@@ -364,7 +364,7 @@ void send_event(CptServerInfo * info, char * msg, int channel_id)
         if ( user_node )
         {
             info->res = cpt_response_init();
-            info->res->code = (uint8_t) 3;
+            info->res->code = (uint8_t) 10;
             info->res->data_size = strlen(msg);
             info->res->data = (uint8_t *) strdup(msg);
             res_size = cpt_serialize_response(info->res, res_buf);
@@ -418,7 +418,7 @@ int handle_new_accept()
 void listen_socket_init(Channel * gc)
 {
     memset(poll_fds, 0 , sizeof(poll_fds));
-    if ((GCFD = tcp_server_init(NULL, NULL)) != SYS_CALL_FAIL)
+    if ((GCFD = tcp_server_init(IP_LOCAL_LB, PORT_8080)) != SYS_CALL_FAIL)
     {
         gc->fd = GCFD;
         poll_fds[CHANNEL_ZERO].fd = gc->fd;
