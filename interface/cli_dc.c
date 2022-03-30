@@ -3,23 +3,15 @@
 //
 #include "cli_dc.h"
 
-
-// =============================
-// I N I T   U S E R   S T A T E
-// =============================
-static UserState user =
-{
-    .LOGGED_IN =  false,
-};
-// ===========================
+bool LOGGED_IN =  false;
 
 pthread_mutex_t mutex;
-
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
+
+    UserState * ustate;
     pthread_t th[NUM_MSG_THREADS];
     char * host, * port, * login;
-    Command * command;
 
     struct application_settings * app_settings;
     app_settings = (struct application_settings *) settings;
@@ -28,45 +20,42 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
     port  = dc_setting_string_get(env, app_settings->port );
     login = dc_setting_string_get(env, app_settings->login);
 
-    if ( !user.LOGGED_IN )
+
+    ustate = user_state_init();
+    if ( !LOGGED_IN )
     {
-        user_login(host, port, login);
+
+        user_login(ustate, host, port, login);
     }
 
-    while ( user.LOGGED_IN )
+    while ( LOGGED_IN )
     {
-        command = cmd_init();
+        ustate->cmd = cmd_init();
 
-        chat_prompt();
-        command->input = get_user_input();
-        parse_cmd_input(command);
-        thread_msgs(th, command);
-        cmd_destroy(command);
+        chat_prompt(ustate);
+        ustate->cmd->input = get_user_input();
+        parse_cmd_input(ustate->cmd);
+        thread_msgs(th, ustate);
+        cmd_destroy(ustate->cmd);
     }
 
-    close(user.client_info->fd);  // close the connection
-    destroy_cli_user(user);
+    close(ustate->client_info->fd);  // close the connection
+    destroy_cli_user(ustate);
     return EXIT_SUCCESS;
 }
 
-void destroy_cli_user()
+void destroy_cli_user(UserState * ustate)
 {
 
-    if ( user.client_info )
+    if ( ustate->client_info )
     {
-        cpt_destroy_client_info(user.client_info);
-        user.client_info = NULL;
-    }
-
-    if (user.name)
-    {
-        free(user.name);
-        user.name = NULL;
+        cpt_destroy_client_info(ustate->client_info);
+        ustate->client_info = NULL;
     }
 
 }
 
-void recv_handler()
+void recv_handler(UserState * ustate)
 {
     int on;
     char * block;
@@ -75,8 +64,8 @@ void recv_handler()
     uint8_t recv_buf[MD_BUFF_SIZE];
 
     on = 1;
-    ioctl(user.client_info->fd, FIONBIO, (char *)&on);
-    recv_size = tcp_client_recv(user.client_info->fd, recv_buf);
+    ioctl(ustate->client_info->fd, FIONBIO, (char *)&on);
+    recv_size = tcp_client_recv(ustate->client_info->fd, recv_buf);
     on &= ~O_NONBLOCK;
 
     if ( recv_size != SYS_CALL_FAIL  )
@@ -94,13 +83,13 @@ void recv_handler()
 }
 
 
-void send_handler(char * msg)
+void send_handler(UserState * ustate, char * msg)
 {
     int send_res;
     char * block;
     size_t req_size;
     CptClientInfo * info;
-    info = user.client_info;
+    info = ustate->client_info;
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
 
     req_size = cpt_send(info, req_buf, msg);
@@ -117,7 +106,7 @@ void send_handler(char * msg)
 }
 
 
-void thread_msgs(pthread_t th[NUM_MSG_THREADS], Command *cmd)
+void thread_msgs(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
 {
     int i;
     pthread_mutex_init(&mutex, NULL);
@@ -125,14 +114,14 @@ void thread_msgs(pthread_t th[NUM_MSG_THREADS], Command *cmd)
     {
         if ( ((i % 2) == 0) )
         {
-            if ((pthread_create(&th[i], NULL, &command_thread, cmd)) != 0 )
+            if ((pthread_create(&th[i], NULL, &command_thread, ustate)) != 0 )
             {
                 perror("Failed to create producer thread...");
             }
         }
         else
         {
-            if ((pthread_create(&th[i], NULL, &send_thread, cmd)) != 0 )
+            if ((pthread_create(&th[i], NULL, &send_thread, ustate)) != 0 )
             {
                 perror("Failed to create consumer thread...");
             }
@@ -149,27 +138,39 @@ void thread_msgs(pthread_t th[NUM_MSG_THREADS], Command *cmd)
     pthread_mutex_destroy(&mutex);
 }
 
+UserState * user_state_init()
+{
+    UserState * ustate;
 
-void user_login(char * host, char * port, char * name)
+    ustate = malloc(sizeof (struct user_state));
+    ustate->client_info = NULL;
+    ustate->cmd = NULL;
+    ustate->channel = 0;
+
+    return ustate;
+}
+
+
+void user_login(UserState * ustate, char * host, char * port, char * name)
 {
     int fd;
 
     if ( name )
     {
-        user.client_info = cpt_init_client_info(port, host);
+        ustate->client_info = cpt_init_client_info(port, host);
         fd = tcp_init_client(host, port);
-        user.client_info->fd = fd;
+        ustate->client_info->fd = fd;
 
-        if (login_handler(name) < 0 )
+        if (login_handler(ustate, name) < 0 )
         {
             printf("Failed to login to chat...\n");
             exit(EXIT_FAILURE);
         }
         else
         {
-            user.LOGGED_IN = true;
-            user.name = strdup(name);
-            user.channel = CHANNEL_ZERO;
+            LOGGED_IN = true;
+            ustate->client_info->name = strdup(name);
+            ustate->channel = CHANNEL_ZERO;
         }
     }
     else
@@ -181,7 +182,7 @@ void user_login(char * host, char * port, char * name)
 
 
 
-int login_handler(char * name)
+int login_handler(UserState * ustate, char * name)
 {
     int result;
     CptResponse * res;
@@ -191,21 +192,21 @@ int login_handler(char * name)
 
     // send data to server
     res_size = 0; req_size = 0;
-    req_size = cpt_login(user.client_info, req_buf, name);
-    result = tcp_client_send(user.client_info->fd, req_buf, req_size);
-    user.client_info->channel = CHANNEL_ZERO;
-    user.client_info->name = strdup(name);
+    req_size = cpt_login(ustate->client_info, req_buf, name);
+    result = tcp_client_send(ustate->client_info->fd, req_buf, req_size);
+    ustate->client_info->channel = CHANNEL_ZERO;
+    ustate->client_info->name = strdup(name);
 
     if (result != SYS_CALL_FAIL)
     {
-        res_size = tcp_client_recv(user.client_info->fd, res_buf);
+        res_size = tcp_client_recv(ustate->client_info->fd, res_buf);
         res = cpt_parse_response(res_buf, res_size);
         if ( res )
         {
             if (res->code == SUCCESS)
             {
                 printf("\n\nLogged in to chat server as %s@%s:%s\n\n",
-                       name, user.client_info->ip, user.client_info->port);
+                       name, ustate->client_info->ip, ustate->client_info->port);
             }
             else
             {
@@ -219,18 +220,18 @@ int login_handler(char * name)
 }
 
 
-void logout_handler()
+void logout_handler(UserState * ustate)
 {
     size_t req_size;
     uint8_t req_buf[LG_BUFF_SIZE] = {0};
 
-    req_size = cpt_logout(user.client_info, req_buf);
-    tcp_client_send(user.client_info->fd, req_buf, req_size);
-    user.LOGGED_IN = false;
+    req_size = cpt_logout(ustate->client_info, req_buf);
+    tcp_client_send(ustate->client_info->fd, req_buf, req_size);
+    LOGGED_IN = false;
 }
 
 
-void create_channel_handler(Command * cmd)
+void create_channel_handler(UserState * ustate)
 {
     int result;
     uint16_t new_cid;
@@ -241,30 +242,30 @@ void create_channel_handler(Command * cmd)
 
     res_size = 0; req_size = 0;
     req_size = cpt_create_channel(
-            user.client_info, req_buf, (char *) cmd->args);
+            ustate->client_info, req_buf, (char *) ustate->cmd->args);
 
     result = tcp_client_send(
-            user.client_info->fd, req_buf, req_size);
+            ustate->client_info->fd, req_buf, req_size);
 
     if ( result != SYS_CALL_FAIL )
     {
         res_size = tcp_client_recv(
-                user.client_info->fd, res_buf);
+                ustate->client_info->fd, res_buf);
 
         res = cpt_parse_response(res_buf, res_size);
         if ( res->code == SUCCESS )
         {
             new_cid = (uint16_t) ( *(res->data) ); // new channel id is in response
-            user.channel = new_cid;
-            push_data(user.client_info->channels, &new_cid, sizeof(uint16_t));
+            ustate->channel = new_cid;
+            push_data(ustate->client_info->channels, &new_cid, sizeof(uint16_t));
             printf("\nSuccessfully created channel with users: [ %s ]\n",
-                   (char *)cmd->args);
+                   (char *)ustate->cmd->args);
         } else { printf("Failed to create channel with code: %d", res->code); }
     }
 }
 
 
-void get_users_handler(Command * cmd)
+void get_users_handler(UserState * ustate)
 {
     int result;
     char * args_end;
@@ -275,11 +276,11 @@ void get_users_handler(Command * cmd)
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
-    info = user.client_info;
+    info = ustate->client_info;
     res_size = 0; req_size = 0;
-    channel_id = ( cmd->args )
-    ? (uint16_t) strtol(cmd->args, &args_end, 10)
-    : user.channel;
+    channel_id = ( ustate->cmd->args )
+    ? (uint16_t) strtol( ustate->cmd->args, &args_end, 10)
+    : ustate->channel;
 
     req_size = cpt_get_users(
             info, req_buf, channel_id);
@@ -303,7 +304,7 @@ void get_users_handler(Command * cmd)
 }
 
 
-void leave_channel_handler()
+void leave_channel_handler(UserState * ustate)
 {
     int result;
     CptResponse * res;
@@ -313,28 +314,28 @@ void leave_channel_handler()
 
     req_size = 0, res_size = 0;
     req_size = cpt_leave_channel(
-            user.client_info, req_buf, user.channel);
+            ustate->client_info, req_buf, ustate->channel);
 
     result = tcp_client_send(
-            user.client_info->fd, req_buf, req_size);
+            ustate->client_info->fd, req_buf, req_size);
 
     if ( result != SYS_CALL_FAIL )
     {
         res_size = tcp_client_recv(
-                user.client_info->fd, res_buf);
+                ustate->client_info->fd, res_buf);
 
         res = cpt_parse_response(res_buf, res_size);
         if ( res->code == SUCCESS )
         {
             printf("%s\n", (char *)res->data);
-            user.channel = CHANNEL_ZERO;
+            ustate->channel = CHANNEL_ZERO;
         } else { printf("Failed to leave channel with code: %d\n", res->code); }
     }
 }
 
 
 
-void join_channel_handler(Command * cmd) {
+void join_channel_handler(UserState * ustate) {
 
     int result;
     uint16_t cid;
@@ -346,24 +347,24 @@ void join_channel_handler(Command * cmd) {
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
     req_size = 0; res_size = 0;
-    channel_id = (uint16_t) strtol(cmd->args, &args_end, 10);
+    channel_id = (uint16_t) strtol(ustate->cmd->args, &args_end, 10);
 
     req_size = cpt_join_channel(
-            user.client_info, req_buf, channel_id);
+            ustate->client_info, req_buf, channel_id);
 
     result = tcp_client_send(
-            user.client_info->fd, req_buf, req_size);
+            ustate->client_info->fd, req_buf, req_size);
 
     if ( result != SYS_CALL_FAIL )
     {
         res_size = tcp_client_recv(
-                user.client_info->fd, res_buf);
+                ustate->client_info->fd, res_buf);
 
         res = cpt_parse_response(res_buf, res_size);
         if ( res->code == SUCCESS )
         {
             cid = (uint16_t) ( *(res->data) );
-            user.channel = cid;
+            ustate->channel = cid;
 
         } else { printf("Failed to join channel with code: %d\n", res->code); }
     }
@@ -399,12 +400,12 @@ void menu()
 }
 
 
-void chat_prompt()
+void chat_prompt(UserState * ustate)
 {
     uint16_t channel;
     char * name;
-    name = strdup(user.name);
-    channel = user.channel;
+    name = strdup(ustate->client_info->name);
+    channel = ustate->channel;
 
     printf("[ %s | (channel %hu) ] $ ", name, channel);
     fflush(stdout);
@@ -424,39 +425,38 @@ char * get_user_input()
 
 void * send_thread(void * data)
 {
-    Command * cmd;
+    UserState * ustate;
 
-    cmd = (Command *) data;
+    ustate = (UserState *) data;
 
     pthread_mutex_lock(&mutex);
-    if (!is_valid_cmd(cmd))
+    if (!is_valid_cmd(ustate->cmd))
     {
-        send_handler(cmd->input);
+        send_handler(ustate,ustate->cmd->input);
     }
 
     pthread_mutex_unlock(&mutex);
 
-    return (void *) cmd;
+    return (void *) ustate->cmd;
 }
 
 
 void * command_thread(void * data)
 {
-    Command * cmd;
-    cmd = (Command *) data;
+    UserState * ustate;
+    ustate = (UserState * ) data;
 
     pthread_mutex_lock(&mutex);
-    if ( is_cmd(cmd, cli_cmds[MENU]           )) { menu();                      }
-    else if ( is_cmd(cmd, cli_cmds[LOGOUT]         )) { logout_handler();            }
-    else if ( is_cmd(cmd, cli_cmds[SEND]           )) { puts("SEND");                }
-    else if ( is_cmd(cmd, cli_cmds[GET_USERS]      )) { get_users_handler(cmd);      }
-    else if ( is_cmd(cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(cmd); }
-    else if ( is_cmd(cmd, cli_cmds[JOIN_CHANNEL]   )) { join_channel_handler(cmd);   }
-    else if ( is_cmd(cmd, cli_cmds[LEAVE_CHANNEL]  )) { leave_channel_handler();     }
-    else { recv_handler(); }
+    if ( is_cmd(ustate->cmd, cli_cmds[MENU]           )) { menu();                      }
+    else if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT]         )) { logout_handler(ustate);            }
+    else if ( is_cmd(ustate->cmd, cli_cmds[GET_USERS]      )) { get_users_handler(ustate);      }
+    else if ( is_cmd(ustate->cmd, cli_cmds[CREATE_CHANNEL] )) { create_channel_handler(ustate); }
+    else if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL]   )) { join_channel_handler(ustate);   }
+    else if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL]  )) { leave_channel_handler(ustate);     }
+    else { recv_handler(ustate); }
     pthread_mutex_unlock(&mutex);
 
-    return (void *) cmd;
+    return (void *) ustate;
 }
 
 

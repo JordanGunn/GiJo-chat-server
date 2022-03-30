@@ -41,8 +41,7 @@ typedef struct user_state UserState;
 
 struct user_state
 {
-    char * name;
-    bool LOGGED_IN;
+    Command * cmd;
     uint16_t channel;
     CptClientInfo * client_info;
 };
@@ -56,6 +55,11 @@ struct application_settings
     struct dc_setting_string * login;
 };
 
+/**
+ *
+ * @return
+ */
+UserState * user_state_init();
 
 /**
  * Make LOGIN request to server.
@@ -63,7 +67,7 @@ struct application_settings
  * @param name  Name of requesting user.
  * @return 0 if successful, -1 if failure.
  */
-int login_handler(char *name);
+int login_handler(UserState * ustate, char * name);
 
 
 /**
@@ -81,13 +85,13 @@ void logout_handler();
  *
  * @param cmd
  */
-void get_users_handler(Command * cmd);
+void get_users_handler(UserState * ustate);
 
 
 /**
  *
  */
-void join_channel_handler(Command * cmd);
+void join_channel_handler(UserState * ustate);
 
 
 /**
@@ -97,7 +101,7 @@ void join_channel_handler(Command * cmd);
  * @param port  Server host port.
  * @param login Name of requested login user.
  */
-void user_login(char * host, char * port, char * name);
+void user_login(UserState * ustate, char * host, char * port, char * name);
 
 
 /**
@@ -105,7 +109,7 @@ void user_login(char * host, char * port, char * name);
  *
  * @param cmd
  */
-void send_handler(char * msg);
+void send_handler(UserState * ustate, char * msg);
 
 
 /**
@@ -123,17 +127,17 @@ char * get_user_input();
 
 
 /**
- * Print prompt to stdout.
- */
-void chat_prompt();
-
-
-/**
  * Handle CREATE_CHANNEL cpt protocol request and response.
  *
  * @param cmd   Pointer to command object.
  */
-void create_channel_handler(Command * cmd);
+void create_channel_handler(UserState * ustate);
+
+/**
+ *
+ * @param ustate
+ */
+void leave_channel_handler(UserState * ustate);
 
 
 /**
@@ -156,13 +160,17 @@ void * command_thread(void * data);
  *
  * @param th
  */
-void thread_msgs(pthread_t th[NUM_MSG_THREADS], Command *cmd);
+void thread_msgs(pthread_t th[NUM_MSG_THREADS], UserState * ustate);
 
 
 /**
  *
  */
-void recv_handler();
+void recv_handler(UserState * ustate);
+
+
+
+void chat_prompt(UserState * ustate);
 
 
 /**

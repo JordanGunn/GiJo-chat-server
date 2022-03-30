@@ -184,7 +184,6 @@ find_library(LIBDC_POSIX dc_posix REQUIRED)
 find_library(LIBDC_UTIL dc_util REQUIRED)
 find_library(LIBDC_FSM dc_fsm REQUIRED)
 find_library(LIBDC_APPLICATION dc_application REQUIRED)
-find_library(LIB_RT rt REQUIRED)
 
 target_link_libraries(cpt_chat_client PRIVATE ${LIBM})
 target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_ERROR})
@@ -192,14 +191,7 @@ target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_POSIX})
 target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_UTIL})
 target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_FSM})
 target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_APPLICATION})
-target_link_libraries(cpt_chat_client PRIVATE ${LIB_RT})
 
-
-target_link_libraries(cpt_messenger PRIVATE ${LIB_RT})
-
-#if(UNIX AND NOT APPLE)
-#    target_link_libraries(LIB rt)
-#endif()
 
 
 

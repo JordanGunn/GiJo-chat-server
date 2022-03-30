@@ -180,6 +180,13 @@ void cpt_destroy_client_info(CptClientInfo * client_info)
             free(client_info->port);
             client_info->port = NULL;
         }
+
+        if ( client_info->name )
+        {
+            free(client_info->name);
+            client_info->name = NULL;
+        }
+
         free(client_info);
         client_info = NULL;
     }

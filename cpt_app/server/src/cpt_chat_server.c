@@ -91,16 +91,16 @@ void run()
             /* ----------------------------------------------- */
             else
             {
-                int id;
-                ssize_t req_size;
-                uint8_t req_buf[LG_BUFF_SIZE] = {0};
-                close_conn = false; // !
-                id = poll_fds[i].fd;
 
                 do
                 {
                     if ( is_revent_POLLIN(i) )
                     {   /* Receive incoming data from sockets */
+                        int id;
+                        ssize_t req_size;
+                        uint8_t req_buf[LG_BUFF_SIZE] = {0};
+                        close_conn = false; // !
+                        id = poll_fds[i].fd;
                         CptRequest * req;
                         server_info->current_id = id;
                         req_size = tcp_server_recv(id, req_buf);
@@ -374,13 +374,18 @@ void send_event(CptServerInfo * info, char * msg, int channel_id)
                 dest_id = user->id;
                 if ( dest_id != GC_ROOT_USR_ID )
                 {
-                    tcp_server_send(
-                            dest_id, res_buf, res_size);
+                    if ( dest_id != info->current_id )
+                    {
+                        tcp_server_send(
+                                dest_id, res_buf, res_size);
+                    }
+
                 }
                 user_node = user_node->next_user;
             }
         }
     }
+    cpt_response_destroy(info->res);
 }
 
 
