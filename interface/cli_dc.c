@@ -5,6 +5,9 @@
 
 
 pthread_mutex_t mutex;
+pthread_cond_t receiving;
+static bool is_receiving = false;
+
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
 
@@ -29,14 +32,6 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
     while ( ustate->LOGGED_IN )
     {
         thread_chat_io(th, ustate);
-        ustate->cmd = cmd_init();
-
-        chat_prompt(ustate);
-        ustate->cmd->input = get_user_input();
-        parse_cmd_input(ustate->cmd);
-
-        thread_chat_io(th, ustate);
-        cmd_destroy(ustate->cmd);
     }
 
     close(ustate->client_info->fd);  // close the connection
@@ -49,21 +44,21 @@ void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
 {
     int i;
     pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&receiving, NULL);
     for (i = 0; i< NUM_MSG_THREADS; i++)
     {
         if ( ((i % 2) == 0) )
         {
-            if ((pthread_create(&th[i], NULL, &send_thread, ustate)) != 0 )
-            {
-                perror("Failed to create consumer thread...");
-            }
-
-        }
-        else
-        {
             if ((pthread_create(&th[i], NULL, &recv_thread, ustate)) != 0 )
             {
                 perror("Failed to create producer thread...");
+            }
+        }
+        else
+        {
+            if ((pthread_create(&th[i], NULL, &send_thread, ustate)) != 0 )
+            {
+                perror("Failed to create consumer thread...");
             }
         }
     }
@@ -76,8 +71,10 @@ void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
         }
     }
     pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&receiving);
 }
 
+// ===========================================================
 
 void * send_thread(void * user_state)
 {
@@ -86,6 +83,10 @@ void * send_thread(void * user_state)
     ustate = (UserState *) user_state;
 
     pthread_mutex_lock(&mutex);
+    while ( is_receiving )
+    {
+        pthread_cond_wait(&receiving, &mutex);
+    }
     command_handler(ustate);
     pthread_mutex_unlock(&mutex);
 
@@ -95,6 +96,12 @@ void * send_thread(void * user_state)
 
 void command_handler(UserState * ustate)
 {
+    ustate->cmd = cmd_init();
+
+    chat_prompt(ustate);
+    ustate->cmd->input = get_user_input();
+    parse_cmd_input(ustate->cmd);
+
     if ( ustate->cmd )
     {
         if (is_valid_cmd(ustate->cmd))
@@ -117,8 +124,11 @@ void command_handler(UserState * ustate)
             }
         }
     }
-
+    is_receiving = true;
+    cmd_destroy(ustate->cmd);
 }
+
+// ===========================================================================
 
 void * recv_thread(void * user_state)
 {
@@ -130,6 +140,7 @@ void * recv_thread(void * user_state)
     pthread_mutex_lock(&mutex);
     recv_handler(ustate);
     pthread_mutex_unlock(&mutex);
+    pthread_cond_signal(&receiving);
 
     return (void *) ustate;
 }
@@ -141,17 +152,14 @@ void recv_handler(UserState * ustate)
     char * block;
     ssize_t res_size;
     CptResponse * res;
-    int cid, on;
+    int cid;
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
-    on = 1;
-
-//    ioctl(ustate->client_info->fd, FIONBIO, (char *)&on);
     res_size = tcp_client_recv(ustate->client_info->fd, res_buf);
-//    on &= ~O_NONBLOCK;
 
     if ( res_size != SYS_CALL_FAIL && res_size != 0 )
     {
+
         res = cpt_parse_response(res_buf, res_size);
         if ( res )
         {
@@ -186,11 +194,13 @@ void recv_handler(UserState * ustate)
                 shmem_detach(block);
             }
 
-
             cpt_response_reset(res);
         }
     }
+    is_receiving = false;
 }
+
+// ========================================================================
 
 
 void user_login(UserState * ustate, char * host, char * port, char * name)
@@ -200,12 +210,9 @@ void user_login(UserState * ustate, char * host, char * port, char * name)
     on = 1;
     if ( name )
     {
-
         ustate->client_info = cpt_init_client_info(port, host);
         fd = tcp_init_client(host, port);
         ustate->client_info->fd = fd;
-
-//        on &= ~O_NONBLOCK;
 
         if (login_handler(ustate, name) < 0 )
         {

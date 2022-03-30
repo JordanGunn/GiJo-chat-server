@@ -148,6 +148,9 @@ void send_handler(UserState * ustate)
     int result;
     char * block;
     size_t req_size;
+    uint16_t channel_id;
+    char * msg_prefix, * name;
+    char msg_buf[SM_BUFF_SIZE] = {0};
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
 
     req_size = cpt_send(
@@ -158,8 +161,13 @@ void send_handler(UserState * ustate)
 
     if ( result != SYS_CALL_FAIL )
     {
+        name = ustate->client_info->name;
+        channel_id = ustate->channel;
+        sprintf(msg_buf, "[ %s | (channel %hu) ]: ", name, channel_id);
         block = shmem_attach(FILENAME, BLOCK_SIZE);
-        strncpy(block, (char *) ustate->cmd->input, BLOCK_SIZE);
+        strncat(msg_buf, ustate->cmd->input, strlen(ustate->cmd->input));
+        msg_prefix = strdup(msg_buf);
+        strncpy(block, msg_prefix, strlen(msg_prefix));
         shmem_detach(block);
     }
 }

@@ -22,6 +22,7 @@
             }
         } else { flag = 1; }
 
+        memset(block, 0, BLOCK_SIZE);
         shmem_detach(block);
     }
 
