@@ -6,8 +6,7 @@
 
 pthread_mutex_t mutex;
 pthread_cond_t receiving;
-static bool is_receiving = false;
-
+bool is_receiving = false;
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
 
@@ -29,10 +28,9 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
         user_login(ustate, host, port, login);
     }
 
-    while ( ustate->LOGGED_IN )
-    {
-        thread_chat_io(th, ustate);
-    }
+
+    thread_chat_io(th, ustate);
+
 
     close(ustate->client_info->fd);  // close the connection
     user_state_destroy(ustate);
@@ -82,13 +80,21 @@ void * send_thread(void * user_state)
 
     ustate = (UserState *) user_state;
 
-    pthread_mutex_lock(&mutex);
-    while ( is_receiving )
+
+    while ( ustate->LOGGED_IN )
     {
-        pthread_cond_wait(&receiving, &mutex);
+        pthread_mutex_lock(&mutex);
+        command_handler(ustate);
+        while ( is_receiving )
+        {
+            printf("Waiting for response...\n");
+            pthread_cond_wait(&receiving, &mutex);
+        }
+        pthread_mutex_unlock(&mutex);
     }
-    command_handler(ustate);
-    pthread_mutex_unlock(&mutex);
+
+
+
 
     return (void *) ustate;
 }
@@ -96,6 +102,7 @@ void * send_thread(void * user_state)
 
 void command_handler(UserState * ustate)
 {
+
     ustate->cmd = cmd_init();
 
     chat_prompt(ustate);
@@ -123,9 +130,11 @@ void command_handler(UserState * ustate)
                 }
             }
         }
+        //TODO try
+        is_receiving = true;
+        cmd_destroy(ustate->cmd);
     }
-    is_receiving = true;
-    cmd_destroy(ustate->cmd);
+//    cmd_destroy(ustate->cmd);
 }
 
 // ===========================================================================
@@ -136,11 +145,13 @@ void * recv_thread(void * user_state)
 
     ustate = (UserState *) user_state;
 
-
-    pthread_mutex_lock(&mutex);
-    recv_handler(ustate);
-    pthread_mutex_unlock(&mutex);
-    pthread_cond_signal(&receiving);
+    while ( ustate->LOGGED_IN )
+    {
+        pthread_mutex_lock(&mutex);
+        recv_handler(ustate);
+        pthread_mutex_unlock(&mutex);
+        pthread_cond_signal(&receiving);
+    }
 
     return (void *) ustate;
 }
@@ -155,10 +166,12 @@ void recv_handler(UserState * ustate)
     int cid;
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
+
     res_size = tcp_client_recv(ustate->client_info->fd, res_buf);
 
-    if ( res_size != SYS_CALL_FAIL && res_size != 0 )
+    if (res_size > 0)
     {
+        is_receiving = true;
 
         res = cpt_parse_response(res_buf, res_size);
         if ( res )
@@ -196,8 +209,11 @@ void recv_handler(UserState * ustate)
 
             cpt_response_reset(res);
         }
+
+    } else {
+        is_receiving = false;
     }
-    is_receiving = false;
+
 }
 
 // ========================================================================
