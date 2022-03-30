@@ -49,16 +49,16 @@ void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
     {
         if ( ((i % 2) == 0) )
         {
-            if ((pthread_create(&th[i], NULL, &recv_thread, ustate)) != 0 )
+            if ((pthread_create(&th[i], NULL, &send_thread, ustate)) != 0 )
             {
-                perror("Failed to create producer thread...");
+                perror("Failed to create consumer thread...");
             }
         }
         else
         {
-            if ((pthread_create(&th[i], NULL, &send_thread, ustate)) != 0 )
+            if ((pthread_create(&th[i], NULL, &recv_thread, ustate)) != 0 )
             {
-                perror("Failed to create consumer thread...");
+                perror("Failed to create producer thread...");
             }
         }
     }
