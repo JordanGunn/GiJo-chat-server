@@ -9,6 +9,14 @@
 
 #define NUM_CMD 7
 
+#define CREATE_CHANNEL 2
+#define LEAVE_CHANNEL 4
+#define JOIN_CHANNEL 3
+#define GET_USERS 1
+#define LOGOUT 5
+#define MENU 6
+#define SEND 0
+
 /**
  * Valid CLI commands.
  */

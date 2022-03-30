@@ -73,10 +73,13 @@ void recv_handler(UserState * ustate)
         res = cpt_parse_response(recv_buf, recv_size);
         if ( res )
         {
-            //TODO SHMEM HERE!!!
-            block = shmem_attach(FILENAME, BLOCK_SIZE);
-            strncpy(block, (char *) res->data, BLOCK_SIZE);
-            shmem_detach(block);
+            if (res->code == (uint8_t) 3)
+            {
+                //TODO SHMEM HERE!!!
+                block = shmem_attach(FILENAME, BLOCK_SIZE);
+                strncpy(block, (char *) res->data, BLOCK_SIZE);
+                shmem_detach(block);
+            }
         }
         cpt_response_reset(res);
     }
@@ -375,21 +378,20 @@ void menu()
 {
     char menu_buf[XL_BUFF_SIZE] = {0};
     static char * logout, * get_users, * create_channel, * join_channel;
-    static char * send, * title, * div, * leave_channel, * menu;
+    static char * title, * div, * leave_channel, * menu;
 
     div = "==================================================";
     title = "Choose from the following options...\n\n";
-    send           = "  [0] send <message>\n";
-    get_users      = "  [1] get-users <chan_id>\n";
-    create_channel = "  [2] create-channel \"<uid-1> <uid-2>.. <uid-n>\"\n";
-    join_channel   = "  [3] join-channel <chan_id>\n";
-    leave_channel  = "  [4] leave-channel <chan_id>\n";
-    logout         = "  [5] logout <name>\n";
-    menu           = "  [6] menu\n";
+    get_users      = "  [1] @get-users <chan_id>\n";
+    create_channel = "  [2] @create-channel \"<uid-1> <uid-2>.. <uid-n>\"\n";
+    join_channel   = "  [3] @join-channel <chan_id>\n";
+    leave_channel  = "  [4] @leave-channel <chan_id>\n";
+    logout         = "  [5] @logout <name>\n";
+    menu           = "  [6] @menu\n";
 
-    sprintf(menu_buf, "%s\n%s%s%s%s%s%s%s%s%s\n",
+    sprintf(menu_buf, "%s\n%s%s%s%s%s%s%s%s\n",
             div,
-            title, send, get_users, create_channel,
+            title, get_users, create_channel,
             join_channel, leave_channel, logout, menu,
             div
     );

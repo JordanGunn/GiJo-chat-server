@@ -364,6 +364,7 @@ void send_event(CptServerInfo * info, char * msg, int channel_id)
         if ( user_node )
         {
             info->res = cpt_response_init();
+            info->res->code = (uint8_t) 3;
             info->res->data_size = strlen(msg);
             info->res->data = (uint8_t *) strdup(msg);
             res_size = cpt_serialize_response(info->res, res_buf);
