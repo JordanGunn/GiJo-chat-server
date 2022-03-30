@@ -17,7 +17,7 @@
         {
             if ( strlen(block) )
             {
-                printf("%s\n", block);
+                printf("%s", block);
                 memset(block, 0, strlen(block));
             }
         } else { flag = 1; }

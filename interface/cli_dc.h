@@ -6,12 +6,12 @@
 #define CPT_CLI_DC_H
 
 #include "client_config.h"
-#include "cpt_client.h"
 #include "tcp_client.h"
 
-#include "command.h"
-#include "pthread.h"
 #include "shared_memory.h"
+#include "user_state.h"
+#include "handlers.h"
+#include "pthread.h"
 
 #include <dc_application/command_line.h>
 #include <dc_application/config.h>
@@ -27,16 +27,6 @@
 #define NUM_MSG_THREADS 2
 
 typedef struct command Command;
-typedef struct user_state UserState;
-
-
-struct user_state
-{
-    Command * cmd;
-    uint16_t channel;
-    CptClientInfo * client_info;
-};
-
 
 struct application_settings
 {
@@ -45,44 +35,6 @@ struct application_settings
     struct dc_setting_string * host;
     struct dc_setting_string * login;
 };
-
-/**
- *
- * @return
- */
-UserState * user_state_init();
-
-/**
- * Make LOGIN request to server.
- *
- * @param name  Name of requesting user.
- * @return 0 if successful, -1 if failure.
- */
-int login_handler(UserState * ustate, char * name);
-
-
-/**
- * Make a LOGOUT request to the server.
- *
- * Handles the logout function call and destroys
- * any necessary memory from the program.
- *
- */
-void logout_handler();
-
-
-/**
- * Make GET_USERS request to the server.
- *
- * @param cmd
- */
-void get_users_handler(UserState * ustate);
-
-
-/**
- *
- */
-void join_channel_handler(UserState * ustate);
 
 
 /**
@@ -100,7 +52,7 @@ void user_login(UserState * ustate, char * host, char * port, char * name);
  *
  * @param cmd
  */
-void send_handler(UserState * ustate, char * msg);
+void * recv_thread(void * user_state);
 
 
 /**
@@ -108,7 +60,7 @@ void send_handler(UserState * ustate, char * msg);
  *
  * @param cmd
  */
-void recv_handler(UserState * ustate, uint8_t code);
+void recv_handler(UserState * user_state);
 
 
 /**
@@ -126,51 +78,29 @@ char * get_user_input();
 
 
 /**
- * Handle CREATE_CHANNEL cpt protocol request and response.
- *
- * @param cmd   Pointer to command object.
- */
-void create_channel_handler(UserState * ustate);
-
-/**
- *
- * @param ustate
- */
-void leave_channel_handler(UserState * ustate);
-
-
-/**
  *
  * @param data
  * @return
  */
-void * send_thread(void * data);
-
-
-/**
- *
- * @param data
- * @return
- */
-void * command_thread(void * data);
+void * send_thread(void * user_state);
 
 
 /**
  *
  * @param th
  */
-void thread_msgs(pthread_t th[NUM_MSG_THREADS], UserState * ustate);
+void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate);
 
 
 /**
+ * Execute user entered commands.
  *
+ * @param user_commands Commands from user input.
  */
-void recv_handler(UserState * ustate);
-
+void command_handler(UserState * ustate);
 
 
 void chat_prompt(UserState * ustate);
-
 
 /**
  *

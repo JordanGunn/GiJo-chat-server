@@ -43,7 +43,7 @@ add_executable(cpt_chat_client
         ${CPT_API_CLIENT_TGT}
         ${CPT_COMMON_TARGET}
         ${MESSAGE_SOURCE}
-        ${CLI_TARGET})
+        ${CLI_TARGET} interface/include/user_state.h interface/src/user_state.c)
 
 add_executable(cpt_messenger
         ${CPT_COMMON_TARGET}

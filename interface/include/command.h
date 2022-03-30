@@ -9,13 +9,12 @@
 
 #define NUM_CMD 7
 
-#define CREATE_CHANNEL 2
-#define LEAVE_CHANNEL 4
-#define JOIN_CHANNEL 3
-#define GET_USERS 1
-#define LOGOUT 5
-#define MENU 6
-#define SEND 0
+#define CREATE_CHANNEL_CMD 2
+#define LEAVE_CHANNEL_CMD 4
+#define JOIN_CHANNEL_CMD 3
+#define GET_USERS_CMD 1
+#define LOGOUT_CMD 5
+#define MENU_CMD 6
 
 /**
  * Valid CLI commands.
@@ -77,13 +76,6 @@ Command * cmd_init();
  */
 void cmd_destroy(Command * cmd);
 
-
-/**
- * Execute user entered commands.
- *
- * @param user_commands Commands from user input.
- */
-void handle_command(Command * cmd);
 
 /**
  * Parse user input from stdin.

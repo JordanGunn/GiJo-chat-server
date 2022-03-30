@@ -212,14 +212,17 @@ void join_channel_event(CptServerInfo *info, uint16_t channel_id)
 
     join_res = cpt_join_channel_response(info, channel_id);
     res = cpt_response_init(join_res);
-    res->code = join_res;
-    if ( res->code == SUCCESS )
+    if ( join_res == SUCCESS )
     { /* Send back confirmation if successful */
+        res->code = (uint8_t) JOIN_CHANNEL;
+        res->data_size = sizeof(channel_id);
         res->data = (uint8_t *) &channel_id;
     }
     else
     {
         msg = "Failed to join channel";
+        res->code = (uint8_t) FAILURE;
+        res->data_size = strlen(msg);
         res->data = (uint8_t *) msg;
     }
 
@@ -232,6 +235,7 @@ void join_channel_event(CptServerInfo *info, uint16_t channel_id)
 void leave_channel_event(CptServerInfo * info, uint16_t channel_id)
 {
     int lc_res;
+    char * res_msg;
     size_t res_size;
     CptResponse * res;
     uint8_t res_buf[MD_BUFF_SIZE] = {0};
@@ -239,15 +243,21 @@ void leave_channel_event(CptServerInfo * info, uint16_t channel_id)
 
     lc_res = cpt_leave_channel_response(info, channel_id);
     res = cpt_response_init(lc_res);
-    res->code = lc_res;
-    if ( res->code == SUCCESS )
+    if ( lc_res == SUCCESS )
     { /* Send back confirmation if successful */
         sprintf(res_msg_buf,
-                "Successfully left channel %d", channel_id);
-        res->data = (uint8_t *) strdup(res_msg_buf);
+            "Successfully left channel %d", channel_id);
+        res_msg = strdup(res_msg_buf);
+        res->code = LEAVE_CHANNEL;
     }
-    else { res->data = (uint8_t *) strdup("Failed to leave channel"); }
+    else
+    {
+        res_msg = strdup("Failed to leave channel");
+        res->code = FAILURE;
+    }
 
+    res->data_size = strlen(res_msg);
+    res->data = (uint8_t *) res_msg;
     res_size = cpt_serialize_response(res, res_buf);
     tcp_server_send(info->current_id, res_buf, res_size);
     cpt_response_destroy(res);
@@ -256,6 +266,7 @@ void leave_channel_event(CptServerInfo * info, uint16_t channel_id)
 
 int login_event(CptServerInfo * info)
 {
+    char * msg;
     CptRequest * req;
     CptResponse * res;
     int login_res, new_fd;
@@ -265,22 +276,31 @@ int login_event(CptServerInfo * info)
 
     if ( ((new_fd = handle_new_accept()) != SYS_CALL_FAIL) )
     {   /* If accept system call succeeds, attempt to add user */
+        res = cpt_response_init();
         info->current_id = new_fd;
         req_size = tcp_server_recv(new_fd, req_buf);
         req = cpt_parse_request(req_buf, req_size);
         login_res = cpt_login_response(info, (char *) req->msg);
+
 
         if (login_res == SUCCESS)
         { /* If login succeeded, add file desc and set the events */
             poll_fds[nfds].fd = new_fd;
             poll_fds[nfds].events = POLLIN;
             nfds++;
+
+            msg = strdup("Success!");
+            res->code = (uint8_t) LOGIN;
         }
+        else
+        {
+            msg = strdup("Failure");
+            res->code = (uint8_t) FAILURE;
+        }
+        res->data_size = strlen(msg);
+        res->data = (uint8_t *) msg;
 
-        res = cpt_response_init(login_res);
-        res->code = login_res;
-
-        res_size = cpt_simple_response(res, res_buf);
+        res_size = cpt_serialize_response(res, res_buf);
         tcp_server_send(new_fd, res_buf, res_size);
         cpt_response_destroy(res);
         cpt_request_destroy(req);
@@ -312,6 +332,7 @@ void logout_event(CptServerInfo * info)
 
 void create_channel_event(CptServerInfo * info, char * id_list)
 {
+    char * msg;
     int cc_res;
     uint16_t ncid;
     size_t res_size;
@@ -322,8 +343,21 @@ void create_channel_event(CptServerInfo * info, char * id_list)
     res = cpt_response_init(cc_res);
 
     ncid = (info->dir->length - 1);
-    res->data = (uint8_t *) &ncid;
-    res->code = (uint8_t) cc_res;
+
+    if ( cc_res == SUCCESS )
+    {
+        res->data = (uint8_t *) &ncid;
+        res->data_size = sizeof(ncid);
+        res->code = (uint8_t) CREATE_CHANNEL;
+    }
+    else
+    {
+        msg = strdup("Failed to create channel...");
+        res->data = (uint8_t *) msg;
+        res->data_size = sizeof(msg);
+        res->code = (uint8_t) FAILURE;
+    }
+
     res_size = cpt_serialize_response(res, res_buf);
     tcp_server_send(info->current_id, res_buf, res_size);
     cpt_response_destroy(res);
@@ -340,7 +374,9 @@ void get_users_event(CptServerInfo * info, int chan_id)
     gu_res = cpt_get_users_response(info, chan_id);
 
     if ( gu_res == SUCCESS )
-        { printf("GET_USERS event occurred successfully...\n"); }
+    {
+        printf("GET_USERS event occurred successfully...\n");
+    }
 
     res_size = cpt_serialize_response(info->res, res_buf);
     tcp_server_send(info->current_id, res_buf, res_size);
@@ -364,7 +400,7 @@ void send_event(CptServerInfo * info, char * msg, int channel_id)
         if ( user_node )
         {
             info->res = cpt_response_init();
-            info->res->code = (uint8_t) 10;
+            info->res->code = (uint8_t) SEND;
             info->res->data_size = strlen(msg);
             info->res->data = (uint8_t *) strdup(msg);
             res_size = cpt_serialize_response(info->res, res_buf);

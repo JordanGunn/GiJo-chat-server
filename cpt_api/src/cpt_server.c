@@ -67,6 +67,7 @@ int cpt_logout_response(void * server_info)
 int cpt_get_users_response(void * server_info, uint16_t channel_id)
 {
 
+    int result;
     char * res_str;
     Channel * channel;
     CptServerInfo * info;
@@ -78,21 +79,27 @@ int cpt_get_users_response(void * server_info, uint16_t channel_id)
     {
         res_str = channel_to_string(channel);
         if ( res_str )
-            { info->res->code = SUCCESS; }
+            { result = SUCCESS; }
         else
-            { info->res->code = CHAN_EMPTY; }
+            { result = CHAN_EMPTY; }
     }
-    else { info->res->code = BAD_CHANNEL; }
+    else { result = BAD_CHANNEL; }
 
-    if ( info->res->code != SUCCESS )
+    if ( result != SUCCESS )
     {
         res_str = strdup("Failed to get users...");
+        info->res->code = FAILURE;
     }
+    else
+    {
+        info->res->code = (uint8_t) GET_USERS;
+    }
+
 
     info->res->data = (uint8_t *) res_str;
     info->res->data_size = strlen(res_str);
 
-    return info->res->code;
+    return result;
 }
 
 

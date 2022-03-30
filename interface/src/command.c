@@ -109,6 +109,12 @@ void cmd_destroy(Command * cmd)
             cmd->args = NULL;
         }
 
+        if ( cmd->input )
+        {
+            free(cmd->input);
+            cmd->input = NULL;
+        }
+
         free(cmd);
         cmd = NULL;
     }

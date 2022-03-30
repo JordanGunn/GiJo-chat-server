@@ -5,12 +5,57 @@
 #ifndef CPT_HANDLERS_H
 #define CPT_HANDLERS_H
 
+#include "user_state.h"
 
-#include "client_config.h"
-#include "cpt_client.h"
-#include "tcp_client.h"
+/**
+ *
+ * @param ustate
+ * @param name
+ * @return
+ */
+int login_handler(UserState * ustate, char * name);
 
 
+/**
+ *
+ * @param ustate
+ */
+void logout_handler(UserState * ustate);
+
+
+/**
+ *
+ * @param ustate
+ */
+void get_users_handler(UserState * ustate);
+
+
+/**
+ *
+ * @param ustate
+ */
+void join_channel_handler(UserState * ustate);
+
+
+/**
+ * Handle CREATE_CHANNEL cpt protocol request and response.
+ *
+ * @param ustate
+ */
+void create_channel_handler(UserState * ustate);
+
+/**
+ *
+ * @param ustate
+ */
+void leave_channel_handler(UserState * ustate);
+
+
+/**
+ *
+ * @param ustate
+ */
+void send_handler(UserState * ustate);
 
 
 #endif //CPT_HANDLERS_H
