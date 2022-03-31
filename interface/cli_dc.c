@@ -91,6 +91,7 @@ void * send_thread(void * user_state)
             pthread_cond_wait(&receiving, &mutex);
         }
         pthread_mutex_unlock(&mutex);
+
     }
 
 
@@ -104,8 +105,8 @@ void command_handler(UserState * ustate)
 {
 
     ustate->cmd = cmd_init();
-
     chat_prompt(ustate);
+
     ustate->cmd->input = get_user_input();
     parse_cmd_input(ustate->cmd);
 
@@ -130,11 +131,10 @@ void command_handler(UserState * ustate)
                 }
             }
         }
-        //TODO try
         is_receiving = true;
-        cmd_destroy(ustate->cmd);
+//        cmd_destroy(ustate->cmd);
     }
-//    cmd_destroy(ustate->cmd);
+    cmd_destroy(ustate->cmd);
 }
 
 // ===========================================================================
@@ -147,10 +147,7 @@ void * recv_thread(void * user_state)
 
     while ( ustate->LOGGED_IN )
     {
-        pthread_mutex_lock(&mutex);
         recv_handler(ustate);
-        pthread_mutex_unlock(&mutex);
-        pthread_cond_signal(&receiving);
     }
 
     return (void *) ustate;
@@ -161,18 +158,27 @@ void recv_handler(UserState * ustate)
 {
 
     char * block;
-    ssize_t res_size;
     CptResponse * res;
     int cid;
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
+    ssize_t res_size;
 
+    do {
+        res_size = tcp_client_recv(ustate->client_info->fd, res_buf);
 
-    res_size = tcp_client_recv(ustate->client_info->fd, res_buf);
+        if (res_size >= 0)
+            { is_receiving = true; }
+        else
+            { is_receiving = false; }
+
+    } while ( res_size <= 0 );
+
+    // =============================
+    pthread_mutex_lock(&mutex);
+    // ==============================
 
     if (res_size > 0)
     {
-        is_receiving = true;
-
         res = cpt_parse_response(res_buf, res_size);
         if ( res )
         {
@@ -206,14 +212,14 @@ void recv_handler(UserState * ustate)
                 strncpy(block, (char *) res->data, BLOCK_SIZE);
                 shmem_detach(block);
             }
-
             cpt_response_reset(res);
         }
-
-    } else {
-        is_receiving = false;
     }
-
+    // ===================================
+    is_receiving = false;
+    pthread_mutex_unlock(&mutex);
+    pthread_cond_signal(&receiving);
+    // ===================================
 }
 
 // ========================================================================
