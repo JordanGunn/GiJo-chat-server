@@ -83,15 +83,8 @@ void * send_thread(void * user_state)
 
     while ( ustate->LOGGED_IN )
     {
-        pthread_mutex_lock(&mutex);
-        command_handler(ustate);
-        while ( is_receiving )
-        {
-            printf("Waiting for response...\n");
-            pthread_cond_wait(&receiving, &mutex);
-        }
-        pthread_mutex_unlock(&mutex);
 
+        command_handler(ustate);
     }
 
 
@@ -131,7 +124,16 @@ void command_handler(UserState * ustate)
                 }
             }
         }
+
         is_receiving = true;
+        pthread_mutex_lock(&mutex);
+        while ( is_receiving )
+        {
+            printf("Waiting for response...\n");
+            pthread_cond_wait(&receiving, &mutex);
+        }
+        pthread_mutex_unlock(&mutex);
+
 //        cmd_destroy(ustate->cmd);
     }
     cmd_destroy(ustate->cmd);
