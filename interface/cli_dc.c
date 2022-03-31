@@ -83,14 +83,7 @@ void * send_thread(void * user_state)
 
     while ( ustate->LOGGED_IN )
     {
-//        pthread_mutex_lock(&mutex);
         command_handler(ustate);
-//        while ( is_receiving )
-//        {
-//            printf("Waiting for response...\n");
-//            pthread_cond_wait(&receiving, &mutex);
-//        }
-//        pthread_mutex_unlock(&mutex);
     }
 
 
@@ -112,15 +105,21 @@ void command_handler(UserState * ustate)
     if ( ustate->cmd )
     {
         pthread_mutex_lock(&mutex);
-
         if (is_valid_cmd(ustate->cmd))
         {
+            is_receiving = true;
             if ( is_cmd(ustate->cmd, cli_cmds[MENU_CMD]           )) { menu();                         }
             if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]         )) { logout_handler(ustate);         }
             if ( is_cmd(ustate->cmd, cli_cmds[GET_USERS_CMD]      )) { get_users_handler(ustate);      }
             if ( is_cmd(ustate->cmd, cli_cmds[CREATE_CHANNEL_CMD] )) { create_channel_handler(ustate); }
             if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL_CMD]   )) { join_channel_handler(ustate);   }
             if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL_CMD]  )) { leave_channel_handler(ustate);  }
+
+            while(is_receiving)
+            {
+                puts("Waiting response...");
+                pthread_cond_wait(&receiving, &mutex);
+            }
         }
         else
         {
@@ -132,12 +131,9 @@ void command_handler(UserState * ustate)
                 }
             }
         }
-        //TODO try
-//        is_receiving = true;
         cmd_destroy(ustate->cmd);
         pthread_mutex_unlock(&mutex);
     }
-//    cmd_destroy(ustate->cmd);
 }
 
 // ===========================================================================
@@ -148,13 +144,8 @@ void * recv_thread(void * user_state)
 
     ustate = (UserState *) user_state;
 
-//    while ( ustate->LOGGED_IN )
-//    {
-//        pthread_mutex_lock(&mutex);
-        recv_handler(ustate);
-//        pthread_mutex_unlock(&mutex);
-//        pthread_cond_signal(&receiving);
-//    }
+
+    recv_handler(ustate);
 
     return (void *) ustate;
 }
@@ -175,9 +166,8 @@ void recv_handler(UserState * ustate)
 
         if (res_size > 0)
         {
-            //is_receiving = true;
             pthread_mutex_lock(&mutex);
-
+            is_receiving = false;
             res = cpt_parse_response(res_buf, res_size);
             if ( res )
             {
@@ -211,15 +201,15 @@ void recv_handler(UserState * ustate)
                     strncpy(block, (char *) res->data, BLOCK_SIZE);
                     shmem_detach(block);
                 }
+                else
+                {
+                    pthread_cond_signal(&receiving);
+                }
 
                 cpt_response_reset(res);
             }
             pthread_mutex_unlock(&mutex);
         }
-//        else
-//        {
-//            is_receiving = false;
-//        }
     }
 }
 
