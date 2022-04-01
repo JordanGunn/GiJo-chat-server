@@ -6,6 +6,7 @@
 #define CPT_TCP_SERVER_CONFIG_H
 
 //#define IP_LOCAL_LB   "192.168.1.106"
+//#define IP_LOCAL_LB     "192.168.0.13"
 #define IP_LOCAL_LB      "127.0.0.1"
 #define IP_LOCAL_BC      "192.168.1.255"
 #define PORT_8080        "8080"

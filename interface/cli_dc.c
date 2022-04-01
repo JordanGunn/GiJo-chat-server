@@ -83,15 +83,7 @@ void * send_thread(void * user_state)
 
     while ( ustate->LOGGED_IN )
     {
-        pthread_mutex_lock(&mutex);
         command_handler(ustate);
-        while ( is_receiving )
-        {
-            printf("Waiting for response...\n");
-            pthread_cond_wait(&receiving, &mutex);
-        }
-        pthread_mutex_unlock(&mutex);
-
     }
 
 
@@ -112,14 +104,22 @@ void command_handler(UserState * ustate)
 
     if ( ustate->cmd )
     {
+        pthread_mutex_lock(&mutex);
         if (is_valid_cmd(ustate->cmd))
         {
+            is_receiving = true;
             if ( is_cmd(ustate->cmd, cli_cmds[MENU_CMD]           )) { menu();                         }
             if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]         )) { logout_handler(ustate);         }
             if ( is_cmd(ustate->cmd, cli_cmds[GET_USERS_CMD]      )) { get_users_handler(ustate);      }
             if ( is_cmd(ustate->cmd, cli_cmds[CREATE_CHANNEL_CMD] )) { create_channel_handler(ustate); }
             if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL_CMD]   )) { join_channel_handler(ustate);   }
             if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL_CMD]  )) { leave_channel_handler(ustate);  }
+
+            while(is_receiving)
+            {
+                puts("Waiting response...");
+                pthread_cond_wait(&receiving, &mutex);
+            }
         }
         else
         {
@@ -131,10 +131,10 @@ void command_handler(UserState * ustate)
                 }
             }
         }
-        is_receiving = true;
-//        cmd_destroy(ustate->cmd);
+
+        cmd_destroy(ustate->cmd);
+        pthread_mutex_unlock(&mutex);
     }
-    cmd_destroy(ustate->cmd);
 }
 
 // ===========================================================================
@@ -144,11 +144,7 @@ void * recv_thread(void * user_state)
     UserState * ustate;
 
     ustate = (UserState *) user_state;
-
-    while ( ustate->LOGGED_IN )
-    {
-        recv_handler(ustate);
-    }
+    recv_handler(ustate);
 
     return (void *) ustate;
 }
@@ -163,63 +159,56 @@ void recv_handler(UserState * ustate)
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
     ssize_t res_size;
 
-    do {
+    while (ustate->LOGGED_IN)
+    {
         res_size = tcp_client_recv(ustate->client_info->fd, res_buf);
 
-        if (res_size >= 0)
-            { is_receiving = true; }
-        else
-            { is_receiving = false; }
-
-    } while ( res_size <= 0 );
-
-    // =============================
-    pthread_mutex_lock(&mutex);
-    // ==============================
-
-    if (res_size > 0)
-    {
-        res = cpt_parse_response(res_buf, res_size);
-        if ( res )
+        if (res_size > 0)
         {
-            if ( res->code == (uint8_t) GET_USERS )
+            pthread_mutex_lock(&mutex);
+            is_receiving = false;
+            res = cpt_parse_response(res_buf, res_size);
+            if ( res )
             {
-                printf("%s\n", (char *)res->data);
-            }
+                if ( res->code == (uint8_t) GET_USERS )
+                {
+                    printf("%s\n", (char *)res->data);
+                }
 
-            if ( res->code == (uint8_t) CREATE_CHANNEL )
-            {
-                cid = (uint16_t) ( *(res->data) ); // new channel id is in response
-                ustate->channel = cid;
-                printf("\nSuccessfully created channel %d\n", cid);
-            }
+                if ( res->code == (uint8_t) CREATE_CHANNEL )
+                {
+                    cid = (uint16_t) ( *(res->data) ); // new channel id is in response
+                    ustate->channel = cid;
+                    printf("\nSuccessfully created channel %d\n", cid);
+                }
 
-            if ( res->code == (uint8_t) JOIN_CHANNEL )
-            {
-                cid = (uint16_t) ( *(res->data) );
-                ustate->channel = cid;
-            }
+                if ( res->code == (uint8_t) JOIN_CHANNEL )
+                {
+                    cid = (uint16_t) ( *(res->data) );
+                    ustate->channel = cid;
+                }
 
-            if ( res->code == (uint8_t) LEAVE_CHANNEL )
-            {
-                printf("%s\n", (char *)res->data);
-                ustate->channel = CHANNEL_ZERO;
-            }
+                if ( res->code == (uint8_t) LEAVE_CHANNEL )
+                {
+                    printf("%s\n", (char *)res->data);
+                    ustate->channel = CHANNEL_ZERO;
+                }
+                if ( res->code == (uint8_t) SEND )
+                {
+                    block = shmem_attach(FILENAME, BLOCK_SIZE);
+                    strncpy(block, (char *) res->data, BLOCK_SIZE);
+                    shmem_detach(block);
+                }
+                else
+                {
+                    pthread_cond_signal(&receiving);
+                }
 
-            if ( res->code == (uint8_t) SEND )
-            {
-                block = shmem_attach(FILENAME, BLOCK_SIZE);
-                strncpy(block, (char *) res->data, BLOCK_SIZE);
-                shmem_detach(block);
+                cpt_response_reset(res);
             }
-            cpt_response_reset(res);
+            pthread_mutex_unlock(&mutex);
         }
     }
-    // ===================================
-    is_receiving = false;
-    pthread_mutex_unlock(&mutex);
-    pthread_cond_signal(&receiving);
-    // ===================================
 }
 
 // ========================================================================
