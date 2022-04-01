@@ -115,6 +115,8 @@ void command_handler(UserState * ustate)
             if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL_CMD]   )) { join_channel_handler(ustate);   }
             if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL_CMD]  )) { leave_channel_handler(ustate);  }
 
+
+            is_receiving = true;
             while(is_receiving)
             {
                 puts("Waiting response...");
@@ -131,7 +133,6 @@ void command_handler(UserState * ustate)
                 }
             }
         }
-
         cmd_destroy(ustate->cmd);
         pthread_mutex_unlock(&mutex);
     }
@@ -166,7 +167,6 @@ void recv_handler(UserState * ustate)
         if (res_size > 0)
         {
             pthread_mutex_lock(&mutex);
-            is_receiving = false;
             res = cpt_parse_response(res_buf, res_size);
             if ( res )
             {
@@ -203,7 +203,7 @@ void recv_handler(UserState * ustate)
                 {
                     pthread_cond_signal(&receiving);
                 }
-
+                is_receiving = false;
                 cpt_response_reset(res);
             }
             pthread_mutex_unlock(&mutex);
