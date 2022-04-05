@@ -2,7 +2,7 @@
 // Created by jordan on 2022-04-05.
 //
 
-#include "../include/server_info.h"
+#include "server_info.h"
 
 
 ServerInfo * cpt_server_info_init(Channel * gc, Channels * dir)

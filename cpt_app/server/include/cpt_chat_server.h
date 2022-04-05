@@ -7,10 +7,7 @@
 
 #include "server_config.h"
 #include "tcp_server.h"
-#include "channel.h"
-#include "user.h"
 
-#include "cpt_types.h"
 #include "cpt_server.h"
 
 

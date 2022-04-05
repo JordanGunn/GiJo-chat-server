@@ -5,14 +5,9 @@
 #ifndef CPT_CHANNEL_H
 #define CPT_CHANNEL_H
 
-#include "cpt_definitions.h"
 #include "linked_list.h"
-#include "cpt_types.h"
 #include "user.h"
 
-typedef struct channels Channels;
-typedef struct channel_node ChannelNode;
-typedef struct channel_struct Channel;
 
 /**
  * A Channel object.
@@ -20,6 +15,7 @@ typedef struct channel_struct Channel;
  * Contains useful data members, as
  * well as a LinkedList of User objects.
  */
+typedef struct channel_struct Channel;
 struct channel_struct /* may consider adding a fd to this object... */
 {
     int      fd;
@@ -28,19 +24,29 @@ struct channel_struct /* may consider adding a fd to this object... */
 };
 
 
-struct channels
-{
-    int length;
-    ChannelNode ** channel_head;
-    ChannelNode ** channel_tail;
-};
-
-
+/**
+* ChannelNode object.
+*
+* Nodes for Channels object.
+*/
+typedef struct channel_node ChannelNode;
 struct channel_node
 {
     Channel * chan;
     ChannelNode * next_chan;
     size_t channel_size;
+};
+
+
+/**
+ * Channels object - a LinkedList of type Channel.
+ */
+typedef struct channels Channels;
+struct channels
+{
+    int length;
+    ChannelNode ** channel_head;
+    ChannelNode ** channel_tail;
 };
 
 

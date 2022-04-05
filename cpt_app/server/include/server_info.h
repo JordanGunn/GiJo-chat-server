@@ -6,8 +6,9 @@
 #define CPT_SERVER_INFO_H
 
 #include "cpt_packet_builder.h"
+#include "cpt_definitions.h"
+#include "cpt_types.h"
 #include "channel.h"
-
 
 /**
  * ServerInfo object.
