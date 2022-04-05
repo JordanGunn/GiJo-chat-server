@@ -16,6 +16,7 @@
 #define LOGOUT_CMD 5
 #define MENU_CMD 6
 
+
 /**
  * Valid CLI commands.
  */
@@ -49,7 +50,7 @@ struct command
 /**
  * Check user input against valid CLI commands.
  *
- * @param cmd     string from get_user_input().
+ * @param cmd     string from get_cmd_input().
  * @return true or false.
  */
 bool is_valid_cmd(Command * cmd);
@@ -104,14 +105,6 @@ void parse_cmd_args(Command * cmd);
 
 
 /**
- * Handle parsed commands.
- *
- * @param cmd   Pointer to Command object.
- */
-void handle_cmd(Command * cmd);
-
-
-/**
  * Check if user input is a command.
  *
  * @param command
@@ -119,6 +112,20 @@ void handle_cmd(Command * cmd);
  * @return
  */
 bool is_cmd(Command * command, char * cli_cmd);
+
+
+/**
+ * Get user input from STDIN.
+ *
+ * @return Input from user as char pointer.
+ */
+char * cmd_get_input();
+
+
+/**
+ * Print the menu to out stream.
+ */
+void menu();
 
 
 #endif //CPT_COMMAND_H

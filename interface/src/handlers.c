@@ -173,6 +173,55 @@ void send_handler(UserState * ustate)
 }
 
 
+void recv_handler(UserState * ustate, const CptResponse * res)
+{
+    int cid;
+    char * block;
+
+    if ( res->code == (uint8_t) GET_USERS )
+    {
+        printf("%s\n", (char *)res->data);
+    }
+
+    if ( res->code == (uint8_t) CREATE_CHANNEL )
+    {
+        cid = (uint16_t) ( *(res->data) ); // new channel id is in response
+        ustate->channel = cid;
+        printf("\nSuccessfully created channel %d\n", cid);
+    }
+
+    if ( res->code == (uint8_t) JOIN_CHANNEL )
+    {
+        cid = (uint16_t) ( *(res->data) );
+        ustate->channel = cid;
+    }
+
+    if ( res->code == (uint8_t) LEAVE_CHANNEL )
+    {
+        printf("%s\n", (char *)res->data);
+        ustate->channel = CHANNEL_ZERO;
+    }
+    if ( res->code == (uint8_t) SEND )
+    {
+        block = shmem_attach(FILENAME, BLOCK_SIZE);
+        strncpy(block, (char *) res->data, BLOCK_SIZE);
+        shmem_detach(block);
+    }
+}
+
+
+void cmd_handler(UserState * ustate)
+{
+    if ( is_cmd(ustate->cmd, cli_cmds[MENU_CMD]           )) { menu();                         }
+    if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]         )) { logout_handler(ustate);         }
+    if ( is_cmd(ustate->cmd, cli_cmds[GET_USERS_CMD]      )) { get_users_handler(ustate);      }
+    if ( is_cmd(ustate->cmd, cli_cmds[CREATE_CHANNEL_CMD] )) { create_channel_handler(ustate); }
+    if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL_CMD]   )) { join_channel_handler(ustate);   }
+    if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL_CMD]  )) { leave_channel_handler(ustate);  }
+}
+
+
+
 
 
 

@@ -119,3 +119,41 @@ void cmd_destroy(Command * cmd)
         cmd = NULL;
     }
 }
+
+
+void menu()
+{
+    char menu_buf[XL_BUFF_SIZE] = {0};
+    static char * logout, * get_users, * create_channel, * join_channel;
+    static char * title, * div, * leave_channel, * menu;
+
+    div = "==================================================";
+    title = "Choose from the following options...\n\n";
+    get_users      = "  [1] @get-users <chan_id>\n";
+    create_channel = "  [2] @create-channel \"<uid-1> <uid-2>.. <uid-n>\"\n";
+    join_channel   = "  [3] @join-channel <chan_id>\n";
+    leave_channel  = "  [4] @leave-channel <chan_id>\n";
+    logout         = "  [5] @logout <name>\n";
+    menu           = "  [6] @menu\n";
+
+    sprintf(menu_buf, "%s\n%s%s%s%s%s%s%s%s\n",
+            div,
+            title, get_users, create_channel,
+            join_channel, leave_channel, logout, menu,
+            div
+    );
+
+    printf("%s", menu_buf);
+    printf("\n");
+    fflush(stdout);
+}
+
+
+char * cmd_get_input()
+{
+    char buf[SM_BUFF_SIZE] = {0};
+
+    read(STDIN_FILENO, buf, SM_BUFF_SIZE);
+    return strdup(buf);
+}
+

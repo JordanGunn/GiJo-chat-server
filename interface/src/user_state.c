@@ -4,6 +4,7 @@
 
 #include "user_state.h"
 
+
 UserState * user_state_init()
 {
     UserState * ustate;

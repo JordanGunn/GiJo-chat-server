@@ -8,7 +8,6 @@
 #include "command.h"
 #include "cpt_client.h"
 
-
 /**
  * UserState object.
  */
@@ -24,16 +23,24 @@ struct user_state
 
 
 /**
+ * Initialize a UserState object.
  *
- * @return
+ * Allocate any necessary memory, set
+ * remaining pointers to NULL, and remaining
+ * values to 0.
+ *
+ * @return Pointer to a UserSState object.
  */
 UserState * user_state_init();
 
 
 /**
+ * Destroy UserState object.
  *
+ * Free any allocated memory if necessary,
+ * and set all remaining pointer to NULL.
  */
-void user_state_destroy();
+void user_state_destroy(UserState * ustate);
 
 
 #endif //CPT_USER_STATE_H
