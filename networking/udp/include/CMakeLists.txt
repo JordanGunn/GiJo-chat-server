@@ -1,0 +1,7 @@
+SET(UDP_CLIENT_INCLUDE
+        ${CMAKE_CURRENT_SOURCE_DIR}/udp_client.h
+        PARENT_SCOPE)
+
+SET(UDP_SERVER_INCLUDE
+        ${CMAKE_CURRENT_SOURCE_DIR}/udp_server.h
+        PARENT_SCOPE)

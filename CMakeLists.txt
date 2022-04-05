@@ -13,7 +13,7 @@ add_subdirectory(cpt_app/)
 add_subdirectory(testing/)
 add_subdirectory(interface/)
 add_subdirectory(messenger/)
-add_subdirectory(tcp_networking/)
+add_subdirectory(networking/)
 
 
 # To be honest I have no idea what this does
@@ -32,23 +32,22 @@ ENDIF()
 
 # Make a executables
 add_executable(cpt_chat_server
+        ${CPT_COMMON_TARGET}
         ${CHAT_SERVER_TARGET}
-        ${TCP_SERVER_TARGETS}
         ${CPT_API_SERVER_TGT}
-        ${CPT_COMMON_TARGET})
+        ${NETWORK_SERVER_TARGET})
 
 add_executable(cpt_chat_client
-        ${CHAT_CLIENT_TARGET}
-        ${TCP_CLIENT_TARGETS}
-        ${CPT_API_CLIENT_TGT}
-        ${CPT_COMMON_TARGET}
+        ${CLI_TARGET}
         ${MESSAGE_SOURCE}
-        ${CLI_TARGET})
+        ${CPT_COMMON_TARGET}
+        ${CHAT_CLIENT_TARGET}
+        ${CPT_API_CLIENT_TGT}
+        ${NETWORK_CLIENT_TARGET})
 
 add_executable(cpt_messenger
         ${CPT_COMMON_TARGET}
-        ${MESSAGE_TARGET}
-        ${MESSAGE_SOURCE})
+        ${MESSAGE_TARGET})
 
 #add_executable(test ${TEST_TARGET})
 
@@ -68,14 +67,16 @@ target_link_directories(cpt_chat_server PRIVATE /usr/local/lib)
 # tell the compiler where local header files are
 target_include_directories(cpt_chat_server PRIVATE common/include/)
 target_include_directories(cpt_chat_server PRIVATE cpt_api/include/)
-target_include_directories(cpt_chat_server PRIVATE tcp_networking/include/)
+target_include_directories(cpt_chat_server PRIVATE networking/tcp/include/)
+target_include_directories(cpt_chat_server PRIVATE networking/udp/include/)
 target_include_directories(cpt_chat_server PRIVATE cpt_app/server/include/)
 
 
 # link the local source files
 target_link_directories(cpt_chat_server PRIVATE common/src/)
 target_link_directories(cpt_chat_server PRIVATE cpt_api/src/)
-target_link_directories(cpt_chat_server PRIVATE tcp_networking/src/)
+target_link_directories(cpt_chat_server PRIVATE networking/tcp/src/)
+target_link_directories(cpt_chat_server PRIVATE networking/udp/src/)
 target_link_directories(cpt_chat_server PRIVATE cpt_app/server/src/)
 
 
@@ -97,7 +98,8 @@ target_include_directories(cpt_chat_client PRIVATE messenger/)
 target_include_directories(cpt_chat_client PRIVATE common/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_api/include/)
 target_include_directories(cpt_chat_client PRIVATE interface/include/)
-target_include_directories(cpt_chat_client PRIVATE tcp_networking/include/)
+target_include_directories(cpt_chat_client PRIVATE networking/tcp/include/)
+target_include_directories(cpt_chat_client PRIVATE networking/udp/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_app/client/include/)
 
 # link the local source files
@@ -107,7 +109,8 @@ target_link_directories(cpt_chat_client PRIVATE common/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_api/src/)
 target_link_directories(cpt_chat_client PRIVATE interface/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_app/client/src/)
-target_link_directories(cpt_chat_client PRIVATE tcp_networking/src/)
+target_link_directories(cpt_chat_client PRIVATE networking/tcp/src/)
+target_link_directories(cpt_chat_client PRIVATE networking/udp/src/)
 
 
 # ========================================================================
