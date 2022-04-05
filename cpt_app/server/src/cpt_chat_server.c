@@ -15,6 +15,7 @@ static bool is_fatal_error, close_conn, compress_array;
 int main(void)
 {
     run();
+
     return 0;
 }
 
@@ -429,7 +430,7 @@ void send_event(ServerInfo * info, char * msg, int channel_id)
 bool is_revent_POLLIN(int index)
 {
     return (
-        poll_fds[index].revents ==
+//        poll_fds[index].revents ==
         ( ((uint16_t) poll_fds[index].revents) & POLLIN )
     );
 }
