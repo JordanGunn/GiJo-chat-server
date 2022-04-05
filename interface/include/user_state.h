@@ -16,7 +16,7 @@ struct user_state
 {
     Command * cmd;
     uint16_t channel;
-    CptClientInfo * client_info;
+    ClientInfo * client_info;
 
     bool LOGGED_IN;
 };

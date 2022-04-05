@@ -5,11 +5,11 @@
 #ifndef CPT_CPT_CLIENT_H
 #define CPT_CPT_CLIENT_H
 
-#include "tcp_client.h"
+
 #include "cpt_parse.h"
+#include "tcp_client.h"
+#include "client_info.h"
 #include "cpt_serialize.h"
-#include "cpt_definitions.h"
-#include "cpt_packet_builder.h"
 
 
 /**
@@ -96,7 +96,7 @@ size_t cpt_logout(void * client_info, uint8_t * serial_buf);
 */
 int cpt_send(void * client_info, uint8_t * serial_buf, char * msg);
 
-//TODO this doxygen needs to be updated.
+
 /**
  * Prepare a JOIN_CHANNEL request packet for the server.
  *
@@ -127,37 +127,6 @@ size_t cpt_join_channel(void * client_info, uint8_t * serial_buf, uint16_t chann
  * @return Size of the resulting serialized packet in <serial_buf>
 */
 size_t cpt_leave_channel(void * client_info, uint8_t * serial_buf, uint16_t channel_id);
-
-
-/**
- * Create a CptClientInfo object.
- *
- * Contains necessary information to
- * to create a TCP connection with the
- * server and send data back and forth.
- *
- * Initializes all necessary fields and
- * allocates any memory necessary for the
- * object.
- *
- * @param port  Server port number.
- * @param ip    Server IP or URL.
- * @return CptClientInfo object.
- */
-CptClientInfo * cpt_init_client_info(char * port, char * ip);
-
-
-/**
- * Destroy CptRequestInfo object.
- *
- * Frees any memory necessary for the
- * object and set all pointers to NULL.
- *
- * @param packet_info CptRequestInfo object.
- */
-void cpt_destroy_client_info(CptClientInfo * client_info);
-
-
 
 
 #endif //CPT_CPT_CLIENT_H

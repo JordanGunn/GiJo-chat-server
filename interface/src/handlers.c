@@ -61,7 +61,7 @@ void create_channel_handler(UserState * ustate)
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
 
     req_size = cpt_create_channel(
-            ustate->client_info, req_buf, (char *) ustate->cmd->args);
+            ustate->client_info, req_buf, ustate->cmd->args);
 
     result = tcp_client_send(
             ustate->client_info->fd, req_buf, req_size);
@@ -79,7 +79,7 @@ void get_users_handler(UserState * ustate)
     char * args_end;
     size_t req_size;
     uint16_t channel_id;
-    CptClientInfo * info;
+    ClientInfo * info;
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
 
     info = ustate->client_info;

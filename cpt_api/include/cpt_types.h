@@ -10,7 +10,6 @@
 
 typedef struct cpt_request CptRequest;
 typedef struct cpt_response CptResponse;
-typedef struct cpt_client_info CptClientInfo;
 typedef struct cpt_server_info CptServerInfo;
 typedef struct cpt_msg_sub_packet CptMsgSubPacket;
 typedef struct username_id_pair UserNameIdPair;
@@ -32,27 +31,6 @@ struct cpt_request
     uint16_t  channel_id;
     uint16_t   msg_len;
     uint8_t * msg;
-};
-
-
-/**
- * Client info object.
- *
- * Holds all useful or relevant information for
- * client side application programming. This
- * includes sending/receiving messages, storing
- * active user channels, etc.
- */
-struct cpt_client_info
-{
-    int fd;
-    int code;
-    char * ip;
-    char * port;
-    char * name;
-    uint16_t channel;
-    CptRequest * packet;
-    LinkedList * channels;
 };
 
 
