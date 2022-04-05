@@ -5,26 +5,12 @@
 #ifndef CPT_CPT_SERVER_H
 #define CPT_CPT_SERVER_H
 
+#include "server_info.h"
 #include "tcp_server.h"
 
 #include "cpt_packet_builder.h"
 #include "cpt_serialize.h"
-#include "channel.h"
 #include "cpt_parse.h"
-#include "user.h"
-
-
-typedef struct cpt_server_info CptServerInfo;
-
-
-struct cpt_server_info
-{
-    int current_id;
-    int channel_id;
-    CptResponse * res;
-    Channels * dir;
-    Channel * gc;
-};
 
 
 /**
@@ -161,30 +147,6 @@ int cpt_leave_channel_response(void * server_info, uint16_t channel_id);
  * @return      Pointer to Serialized CptResponse object.
  */
 size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf);
-
-
-/**
- * Initialize and allocate all necessary server data structures.
- *
- * Initializes and allocates necessary memory for data structure
- * object pointers.
- *
- * @param gc   Pointer to the GlobalChannel object.
- * @param dir  Pointer to a LinkedList of Channel objects.
- * @return     Pointer to CptServerInfo object.
- */
-CptServerInfo * cpt_server_info_init(Channel * gc, Channels * dir);
-
-
-/**
- * Destroy te ServerInfo object.
- *
- * Free any allocated memory and set pointer to NULL.
- *
- * @param gc   Pointer to the GlobalChannel object.
- * @return     Pointer to CptServerInfo object.
- */
-CptServerInfo * cpt_server_info_destroy(CptServerInfo * server_info);
 
 
 #endif //CPT_CPT_SERVER_H

@@ -10,8 +10,8 @@
 
 typedef struct cpt_request CptRequest;
 typedef struct cpt_response CptResponse;
-typedef struct cpt_server_info CptServerInfo;
 typedef struct cpt_msg_sub_packet CptMsgSubPacket;
+
 typedef struct username_id_pair UserNameIdPair;
 
 

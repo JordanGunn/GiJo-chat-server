@@ -5,6 +5,10 @@
 #include "cpt_packet_builder.h"
 
 
+
+// ========================================
+//  C P T   R E Q U E S T   P A C K E T
+// ========================================
 CptRequest * cpt_request_init()
 {
     CptRequest * req;
@@ -15,7 +19,6 @@ CptRequest * cpt_request_init()
 
     return req;
 }
-
 
 
 void cpt_request_destroy(CptRequest * req)
@@ -128,11 +131,9 @@ char * cpt_to_string(CptRequest * cpt)
 }
 
 
-// ==================================
-// C P T   S E R V E R  P A C K E T S
-// ==================================
-
-
+// =======================================
+//  C P T   R E S P O N S E    P A C K E T
+// =======================================
 CptResponse * cpt_response_init()
 {
     CptResponse * res;
@@ -167,12 +168,9 @@ void cpt_response_reset(CptResponse * res)
 
 
 
-
 // ============================
 // C P T   S U B - P A CK E T S
 // ============================
-
-
 CptMsgSubPacket * cpt_msg_sp_init()
 {
     size_t num_bytes;

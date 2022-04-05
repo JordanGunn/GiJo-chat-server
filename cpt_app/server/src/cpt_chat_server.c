@@ -23,7 +23,7 @@ void run()
     // ===============================================
     //    I N I T I A L    S E T U P
     // ===============================================
-    CptServerInfo * server_info;
+    ServerInfo * server_info;
     Channel * gc; Channels * dir;
 
     gc = init_global_channel();
@@ -202,7 +202,7 @@ void run()
 }
 
 
-void join_channel_event(CptServerInfo *info, uint16_t channel_id)
+void join_channel_event(ServerInfo *info, uint16_t channel_id)
 {
     char * msg;
     int join_res;
@@ -232,7 +232,7 @@ void join_channel_event(CptServerInfo *info, uint16_t channel_id)
 }
 
 
-void leave_channel_event(CptServerInfo * info, uint16_t channel_id)
+void leave_channel_event(ServerInfo * info, uint16_t channel_id)
 {
     int lc_res;
     char * res_msg;
@@ -264,7 +264,7 @@ void leave_channel_event(CptServerInfo * info, uint16_t channel_id)
 }
 
 
-int login_event(CptServerInfo * info)
+int login_event(ServerInfo * info)
 {
     char * msg;
     CptRequest * req;
@@ -318,7 +318,7 @@ int login_event(CptServerInfo * info)
 }
 
 
-void logout_event(CptServerInfo * info)
+void logout_event(ServerInfo * info)
 {
     int lo_res;
     lo_res = cpt_logout_response(info);
@@ -330,7 +330,7 @@ void logout_event(CptServerInfo * info)
 }
 
 
-void create_channel_event(CptServerInfo * info, char * id_list)
+void create_channel_event(ServerInfo * info, char * id_list)
 {
     char * msg;
     int cc_res;
@@ -364,7 +364,7 @@ void create_channel_event(CptServerInfo * info, char * id_list)
 }
 
 
-void get_users_event(CptServerInfo * info, int chan_id)
+void get_users_event(ServerInfo * info, int chan_id)
 {
     int gu_res;
     size_t res_size;
@@ -384,7 +384,7 @@ void get_users_event(CptServerInfo * info, int chan_id)
 }
 
 
-void send_event(CptServerInfo * info, char * msg, int channel_id)
+void send_event(ServerInfo * info, char * msg, int channel_id)
 {
     User * user;
     size_t res_size;

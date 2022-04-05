@@ -8,9 +8,9 @@ int cpt_login_response(void * server_info, char * name)
 {
     int id;
     User * user;
-    CptServerInfo * info;
+    ServerInfo * info;
 
-    info = (CptServerInfo *) server_info;
+    info = (ServerInfo *) server_info;
 
     id = info->current_id;
     if ( !info->gc ) { return BAD_CHANNEL; }
@@ -33,10 +33,10 @@ int cpt_logout_response(void * server_info)
 {
     int lo_res;
     Channel * chan;
-    CptServerInfo * info;
+    ServerInfo * info;
     ChannelNode * chan_iter;
 
-    info = (CptServerInfo *) server_info;
+    info = (ServerInfo *) server_info;
     if ( !info->gc )  { return BAD_CHANNEL; }
 
     chan_iter = get_head_channel(info->dir); // !
@@ -70,9 +70,9 @@ int cpt_get_users_response(void * server_info, uint16_t channel_id)
     int result;
     char * res_str;
     Channel * channel;
-    CptServerInfo * info;
+    ServerInfo * info;
 
-    info = (CptServerInfo *) server_info;
+    info = (ServerInfo *) server_info;
 
     channel = find_channel(info->dir, channel_id);
     if ( channel )
@@ -106,13 +106,13 @@ int cpt_get_users_response(void * server_info, uint16_t channel_id)
 int cpt_create_channel_response(void * server_info, char * id_list)
 {
     int push_res;
-    CptServerInfo * info;
+    ServerInfo * info;
     Channel * new_channel;
     User * user; Users * users;
     uint16_t id_buf[SM_BUFF_SIZE] = {0};
 
     users = NULL; push_res = 1;
-    info = (CptServerInfo *) server_info;
+    info = (ServerInfo *) server_info;
 
     if ( !info->gc )
         { return BAD_CHANNEL; }
@@ -142,10 +142,10 @@ int cpt_join_channel_response(void * server_info, uint16_t channel_id)
     int result;
     User * user;
     Channel * channel;
-    CptServerInfo * info;
+    ServerInfo * info;
 
     result = false;
-    info = (CptServerInfo *) server_info;
+    info = (ServerInfo *) server_info;
 
     channel = find_channel(info->dir, channel_id);
     if ( channel )
@@ -168,9 +168,9 @@ int cpt_leave_channel_response(void * server_info, uint16_t channel_id)
 {
     int del_res;
     Channel * channel;
-    CptServerInfo * info;
+    ServerInfo * info;
 
-    info = (CptServerInfo *) server_info;
+    info = (ServerInfo *) server_info;
 
     del_res = false;
     if ( channel_id == CHANNEL_ZERO ) { return BAD_CHANNEL; }
@@ -236,48 +236,4 @@ size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf)
     if ( res->data ) { free(res->data); res->data = NULL; }
 
     return serial_size;
-}
-
-
-CptServerInfo * cpt_server_info_init(Channel * gc, Channels * dir)
-{
-    CptServerInfo * server_info;
-
-    if ( !(server_info = malloc(sizeof(struct cpt_server_info))) )
-    {
-        return NULL;
-    }
-
-    server_info->gc = gc;
-    server_info->dir = dir;
-    server_info->current_id = gc->id;
-    server_info->channel_id = 0;
-
-    return (server_info);
-}
-
-
-CptServerInfo * cpt_server_info_destroy(CptServerInfo * server_info)
-{
-
-    if ( server_info )
-    {
-        if ( server_info->dir )
-        {
-            channels_destroy(server_info->dir);
-            server_info->dir = NULL;
-        }
-
-        if ( server_info->gc )
-        {
-            if ( server_info->gc->users )
-            {
-                users_destroy(server_info->gc->users);
-            }
-
-            channel_destroy(server_info->gc);
-        }
-    }
-
-    return server_info;
 }

@@ -60,14 +60,14 @@ bool should_end_event_loop(int poll_result);
  * @param info
  * @return
  */
-int login_event(CptServerInfo * info);
+int login_event(ServerInfo * info);
 
 
 /**
  *
  * @param info
  */
-void logout_event(CptServerInfo * info);
+void logout_event(ServerInfo * info);
 
 
 /**
@@ -75,7 +75,7 @@ void logout_event(CptServerInfo * info);
  * @param info
  * @param chan_id
  */
-void get_users_event(CptServerInfo * info, int chan_id);
+void get_users_event(ServerInfo * info, int chan_id);
 
 
 /**
@@ -83,7 +83,7 @@ void get_users_event(CptServerInfo * info, int chan_id);
  * @param info
  * @param msg
  */
-void send_message_event(CptServerInfo * info, char * msg);
+void send_message_event(ServerInfo * info, char * msg);
 
 
 /**
@@ -91,7 +91,7 @@ void send_message_event(CptServerInfo * info, char * msg);
  * @param info
  * @param id
  */
-void leave_channel_event(CptServerInfo * info, uint16_t id);
+void leave_channel_event(ServerInfo * info, uint16_t id);
 
 
 /**
@@ -99,7 +99,7 @@ void leave_channel_event(CptServerInfo * info, uint16_t id);
  * @param info
  * @param id_list
  */
-void create_channel_event(CptServerInfo * info, char * id_list);
+void create_channel_event(ServerInfo * info, char * id_list);
 
 
 /**
@@ -107,7 +107,7 @@ void create_channel_event(CptServerInfo * info, char * id_list);
  * @param info
  * @param channel_id
  */
-void join_channel_event(CptServerInfo *info, uint16_t channel_id);
+void join_channel_event(ServerInfo *info, uint16_t channel_id);
 
 
 /**
@@ -116,7 +116,7 @@ void join_channel_event(CptServerInfo *info, uint16_t channel_id);
  * @param msg
  * @param channel_id
  */
-void send_event(CptServerInfo * info, char * msg, int channel_id);
+void send_event(ServerInfo * info, char * msg, int channel_id);
 
 
 
