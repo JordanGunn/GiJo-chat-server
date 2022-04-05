@@ -151,7 +151,7 @@ void run()
 
                         if ( req_size < 0 )
                         { /* Check if error is not EWOULDBLOCK */
-                            if ( errno != EWOULDBLOCK )
+                            if ( (errno != EWOULDBLOCK ) || (errno != EAGAIN) )
                             {
                                 perror("  recv() failed...");
                                 close_conn = true; // !
@@ -307,7 +307,7 @@ int login_event(ServerInfo * info)
     }
     else
     {
-        if (errno != EWOULDBLOCK)
+        if ((errno != EWOULDBLOCK ) || (errno != EAGAIN))
         {
             perror("  accept() failed");
             is_fatal_error = true;
@@ -442,7 +442,7 @@ int handle_new_accept()
     new_fd = tcp_server_accept(&client_addr, poll_fds[CHANNEL_ZERO].fd);
     if ( new_fd < 0 ) /* Accept will fail safely with EWOULDBLOCK */
     {
-        if (errno != EWOULDBLOCK) /* if errno is not EWOULDBLOCK, fatal error occurred */
+        if ((errno != EWOULDBLOCK ) || (errno != EAGAIN)) /* if errno is not EWOULDBLOCK, fatal error occurred */
         {
             perror("  accept()");
         }
