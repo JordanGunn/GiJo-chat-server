@@ -58,7 +58,6 @@ int tcp_client_sock_opt(int sock_fd, int sock_opt);
  */
 int tcp_client_connect(int sock_fd, struct addrinfo * serv_info);
 
-
 /**
  * @brief Send a message over TCP connection.
  *

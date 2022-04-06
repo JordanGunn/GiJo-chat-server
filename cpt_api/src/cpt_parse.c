@@ -6,9 +6,9 @@
 
 CptResponse * cpt_parse_response(uint8_t * data, size_t data_size)
 {
-    uint16_t data_len;
-    CptResponse * res;
-    uint8_t code;
+    uint16_t data_len = 0;
+    CptResponse * res = NULL;
+    uint8_t code = 0;
 
     parse(data, PARSE_RES_FMT,
             &code, &data_len, data);
@@ -24,7 +24,8 @@ CptResponse * cpt_parse_response(uint8_t * data, size_t data_size)
         res->code = code;
         res->data_size = data_len;
     }
-    return ( res ) ? res : NULL;
+
+    return res;
 }
 
 
