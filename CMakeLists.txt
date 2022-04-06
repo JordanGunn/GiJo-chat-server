@@ -112,7 +112,7 @@ target_link_directories(cpt_chat_client PRIVATE interface/cli/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_app/client/src/)
 target_link_directories(cpt_chat_client PRIVATE networking/tcp/src/)
 target_link_directories(cpt_chat_client PRIVATE networking/udp/src/)
-target_link_directories(cpt_chat_client PRIVATE interface/interface/src/)
+target_link_directories(cpt_chat_client PRIVATE interface/ncurses/src/)
 
 
 # ========================================================================
