@@ -105,6 +105,14 @@ void parse_cmd_args(Command * cmd);
 
 
 /**
+ * Handle parsed commands.
+ *
+ * @param command   Pointer to Command object.
+ */
+void * handle_cmd_thread(void * cmd);
+
+
+/**
  * Check if user input is a command.
  *
  * @param command
