@@ -282,7 +282,6 @@ int login_event(ServerInfo * info)
         req = cpt_parse_request(req_buf, req_size);
         login_res = cpt_login_response(info, (char *) req->msg);
 
-
         if (login_res == SUCCESS)
         { /* If login succeeded, add file desc and set the events */
             poll_fds[nfds].fd = new_fd;
@@ -413,10 +412,8 @@ void send_event(ServerInfo * info, char * msg, int channel_id)
                 {
                     if ( dest_id != info->current_id )
                     {
-                        tcp_server_send(
-                                dest_id, res_buf, res_size);
+                        tcp_server_send(dest_id, res_buf, res_size);
                     }
-
                 }
                 user_node = user_node->next_user;
             }

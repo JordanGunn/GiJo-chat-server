@@ -97,7 +97,7 @@ int cpt_get_users_response(void * server_info, uint16_t channel_id)
 
 
     info->res->data = (uint8_t *) res_str;
-    info->res->data_size = strlen(res_str);
+    info->res->data_size = (uint16_t) strlen(res_str);
 
     return result;
 }
@@ -119,7 +119,7 @@ int cpt_create_channel_response(void * server_info, char * id_list)
 
     if ( id_list )
     {   /* If id_list passed, filter out the User IDs */
-        id_buf[0] = info->current_id;
+        id_buf[0] = (uint16_t) info->current_id;
         users = filter_channel_users(info->gc, id_buf, id_list);
     }
 
@@ -129,7 +129,7 @@ int cpt_create_channel_response(void * server_info, char * id_list)
         users = users_init( create_user_node(user) );
     }
 
-    new_channel = channel_init((info->dir->length), users);
+    new_channel = channel_init(((uint16_t) info->dir->length), users);
     if ( new_channel )
         { push_res = push_channel(info->dir, new_channel); }
 

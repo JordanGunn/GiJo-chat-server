@@ -7,7 +7,7 @@
 
 int main(int argc, char * argv[])
 {
-//    run_client_cli(argc, argv);
+    run_client_cli(argc, argv);
     return 0;
 }
 

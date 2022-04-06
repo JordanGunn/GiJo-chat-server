@@ -10,20 +10,20 @@ int login_handler(UserState * ustate, char * name)
 {
     int result;
     CptResponse * res;
-    size_t res_size, req_size;
+    ssize_t res_size, req_size;
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
     uint8_t req_buf[LG_BUFF_SIZE] = {0};
 
     // send data to server
-    req_size = cpt_login(ustate->client_info, req_buf, name);
-    result = tcp_client_send(ustate->client_info->fd, req_buf, req_size);
+    req_size = (ssize_t) cpt_login(ustate->client_info, req_buf, name);
+    result = tcp_client_send(ustate->client_info->fd, req_buf, (size_t) req_size);
     ustate->client_info->channel = CHANNEL_ZERO;
     ustate->client_info->name = strdup(name);
 
     if (result != SYS_CALL_FAIL)
     {
-        res_size = tcp_client_recv(ustate->client_info->fd, res_buf);
-        res = cpt_parse_response(res_buf, res_size);
+        res_size = (ssize_t) tcp_client_recv(ustate->client_info->fd, res_buf);
+        res = cpt_parse_response(res_buf, (size_t) res_size);
         if ( res )
         {
             if (res->code == (uint8_t) LOGIN)
@@ -147,7 +147,7 @@ void send_handler(UserState * ustate)
 {
     int result;
     char * block;
-    size_t req_size;
+    ssize_t req_size;
     uint16_t channel_id;
     char * msg_prefix, * name;
     char msg_buf[SM_BUFF_SIZE] = {0};
@@ -157,7 +157,7 @@ void send_handler(UserState * ustate)
             ustate->client_info, req_buf, ustate->cmd->input);
 
     result = tcp_client_send(
-            ustate->client_info->fd, req_buf, req_size);
+            ustate->client_info->fd, req_buf, (size_t) req_size);
 
     if ( result != SYS_CALL_FAIL )
     {
@@ -175,7 +175,7 @@ void send_handler(UserState * ustate)
 
 void recv_handler(UserState * ustate, const CptResponse * res)
 {
-    int cid;
+    uint16_t cid;
     char * block;
 
     if ( res->code == (uint8_t) GET_USERS )
@@ -219,9 +219,4 @@ void cmd_handler(UserState * ustate)
     if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL_CMD]   )) { join_channel_handler(ustate);   }
     if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL_CMD]  )) { leave_channel_handler(ustate);  }
 }
-
-
-
-
-
 

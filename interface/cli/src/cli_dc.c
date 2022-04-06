@@ -105,6 +105,10 @@ void * send_thread(void * user_state)
             {
                 is_receiving = true;
                 cmd_handler(ustate);
+
+                if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]) )
+                { is_receiving = false; }
+
                 while(is_receiving)
                 {
                     puts("Waiting for response...");
@@ -148,15 +152,19 @@ void * recv_thread(void * user_state)
         {
             pthread_mutex_lock(&mutex);
 
-            res = cpt_parse_response(res_buf, res_size);
+            res = cpt_parse_response(res_buf, (size_t) res_size);
             if ( res )
             {
                 recv_handler(ustate, res);
-                pthread_cond_signal(&receiving);
+
                 is_receiving = false;
+                pthread_mutex_unlock(&mutex);
+                pthread_cond_signal(&receiving);
+
                 cpt_response_reset(res);
-            }
-            pthread_mutex_unlock(&mutex);
+
+            } else { pthread_mutex_unlock(&mutex); }
+
         }
     }
     return (void *) ustate;
