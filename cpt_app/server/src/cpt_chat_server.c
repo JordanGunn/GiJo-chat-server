@@ -212,7 +212,7 @@ void join_channel_event(ServerInfo *info, uint16_t channel_id)
     uint8_t res_buf[MD_BUFF_SIZE] = {0};
 
     join_res = cpt_join_channel_response(info, channel_id);
-    res = cpt_response_init(join_res);
+    res = cpt_response_init();
     if ( join_res == SUCCESS )
     { /* Send back confirmation if successful */
         res->code = (uint8_t) JOIN_CHANNEL;
@@ -243,7 +243,7 @@ void leave_channel_event(ServerInfo * info, uint16_t channel_id)
     char res_msg_buf[SM_BUFF_SIZE] = {0};
 
     lc_res = cpt_leave_channel_response(info, channel_id);
-    res = cpt_response_init(lc_res);
+    res = cpt_response_init();
     if ( lc_res == SUCCESS )
     { /* Send back confirmation if successful */
         sprintf(res_msg_buf,
@@ -341,7 +341,7 @@ void create_channel_event(ServerInfo * info, char * id_list)
     uint8_t res_buf[MD_BUFF_SIZE] = {0};
 
     cc_res = cpt_create_channel_response(info, id_list);
-    res = cpt_response_init(cc_res);
+    res = cpt_response_init();
 
     ncid = (info->dir->length - 1);
 

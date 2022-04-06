@@ -147,16 +147,17 @@ void * recv_thread(void * user_state)
         if (res_size > 0)
         {
             pthread_mutex_lock(&mutex);
-
             res = cpt_parse_response(res_buf);
             if ( res )
             {
                 recv_handler(ustate, res);
-                pthread_cond_signal(&receiving);
                 is_receiving = false;
+                pthread_mutex_unlock(&mutex);
+                pthread_cond_signal(&receiving);
                 cpt_response_reset(res);
+            } else {
+                pthread_mutex_unlock(&mutex);
             }
-            pthread_mutex_unlock(&mutex);
         }
     }
     return (void *) ustate;

@@ -134,7 +134,7 @@ char * cpt_to_string(CptRequest * cpt)
 // =======================================
 //  C P T   R E S P O N S E    P A C K E T
 // =======================================
-CptResponse * cpt_response_init()
+CptResponse * cpt_response_init(void)
 {
     CptResponse * res;
 
