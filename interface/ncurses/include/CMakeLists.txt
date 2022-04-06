@@ -1,0 +1,3 @@
+SET(NCURSES_INCLUDE
+        ${CMAKE_CURRENT_SOURCE_DIR}/interface.h
+        PARENT_SCOPE)

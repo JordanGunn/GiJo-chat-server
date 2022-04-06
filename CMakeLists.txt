@@ -38,12 +38,12 @@ add_executable(cpt_chat_server
         ${NETWORK_SERVER_TARGET})
 
 add_executable(cpt_chat_client
-        ${CLI_TARGET}
         ${MESSAGE_SOURCE}
         ${CPT_COMMON_TARGET}
         ${CHAT_CLIENT_TARGET}
         ${CPT_API_CLIENT_TGT}
-        ${NETWORK_CLIENT_TARGET})
+        ${CLI_INTERFACE_TARGET}
+        ${NETWORK_CLIENT_TARGET} interface/ncurses/src/interface.c interface/ncurses/include/interface.h)
 
 add_executable(cpt_messenger
         ${CPT_COMMON_TARGET}
@@ -97,20 +97,22 @@ target_include_directories(cpt_chat_client PRIVATE interface/)
 target_include_directories(cpt_chat_client PRIVATE messenger/)
 target_include_directories(cpt_chat_client PRIVATE common/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_api/include/)
-target_include_directories(cpt_chat_client PRIVATE interface/include/)
+target_include_directories(cpt_chat_client PRIVATE interface/cli/include/)
 target_include_directories(cpt_chat_client PRIVATE networking/tcp/include/)
 target_include_directories(cpt_chat_client PRIVATE networking/udp/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_app/client/include/)
+target_include_directories(cpt_chat_client PRIVATE interface/ncurses/include/)
 
 # link the local source files
 target_link_directories(cpt_chat_client PRIVATE interface/)
 target_link_directories(cpt_chat_client PRIVATE messenger/)
 target_link_directories(cpt_chat_client PRIVATE common/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_api/src/)
-target_link_directories(cpt_chat_client PRIVATE interface/src/)
+target_link_directories(cpt_chat_client PRIVATE interface/cli/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_app/client/src/)
 target_link_directories(cpt_chat_client PRIVATE networking/tcp/src/)
 target_link_directories(cpt_chat_client PRIVATE networking/udp/src/)
+target_link_directories(cpt_chat_client PRIVATE interface/interface/src/)
 
 
 # ========================================================================
@@ -169,14 +171,6 @@ target_compile_options(cpt_messenger PRIVATE -g)
 target_compile_options(cpt_messenger PRIVATE -fstack-protector-all -ftrapv)
 target_compile_options(cpt_messenger PRIVATE -Wpedantic -Wall -Wextra)
 
-# =========================================
-# Additional compile options for sandbox
-## =========================================
-#target_compile_features(sandbox PUBLIC c_std_11)
-#target_compile_options(sandbox PRIVATE -g)
-#target_compile_options(sandbox PRIVATE -fstack-protector-all -ftrapv)
-#target_compile_options(sandbox PRIVATE -Wpedantic -Wall -Wextra)
-#target_compile_options(cpt_chat_client PRIVATE ${COMPILE_OPTIONS})
 
 # =============================================
 # Directory inclusion for dc app framework libs

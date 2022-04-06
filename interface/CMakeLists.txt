@@ -1,7 +1,10 @@
-add_subdirectory(src/)
-add_subdirectory(include/)
+add_subdirectory(cli/)
+add_subdirectory(ncurses/)
 
-SET(CLI_TARGET
-        ${INTERFACE_SOURCE}
-        ${INTERFACE_INCLUDE}
+SET(CLI_INTERFACE_TARGET
+        ${CLI_TARGET}
+        PARENT_SCOPE)
+
+SET(NCURSES_INTERFACE_TARGET
+        ${NCURSES_TARGET}
         PARENT_SCOPE)
