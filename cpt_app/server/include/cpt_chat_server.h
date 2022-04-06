@@ -14,14 +14,14 @@
 /**
  * Drive the program.
  */
-void run();
+void run(void);
 
 
 /**
  *
  * @return
  */
-int handle_new_accept();
+int handle_new_accept(void);
 
 
 /**

@@ -47,7 +47,8 @@ add_executable(cpt_chat_client
 
 add_executable(cpt_messenger
         ${CPT_COMMON_TARGET}
-        ${MESSAGE_TARGET})
+        ${MESSAGE_TARGET}
+        ${MESSAGE_SOURCE})
 
 #add_executable(test ${TEST_TARGET})
 
@@ -78,7 +79,6 @@ target_link_directories(cpt_chat_server PRIVATE cpt_api/src/)
 target_link_directories(cpt_chat_server PRIVATE networking/tcp/src/)
 target_link_directories(cpt_chat_server PRIVATE networking/udp/src/)
 target_link_directories(cpt_chat_server PRIVATE cpt_app/server/src/)
-
 
 # ============================================================================
 # Directory inclusion for CLIENT executable
@@ -152,7 +152,7 @@ target_compile_features(cpt_chat_server PUBLIC c_std_11)
 target_compile_options(cpt_chat_server PRIVATE -g)
 target_compile_options(cpt_chat_server PRIVATE -fstack-protector-all -ftrapv)
 target_compile_options(cpt_chat_server PRIVATE -Wpedantic -Wall -Wextra)
-#target_compile_options(cpt_chat_server PRIVATE "${COMPILE_OPTIONS}")
+target_compile_options(cpt_chat_server PRIVATE -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-y2k -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wswitch-enum -Wunused-local-typedefs -Wstrict-overflow=5 -Wmissing-noreturn -Walloca -Wfloat-equal -Wdeclaration-after-statement -Wshadow -Wpointer-arith -Wabsolute-value -Wundef -Wexpansion-to-defined -Wunused-macros -Wno-endif-labels -Wbad-function-cast -Wcast-qual -Wwrite-strings -Wconversion -Wdangling-else -Wdate-time -Wempty-body -Wsign-conversion -Wfloat-conversion -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wpacked -Wredundant-decls -Wnested-externs -Winline -Winvalid-pch -Wlong-long -Wvariadic-macros -Wdisabled-optimization -Wstack-protector -Woverlength-strings)
 
 # =========================================
 # Additional compile options for client
@@ -161,7 +161,8 @@ target_compile_features(cpt_chat_client PUBLIC c_std_11)
 target_compile_options(cpt_chat_client PRIVATE -g)
 target_compile_options(cpt_chat_client PRIVATE -fstack-protector-all -ftrapv)
 target_compile_options(cpt_chat_client PRIVATE -Wpedantic -Wall -Wextra)
-#target_compile_options(cpt_chat_client PRIVATE ${COMPILE_OPTIONS})
+target_compile_options(cpt_chat_client PRIVATE -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-y2k -Wnull-dereference -Winit-self -Wmissing-include-dirs -Wswitch-default -Wswitch-enum -Wunused-local-typedefs -Wstrict-overflow=5 -Wmissing-noreturn -Walloca -Wfloat-equal -Wdeclaration-after-statement -Wshadow -Wpointer-arith -Wabsolute-value -Wundef -Wexpansion-to-defined -Wunused-macros -Wno-endif-labels -Wbad-function-cast -Wcast-qual -Wwrite-strings -Wconversion -Wdangling-else -Wdate-time -Wempty-body -Wsign-conversion -Wfloat-conversion -Waggregate-return -Wstrict-prototypes -Wold-style-definition -Wmissing-prototypes -Wmissing-declarations -Wpacked -Wredundant-decls -Wnested-externs -Winline -Winvalid-pch -Wlong-long -Wvariadic-macros -Wdisabled-optimization -Wstack-protector -Woverlength-strings)
+
 
 # =========================================
 # Additional compile options for messenger
@@ -188,9 +189,6 @@ target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_POSIX})
 target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_UTIL})
 target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_FSM})
 target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_APPLICATION})
-
-
-
 
 set_target_properties(cpt_chat_client PROPERTIES OUTPUT_NAME "cpt_chat_client")
 install(TARGETS cpt_chat_client DESTINATION bin)

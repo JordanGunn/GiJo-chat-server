@@ -5,7 +5,7 @@
 #include "channel.h"
 
 
-Channel * init_global_channel()
+Channel * init_global_channel(void)
 {
     Channel * gc;
     Users * gc_users;

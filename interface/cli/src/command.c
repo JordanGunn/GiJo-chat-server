@@ -121,7 +121,7 @@ void cmd_destroy(Command * cmd)
 }
 
 
-void menu()
+void menu(void)
 {
     char menu_buf[XL_BUFF_SIZE] = {0};
     static char * logout, * get_users, * create_channel, * join_channel;

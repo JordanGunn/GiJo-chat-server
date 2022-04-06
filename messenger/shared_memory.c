@@ -4,7 +4,6 @@
 #include <sys/shm.h>
 #include <string.h>
 
-
 #include "shared_memory.h"
 
 #define IPC_ERROR (-1)

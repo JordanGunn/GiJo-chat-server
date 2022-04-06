@@ -134,7 +134,7 @@ char * cpt_to_string(CptRequest * cpt)
 // =======================================
 //  C P T   R E S P O N S E    P A C K E T
 // =======================================
-CptResponse * cpt_response_init()
+CptResponse * cpt_response_init(void)
 {
     CptResponse * res;
 
@@ -171,7 +171,7 @@ void cpt_response_reset(CptResponse * res)
 // ============================
 // C P T   S U B - P A CK E T S
 // ============================
-CptMsgSubPacket * cpt_msg_sp_init()
+CptMsgSubPacket * cpt_msg_sp_init(void)
 {
     size_t num_bytes;
     CptMsgSubPacket * msg_res;

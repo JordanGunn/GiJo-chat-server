@@ -31,7 +31,7 @@ struct user_state
  *
  * @return Pointer to a UserSState object.
  */
-UserState * user_state_init();
+UserState * user_state_init(void);
 
 
 /**
