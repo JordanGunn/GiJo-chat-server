@@ -43,7 +43,7 @@ add_executable(cpt_chat_client
         ${CHAT_CLIENT_TARGET}
         ${CPT_API_CLIENT_TGT}
         ${CLI_INTERFACE_TARGET}
-        ${NETWORK_CLIENT_TARGET} interface/ncurses/src/interface.c interface/ncurses/include/interface.h)
+        ${NETWORK_CLIENT_TARGET} interface/ncurses/src/interface.c interface/ncurses/include/interface.h voice_arecord/voice_arecord.h)
 
 add_executable(cpt_messenger
         ${CPT_COMMON_TARGET}
