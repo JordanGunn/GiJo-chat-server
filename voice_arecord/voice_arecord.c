@@ -4,3 +4,14 @@
 
 #include "voice_arecord.h"
 
+void record(int fd)
+{
+
+
+}
+
+
+void play(int fd)
+{
+
+}
