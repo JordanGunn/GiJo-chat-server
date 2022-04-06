@@ -171,7 +171,7 @@ void cpt_response_reset(CptResponse * res)
 // ============================
 // C P T   S U B - P A CK E T S
 // ============================
-CptMsgSubPacket * cpt_msg_sp_init()
+CptMsgSubPacket * cpt_msg_sp_init(void)
 {
     size_t num_bytes;
     CptMsgSubPacket * msg_res;

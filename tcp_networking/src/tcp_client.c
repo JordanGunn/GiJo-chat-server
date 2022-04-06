@@ -121,7 +121,7 @@ ssize_t tcp_client_recv(int sock_fd, uint8_t * buff)
 {
     ssize_t bytes_received;
 
-    bytes_received = recv(sock_fd, buff, MD_BUFF_SIZE, 0);
+    bytes_received = recv(sock_fd, buff, LG_BUFF_SIZE, 0);
     if ( bytes_received < 0 )
     {
         if (errno != EWOULDBLOCK || errno != EAGAIN)

@@ -64,7 +64,7 @@ bool is_valid_cmd(Command * cmd);
  *
  * @return Pointer to command object.
  */
-Command * cmd_init();
+Command * cmd_init(void);
 
 
 /**
@@ -119,13 +119,13 @@ bool is_cmd(Command * command, char * cli_cmd);
  *
  * @return Input from user as char pointer.
  */
-char * cmd_get_input();
+char * cmd_get_input(void);
 
 
 /**
  * Print the menu to out stream.
  */
-void menu();
+void menu(void);
 
 
 #endif //CPT_COMMAND_H

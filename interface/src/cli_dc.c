@@ -148,7 +148,7 @@ void * recv_thread(void * user_state)
         {
             pthread_mutex_lock(&mutex);
 
-            res = cpt_parse_response(res_buf, res_size);
+            res = cpt_parse_response(res_buf);
             if ( res )
             {
                 recv_handler(ustate, res);

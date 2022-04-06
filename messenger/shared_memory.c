@@ -9,7 +9,7 @@
 
 #define IPC_ERROR (-1)
 
-static int get_shared_block(char *filename, int size)
+static int get_shared_block(char *filename, size_t size)
 {
     key_t key;
 

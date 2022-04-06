@@ -81,7 +81,7 @@ void parse_cmd(Command * cmd)
 }
 
 
-Command * cmd_init()
+Command * cmd_init(void)
 {
     Command * command;
     if ( (command = malloc(sizeof( struct command))) )
@@ -121,7 +121,7 @@ void cmd_destroy(Command * cmd)
 }
 
 
-void menu()
+void menu(void)
 {
     char menu_buf[XL_BUFF_SIZE] = {0};
     static char * logout, * get_users, * create_channel, * join_channel;
@@ -149,7 +149,7 @@ void menu()
 }
 
 
-char * cmd_get_input()
+char * cmd_get_input(void)
 {
     char buf[SM_BUFF_SIZE] = {0};
 

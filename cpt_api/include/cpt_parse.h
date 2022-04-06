@@ -14,11 +14,10 @@
 /**
  * @brief Parse serialized server response.
  *
- * @param response  Address to a CptResponse object.
- * @param buffer    Serialized response from server.
+ * @param data  raw data from server
  * @return Pointer to filled CptResponse.
  */
-CptResponse * cpt_parse_response(uint8_t * data, size_t data_size);
+CptResponse * cpt_parse_response(uint8_t * data);
 
 
 /**
