@@ -72,7 +72,7 @@ int udp_client_connect(int udp_fd, struct addrinfo * serv_info);
  * @param port
  * @return
  */
-int udp_init(const char * host, const char * port);
+int udp_client_init(const char * host, const char * port);
 
 
 /**

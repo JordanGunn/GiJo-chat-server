@@ -5,9 +5,10 @@
 #ifndef CPT_CPT_CLIENT_H
 #define CPT_CPT_CLIENT_H
 
+#include "tcp_client.h"
+#include "udp_client.h"
 
 #include "cpt_parse.h"
-#include "tcp_client.h"
 #include "client_info.h"
 #include "cpt_serialize.h"
 #include "cpt_definitions.h"

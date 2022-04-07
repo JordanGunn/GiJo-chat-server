@@ -66,7 +66,7 @@ int udp_client_connect(int udp_fd, struct addrinfo * serv_info)
 }
 
 
-int udp_init(const char * host, const char * port)
+int udp_client_init(const char * host, const char * port)
 {
     int udp_fd, conn_res;
     struct addrinfo * client_addr;
