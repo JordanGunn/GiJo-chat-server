@@ -5,6 +5,13 @@
 #ifndef CPT_VOICE_ARECORD_H
 #define CPT_VOICE_ARECORD_H
 
+
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
 /**
  * Recording the voice
  *
