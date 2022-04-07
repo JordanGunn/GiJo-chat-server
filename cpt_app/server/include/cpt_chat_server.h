@@ -7,7 +7,6 @@
 
 #include "server_events.h"
 
-
 /**
  * Drive the program.
  */

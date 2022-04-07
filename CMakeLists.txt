@@ -43,7 +43,7 @@ add_executable(cpt_chat_client
         ${CHAT_CLIENT_TARGET}
         ${CPT_API_CLIENT_TGT}
         ${CLI_INTERFACE_TARGET}
-        ${NETWORK_CLIENT_TARGET} interface/ncurses/src/interface.c interface/ncurses/include/interface.h)
+        ${NETWORK_CLIENT_TARGET})
 
 add_executable(cpt_messenger
         ${CPT_COMMON_TARGET}
@@ -113,6 +113,8 @@ target_link_directories(cpt_chat_client PRIVATE cpt_app/client/src/)
 target_link_directories(cpt_chat_client PRIVATE networking/tcp/src/)
 target_link_directories(cpt_chat_client PRIVATE networking/udp/src/)
 target_link_directories(cpt_chat_client PRIVATE interface/ncurses/src/)
+target_link_directories(cpt_chat_client PRIVATE interface/interface/src/)
+target_include_directories(cpt_chat_client PRIVATE interface/interface/include/)
 
 
 # ========================================================================

@@ -8,7 +8,7 @@
 #include "client_config.h"
 #include "tcp_client.h"
 
-#include  "application_framework.h"
+#include "application_framework.h"
 #include "shared_memory.h"
 #include "user_state.h"
 #include "handlers.h"

@@ -4,7 +4,6 @@
 #include "cli_dc.h"
 
 
-
 /* Global threading elements */
 pthread_mutex_t     mutex;
 pthread_cond_t      receiving;

@@ -1,7 +1,4 @@
 SET(CLI_SOURCE
         ${CMAKE_CURRENT_SOURCE_DIR}/cli_dc.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/command.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/handlers.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/user_state.c
         ${CMAKE_CURRENT_SOURCE_DIR}/application_framework.c
         PARENT_SCOPE)

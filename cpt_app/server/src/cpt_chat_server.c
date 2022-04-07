@@ -46,7 +46,8 @@ void run(void)
         for (i = 0; i < active_nfds; i++)
         {
             info->current_id = poll_fds[i].fd;
-            if ( poll_fds[i].revents == 0 ) { continue; }
+            if ( poll_fds[i].revents == 0 )
+            { continue; }
 
             if ( !(is_revent_POLLIN(i)) )
             {
@@ -55,10 +56,10 @@ void run(void)
             }
 
             if ( poll_fds[i].fd == GCFD )
-            {
+            { /* Check accept backlog for login attempts */
                 printf("  New connections found...\n");
-                do
-                { /* Check accept backlog for login attempts */
+
+                do {
                     result = login_event(info);
                     if ( result == SUCCESS )
                     {
@@ -66,7 +67,8 @@ void run(void)
                         poll_fds[nfds].events = POLLIN;
                         nfds++;
                     }
-                } while ( result != FAILURE ); }
+                } while ( result != FAILURE );
+            }
 
             /* ----------------------------------------------- */
             /* handle all events from existing connected users */
@@ -108,7 +110,6 @@ void run(void)
                         }
                         break;
                     }
-
                 } while ( true );  /* END OF REQUEST LOOP */
 
                 if ( close_conn )

@@ -2,7 +2,7 @@
 // Created by jordan on 2022-03-22.
 //
 
-#include "command.h"
+#include "interface/include/command.h"
 
 
 void parse_cmd_input(Command * cmd)
