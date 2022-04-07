@@ -25,6 +25,25 @@ struct addrinfo * setup_client_addr(const char * host, const char * port)
 }
 
 
+//int create_client_socket(struct addrinfo * serv_info)
+//{
+//    int client_sock_fd;
+//
+//    client_sock_fd = socket(
+//            serv_info->ai_family,
+//            serv_info->ai_socktype,
+//            serv_info->ai_protocol);
+//
+//    if ( client_sock_fd < 0 )
+//    {
+//        const char * msg = "Failed to create client socket...";
+//        write(STDERR_FILENO, msg, strlen(msg));
+//        return -1;
+//    }
+//
+//    return client_sock_fd;
+//}
+//TODO testing connection oriented udp
 int create_client_socket(struct addrinfo * serv_info)
 {
     int client_sock_fd;
@@ -38,6 +57,12 @@ int create_client_socket(struct addrinfo * serv_info)
     {
         const char * msg = "Failed to create client socket...";
         write(STDERR_FILENO, msg, strlen(msg));
+        return -1;
+    }
+
+    if (0 < (connect(client_sock_fd, (struct sockaddr *) serv_info, sizeof (struct sockaddr_in))))
+    {
+        puts("Connect failed..");
         return -1;
     }
 

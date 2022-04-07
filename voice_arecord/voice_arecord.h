@@ -12,6 +12,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include "udp_client.h"
+
+/**
+ * This runs both player and the recorder
+ *
+ * @param fd
+ */
+void run_voice_chat(int fd);
+
 /**
  * Recording the voice
  *

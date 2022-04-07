@@ -14,6 +14,7 @@ add_subdirectory(testing/)
 add_subdirectory(interface/)
 add_subdirectory(messenger/)
 add_subdirectory(networking/)
+add_subdirectory(voice_arecord/)
 
 
 # To be honest I have no idea what this does
@@ -43,12 +44,18 @@ add_executable(cpt_chat_client
         ${CHAT_CLIENT_TARGET}
         ${CPT_API_CLIENT_TGT}
         ${CLI_INTERFACE_TARGET}
-        ${NETWORK_CLIENT_TARGET} interface/ncurses/src/interface.c interface/ncurses/include/interface.h voice_arecord/voice_arecord.h)
+        ${NETWORK_CLIENT_TARGET} interface/ncurses/src/interface.c interface/ncurses/include/interface.h)
 
 add_executable(cpt_messenger
         ${CPT_COMMON_TARGET}
         ${MESSAGE_TARGET}
         ${MESSAGE_SOURCE})
+
+add_executable(voice
+        ${CPT_COMMON_TARGET}
+        ${NETWORK_CLIENT_TARGET}
+        ${VOICE_TARGET}
+        ${VOICE_SOURCE})
 
 #add_executable(test ${TEST_TARGET})
 
@@ -116,18 +123,23 @@ target_link_directories(cpt_chat_client PRIVATE interface/interface/src/)
 
 
 # ========================================================================
-# Directory inclusion for TESTING executable
+# Directory inclusion for VOICE executable
 # ========================================================================
 ## Tell the compiler to check these dirs for any header files
-#target_include_directories(test PRIVATE /usr/include)
-#target_include_directories(test PRIVATE /usr/local/include)
-#target_include_directories(test PRIVATE testing/include/)
-##
+target_include_directories(voice PRIVATE /usr/include)
+target_include_directories(voice PRIVATE /usr/local/include)
+target_include_directories(voice PRIVATE networking/tcp/include/)
+target_include_directories(voice PRIVATE networking/udp/include/)
+target_include_directories(voice PRIVATE common/include/)
+target_include_directories(voice PRIVATE voice_arecord/)
+
 ### tell the compiler to check here for 3rd party source files
-#target_link_directories(test PRIVATE /usr/lib)
-#target_link_directories(test PRIVATE /usr/local/lib)
-#target_link_directories(test PRIVATE testing/src/)
-#target_link_directories(test PRIVATE testing/)
+target_link_directories(voice PRIVATE common/src/)
+target_link_directories(voice PRIVATE /usr/lib)
+target_link_directories(voice PRIVATE /usr/local/lib)
+target_link_directories(voice PRIVATE voice_arecord/)
+target_link_directories(voice PRIVATE networking/udp/src/)
+target_link_directories(voice PRIVATE networking/tcp/src/)
 
 
 # ========================================================================
@@ -171,6 +183,16 @@ target_compile_features(cpt_messenger PUBLIC c_std_11)
 target_compile_options(cpt_messenger PRIVATE -g)
 target_compile_options(cpt_messenger PRIVATE -fstack-protector-all -ftrapv)
 target_compile_options(cpt_messenger PRIVATE -Wpedantic -Wall -Wextra)
+
+
+# =========================================
+# Additional compile options for messenger
+# =========================================
+target_compile_features(voice PUBLIC c_std_11)
+target_compile_options(voice PRIVATE -g)
+target_compile_options(voice PRIVATE -fstack-protector-all -ftrapv)
+target_compile_options(voice PRIVATE -Wpedantic -Wall -Wextra)
+
 
 
 # =============================================
