@@ -5,9 +5,10 @@
 #ifndef CPT_USER_STATE_H
 #define CPT_USER_STATE_H
 
+#include "common.h"
 #include "command.h"
+#include "cpt_voice.h"
 #include "cpt_client.h"
-
 /**
  * UserState object.
  */

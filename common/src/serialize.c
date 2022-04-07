@@ -136,7 +136,7 @@ int unpacki16(unsigned char * buf)
 
     // change unsigned numbers to signed
     if (i2 <= 0x7fffu) { i = i2; }
-    else { i = -1 - (unsigned int)(0xffffu - i2); }
+    else { i = -1 - (0xffffu - i2); }
 
     return i;
 }

@@ -2,7 +2,7 @@
 // Created by jordan on 2022-03-22.
 //
 
-#include "interface/include/command.h"
+#include "command.h"
 
 
 void parse_cmd_input(Command * cmd)
@@ -29,7 +29,10 @@ void parse_cmd_args(Command * cmd)
             arg_start = strchr(cmd->p_input, '\"'); arg_start++;
             arg_end = strchr(arg_start + 1, '\"');
         }
-        memcpy(arg_buf, arg_start, arg_end - arg_start);
+
+        memcpy(arg_buf, arg_start,
+               ((unsigned long) (arg_end - arg_start)));
+
         cmd->args = strdup(arg_buf);
         cmd->p_input = NULL;
     }
@@ -68,12 +71,16 @@ void parse_cmd(Command * cmd)
     if ( !(cmd_end = strchr(cmd->input, ' ')) )
     {
         cmd_end = strchr(cmd->input, '\n');
-        memcpy(cmd_buf, cmd_start, cmd_end - cmd_start);
+        memcpy(cmd_buf, cmd_start,
+               ((unsigned long) (cmd_end - cmd_start)));
+
         cmd->p_input = NULL;
     }
     else
     {
-        memcpy(cmd_buf, cmd_start, cmd_end - cmd_start);
+        memcpy(cmd_buf, cmd_start,
+               (unsigned long) (cmd_end - cmd_start));
+
         cmd->p_input = cmd_end;
     }
 

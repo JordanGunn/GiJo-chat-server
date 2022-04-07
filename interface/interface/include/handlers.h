@@ -7,6 +7,7 @@
 
 #include "user_state.h"
 
+
 /**
  *
  *
@@ -36,6 +37,14 @@ void get_users_handler(UserState * ustate);
  * @param ustate    Pointer to a UserState object.
  */
 void join_channel_handler(UserState * ustate);
+
+
+
+/**
+ *
+ * @param ustate
+ */
+void join_voice_handler(UserState * ustate);
 
 
 /**
@@ -76,6 +85,33 @@ void recv_handler(UserState *ustate, const CptResponse * res);
  * @param user_commands Commands from user input.
  */
 void cmd_handler(UserState * ustate);
+
+
+/**
+ * Check if protocol version in packet is voice compatible.
+ *
+ * @param ustate    Pointer to a UserState object.
+ * @return true or false;
+ */
+bool is_voice_compat(UserState * ustate);
+
+
+/**
+ * Check if channel is within voice channel bounds.
+ *
+ * @param ustate    Pointer to a UserState object.
+ * @return true or false.
+ */
+bool is_voice_chan(UserState * ustate);
+
+
+/**
+ * Determine whether or not to start up voice.
+ *
+ * @param ustate    Pointer to a UserState object.
+ * @return true or false.
+ */
+bool is_voice(UserState * ustate);
 
 
 #endif //CPT_HANDLERS_H

@@ -5,7 +5,7 @@
 #include "udp_server.h"
 #include "common.h"
 
-struct addrinfo * setup_server_addr(const char * ip, const char * port)
+struct addrinfo * udp_server_addr(const char * ip, const char * port)
 {
     struct addrinfo hints, * serv_info;
 
@@ -28,11 +28,11 @@ struct addrinfo * setup_server_addr(const char * ip, const char * port)
 
 
 
-int create_server_socket(struct addrinfo * serv_info)
+int udp_server_socket(struct addrinfo * serv_addr)
 {
     int server_socket_fd;
 
-    server_socket_fd = socket(serv_info->ai_family, serv_info->ai_socktype, serv_info->ai_protocol);
+    server_socket_fd = socket(serv_addr->ai_family, serv_addr->ai_socktype, serv_addr->ai_protocol);
 
     if ( server_socket_fd < 0 )
     {
@@ -45,11 +45,11 @@ int create_server_socket(struct addrinfo * serv_info)
 }
 
 
-int bind_server_socket(struct addrinfo * serv_info, int sock)
+int udp_server_bind(struct addrinfo * serv_addr, int sock)
 {
     int result;
 
-    result = bind(sock, serv_info->ai_addr, serv_info->ai_addrlen);
+    result = bind(sock, serv_addr->ai_addr, serv_addr->ai_addrlen);
     if ( result < 0 )
     {
         const char * msg = "Failed to bind socket...\n";
@@ -57,7 +57,7 @@ int bind_server_socket(struct addrinfo * serv_info, int sock)
         return -1;
     }
 
-    freeaddrinfo(serv_info);
+    freeaddrinfo(serv_addr);
     return result;
 }
 

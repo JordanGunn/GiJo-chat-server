@@ -10,6 +10,7 @@
 #include "tcp_client.h"
 #include "client_info.h"
 #include "cpt_serialize.h"
+#include "cpt_definitions.h"
 
 
 /**

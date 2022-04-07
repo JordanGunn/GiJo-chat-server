@@ -1,6 +1,10 @@
 #ifndef CPT_CPT_CHAT_CLIENT_H
 #define CPT_CPT_CHAT_CLIENT_H
 
+#define SHIFT4 4
+#define MASK_8BIT_MSIG4 0b11110000
+
+
 #define SM_BUFF_SIZE 256
 #define MD_BUFF_SIZE 512
 #define LG_BUFF_SIZE 1024

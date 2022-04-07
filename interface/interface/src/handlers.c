@@ -2,7 +2,7 @@
 // Created by jordan on 2022-03-22.
 //
 
-#include "interface/include/handlers.h"
+#include "handlers.h"
 #include "shared_memory.h"
 
 
@@ -120,8 +120,35 @@ void leave_channel_handler(UserState * ustate)
 
 
 
-void join_channel_handler(UserState * ustate) {
+void join_channel_handler(UserState * ustate)
+{
+    int result;
+    char * args_end;
+    uint16_t channel_id;
+    size_t req_size;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
 
+    channel_id = (uint16_t) strtol(ustate->cmd->args, &args_end, 10);
+
+    req_size = cpt_join_channel(
+            ustate->client_info, req_buf, channel_id);
+
+    result = tcp_client_send(
+            ustate->client_info->fd, req_buf, req_size);
+
+    if ( result == SYS_CALL_FAIL )
+    {
+        printf("Failed to send JOIN_CHANNEL request\n");
+    }
+
+    if ( is_voice(ustate) )
+    {
+    }
+}
+
+
+void join_voice_handler(UserState * ustate)
+{
     int result;
     char * args_end;
     uint16_t channel_id;
@@ -218,5 +245,41 @@ void cmd_handler(UserState * ustate)
     if ( is_cmd(ustate->cmd, cli_cmds[CREATE_CHANNEL_CMD] )) { create_channel_handler(ustate); }
     if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL_CMD]   )) { join_channel_handler(ustate);   }
     if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL_CMD]  )) { leave_channel_handler(ustate);  }
+}
+
+
+bool is_voice_compat(UserState * ustate)
+{
+    CptRequest * req;
+    uint8_t ver_major;
+
+    req = ustate->client_info->packet;
+    ver_major = (req->version & ( MASK_8BIT_MSIG4 )) >> SHIFT4;
+
+    return (ver_major >= VER_MAJ_2);
+}
+
+
+bool is_voice_chan(UserState * ustate)
+{
+    CptRequest * req;
+    bool vchan_lbound, vchan_ubound;
+
+    req = ustate->client_info->packet;
+
+    vchan_lbound = (req->channel_id >= CPT_VCHAN_MIN);
+    vchan_ubound = (req->channel_id <= CPT_VCHAN_MIN);
+
+    return (vchan_lbound && vchan_ubound);
+}
+
+bool is_voice(UserState * ustate)
+{
+    bool is_vchan, is_vcompat;
+
+    is_vchan = is_voice_chan(ustate);
+    is_vcompat = is_voice_compat(ustate);
+
+    return (is_vchan && is_vcompat);
 }
 
