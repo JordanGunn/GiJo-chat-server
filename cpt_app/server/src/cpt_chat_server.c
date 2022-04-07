@@ -23,12 +23,12 @@ void run(void)
     // ===============================================
     //    I N I T I A L    S E T U P
     // ===============================================
-    ServerInfo * server_info;
+    ServerInfo * info;
     Channel * gc; Channels * dir;
 
     gc = init_global_channel();
     dir = init_channel_directory(gc);
-    server_info = cpt_server_info_init(gc, dir);
+    info = cpt_server_info_init(gc, dir);
 
     nfds = 1;
     close_conn = false;
@@ -44,14 +44,14 @@ void run(void)
     // **************************************************
     do {
         printf("Waiting on poll...\n");
-        result = poll(poll_fds, nfds, POLL_TIMEOUT_5M);
+        result = poll(poll_fds, (nfds_t) nfds, POLL_TIMEOUT_5M);
 
         if ( should_end_event_loop(result) ) { break; }
 
         active_nfds = nfds; /* Number of fds with events ready */
         for (i = 0; i < active_nfds; i++)
         {
-            server_info->current_id = poll_fds[i].fd;
+            info->current_id = poll_fds[i].fd;
             /* -------------------------------------------------- */
             /* No event on current socket, go back to top of loop */
             /* -------------------------------------------------- */
@@ -80,7 +80,13 @@ void run(void)
                 printf("Checking queued login attempts...\n");
                 do
                 { /* Check accept backlog for login attempts */
-                    result = login_event( server_info );
+                    result = login_event(info);
+                    if ( result == SUCCESS )
+                    {
+                        poll_fds[nfds].fd = info->current_id;
+                        poll_fds[nfds].events = POLLIN;
+                        nfds++;
+                    }
                 } while ( result != FAILURE );
             }
 
@@ -91,84 +97,42 @@ void run(void)
             /* ----------------------------------------------- */
             else
             {
-
-                do
-                {
+                do {
                     if ( is_revent_POLLIN(i) )
                     {   /* Receive incoming data from sockets */
-                        int id;
+                        close_conn = false; // !
+                        info->current_id = poll_fds[i].fd;
+
+                        CptRequest * req;
                         ssize_t req_size;
                         uint8_t req_buf[LG_BUFF_SIZE] = {0};
-                        close_conn = false; // !
-                        id = poll_fds[i].fd;
-                        CptRequest * req;
-                        server_info->current_id = id;
-                        req_size = tcp_server_recv(id, req_buf);
-                        req = cpt_parse_request(req_buf, req_size);
+                        req_size = tcp_server_recv(info->current_id, req_buf);
+                        req = cpt_parse_request(req_buf, (size_t) req_size);
 
                         if ( req->command == LOGOUT )
                         {
-                            puts("  LOGOUT event");
-                            logout_event(server_info);
+                            logout_event(info);
                             cpt_request_destroy(req);
                             close_conn = true; break;
-                        }
 
-                        if ( req->command == SEND )
-                        {
-                            puts("  SEND event");
-                            send_event(server_info, (char *) req->msg, req->channel_id);
-                            cpt_request_destroy(req);
-                        }
-
-                        if ( req->command == GET_USERS )
-                        {
-                            puts("  GET_USERS event");
-                            get_users_event(server_info, req->channel_id);
-                            cpt_request_destroy(req);
-                        }
-
-                        if ( req->command == CREATE_CHANNEL )
-                        {
-                            puts("  CREATE_CHANNEL event");
-                            create_channel_event(server_info, (char *) req->msg);
-                            cpt_request_destroy(req);
-                        }
-
-                        if ( req->command == LEAVE_CHANNEL )
-                        {
-                            puts("  LEAVE_CHANNEL event");
-                            leave_channel_event(server_info, req->channel_id);
-                            cpt_request_destroy(req);
-                        }
-
-                        if ( req->command == JOIN_CHANNEL )
-                        {
-                            puts("  JOIN_CHANNEL event");
-                            join_channel_event(server_info, req->channel_id);
-                            cpt_request_destroy(req);
-                        }
+                        } else { handle_event(info, req); }
 
                         if ( req_size < 0 )
-                        { /* Check if error is not EWOULDBLOCK */
+                        {
                             if ( errno != EWOULDBLOCK )
                             {
                                 perror("  recv() failed...");
                                 close_conn = true; // !
-                            }
-                            break;
+                            } break;
                         }
 
                         if (req_size == 0 )
-                        { /* Check if connection closed by client */
+                        {
                             printf("  Connection closed\n");
-                            close_conn = true;
-                            break;
+                            close_conn = true; break;
                         }
-
                         break;
                     }
-                //TODO Make sure the loop-breaking condition below doesn't completely break everything
                 } while ( true );
 
                 if ( close_conn )
@@ -177,28 +141,31 @@ void run(void)
                     poll_fds[i].fd = -1; // setting fd to -1 will cause poll() to ignore this fd index
                     compress_array = true;
                 }
-            } /* CURRENT USER CONNECTION EVENTS */
-
-        } /* POLL LOOP FOR ALL USER CONNECTIONS */
-
-        if ( compress_array )
-        {
-            compress_array = false;
-            for (i = 0; i < nfds; i++)
-            {
-                if ( poll_fds[i].fd == -1 )
-                {
-                    for ( j = i; j < nfds; j++)
-                    {
-                        poll_fds[j].fd = poll_fds[j + 1].fd;
-                    }
-                    i--; nfds--;
-                }
             }
         }
+
+        if ( compress_array )
+        { compress_fds(); }
+
     } while ( !is_fatal_error );
 
-    cpt_server_info_destroy(server_info);  /* Close existing sockets before ending */
+    cpt_server_info_destroy(info);
+}
+
+void compress_fds()
+{
+    compress_array = false;
+    for (i = 0; i < nfds; i++)
+    {
+        if ( poll_fds[i].fd == -1 )
+        {
+            for ( j = i; j < nfds; j++)
+            {
+                poll_fds[j].fd = poll_fds[j + 1].fd;
+            }
+            i--; nfds--;
+        }
+    }
 }
 
 
@@ -222,7 +189,7 @@ void join_channel_event(ServerInfo *info, uint16_t channel_id)
     {
         msg = "Failed to join channel";
         res->code = (uint8_t) FAILURE;
-        res->data_size = strlen(msg);
+        res->data_size = (uint16_t) strlen(msg);
         res->data = (uint8_t *) msg;
     }
 
@@ -256,7 +223,7 @@ void leave_channel_event(ServerInfo * info, uint16_t channel_id)
         res->code = FAILURE;
     }
 
-    res->data_size = strlen(res_msg);
+    res->data_size = (uint16_t) strlen(res_msg);
     res->data = (uint8_t *) res_msg;
     res_size = cpt_serialize_response(res, res_buf);
     tcp_server_send(info->current_id, res_buf, res_size);
@@ -278,16 +245,12 @@ int login_event(ServerInfo * info)
     {   /* If accept system call succeeds, attempt to add user */
         res = cpt_response_init();
         info->current_id = new_fd;
-        req_size = tcp_server_recv(new_fd, req_buf);
+        req_size = (size_t) tcp_server_recv(new_fd, req_buf);
         req = cpt_parse_request(req_buf, req_size);
         login_res = cpt_login_response(info, (char *) req->msg);
 
         if (login_res == SUCCESS)
         { /* If login succeeded, add file desc and set the events */
-            poll_fds[nfds].fd = new_fd;
-            poll_fds[nfds].events = POLLIN;
-            nfds++;
-
             msg = strdup("Success!");
             res->code = (uint8_t) LOGIN;
         }
@@ -296,7 +259,7 @@ int login_event(ServerInfo * info)
             msg = strdup("Failure");
             res->code = (uint8_t) FAILURE;
         }
-        res->data_size = strlen(msg);
+        res->data_size = (uint16_t) strlen(msg);
         res->data = (uint8_t *) msg;
 
         res_size = cpt_serialize_response(res, res_buf);
@@ -341,7 +304,7 @@ void create_channel_event(ServerInfo * info, char * id_list)
     cc_res = cpt_create_channel_response(info, id_list);
     res = cpt_response_init();
 
-    ncid = (info->dir->length - 1);
+    ncid = ((uint16_t) (info->dir->length - 1));
 
     if ( cc_res == SUCCESS )
     {
@@ -370,7 +333,7 @@ void get_users_event(ServerInfo * info, int chan_id)
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
     info->res = cpt_response_init();
-    gu_res = cpt_get_users_response(info, chan_id);
+    gu_res = cpt_get_users_response(info, (uint16_t) chan_id);
 
     if ( gu_res == SUCCESS )
     {
@@ -392,7 +355,7 @@ void send_event(ServerInfo * info, char * msg, int channel_id)
     UserNode * user_node;
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
 
-    channel = find_channel(info->dir, channel_id);
+    channel = find_channel(info->dir, (uint16_t) channel_id);
     if ( channel )
     {
         user_node = get_head_user(channel->users);
@@ -400,7 +363,7 @@ void send_event(ServerInfo * info, char * msg, int channel_id)
         {
             info->res = cpt_response_init();
             info->res->code = (uint8_t) SEND;
-            info->res->data_size = strlen(msg);
+            info->res->data_size = (uint16_t) strlen(msg);
             info->res->data = (uint8_t *) strdup(msg);
             res_size = cpt_serialize_response(info->res, res_buf);
 
@@ -479,4 +442,44 @@ bool should_end_event_loop(int poll_result)
     }
 
     return end_event_loop;
+}
+
+
+void handle_event(ServerInfo * info, CptRequest * req)
+{
+
+    if ( req->command == SEND )
+    {
+    puts("  SEND event");
+    send_event(info, (char *) req->msg, req->channel_id);
+    cpt_request_destroy(req);
+    }
+
+    if ( req->command == GET_USERS )
+    {
+    puts("  GET_USERS event");
+    get_users_event(info, req->channel_id);
+    cpt_request_destroy(req);
+    }
+
+    if ( req->command == CREATE_CHANNEL )
+    {
+    puts("  CREATE_CHANNEL event");
+    create_channel_event(info, (char *) req->msg);
+    cpt_request_destroy(req);
+    }
+
+    if ( req->command == LEAVE_CHANNEL )
+    {
+    puts("  LEAVE_CHANNEL event");
+    leave_channel_event(info, req->channel_id);
+    cpt_request_destroy(req);
+    }
+
+    if ( req->command == JOIN_CHANNEL )
+    {
+    puts("  JOIN_CHANNEL event");
+    join_channel_event(info, req->channel_id);
+    cpt_request_destroy(req);
+    }
 }

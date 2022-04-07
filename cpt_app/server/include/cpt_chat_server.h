@@ -47,6 +47,12 @@ void listen_socket_init(Channel * gc);
 bool should_end_event_loop(int poll_result);
 
 
+/**
+ * Compress fd array.
+ */
+void compress_fds(void);
+
+
 
 // ==========================================
 //  S E R V E R    E V E N T S
@@ -114,6 +120,14 @@ void join_channel_event(ServerInfo *info, uint16_t channel_id);
  * @param channel_id
  */
 void send_event(ServerInfo * info, char * msg, int channel_id);
+
+
+/**
+ * Handle all incoming events.
+ *
+ * @param info
+ */
+void handle_event(ServerInfo * info, CptRequest * req);
 
 
 

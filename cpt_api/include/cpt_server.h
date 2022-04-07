@@ -8,10 +8,6 @@
 #include "server_info.h"
 #include "tcp_server.h"
 
-#include "cpt_packet_builder.h"
-#include "cpt_serialize.h"
-#include "cpt_parse.h"
-
 
 /**
  * Handle a received 'LOGIN' protocol message.

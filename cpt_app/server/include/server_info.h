@@ -7,7 +7,10 @@
 
 #include "cpt_packet_builder.h"
 #include "cpt_definitions.h"
+#include "cpt_serialize.h"
 #include "cpt_types.h"
+#include "cpt_parse.h"
+
 #include "channel.h"
 
 /**
