@@ -131,5 +131,12 @@ void handle_event(ServerInfo * info, CptRequest * req);
 
 
 
+/**
+ * Close dangling fd connections.
+ */
+void close_connections(void);
+
+
+
 
 #endif //CPT_CPT_CHAT_SERVER_H

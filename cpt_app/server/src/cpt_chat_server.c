@@ -20,28 +20,27 @@ int main(void)
 
 void run(void)
 {
-    // ===============================================
-    //    I N I T I A L    S E T U P
-    // ===============================================
+    // ============================================ //
+    //       I N I T I A L    S E T U P             //
+    // ============================================ //
     ServerInfo * info;
     Channel * gc; Channels * dir;
-
-    gc = init_global_channel();
-    dir = init_channel_directory(gc);
-    info = cpt_server_info_init(gc, dir);
 
     nfds = 1;
     close_conn = false;
     is_fatal_error = false;
+    gc = init_global_channel();
+    dir = init_channel_directory(gc);
+    info = cpt_server_info_init(gc, dir);
 
-    // ------------------------------------------------
-
-    /* Setup listener socket. */
     listen_socket_init( gc );
+    // ============================================ //
+    //       I N I T I A L    S E T U P             //
+    // ============================================ //
 
-    // **************************************************
-    // ************ E V E N T ** L O O P ****************   AMERICA !!!!!!!!!!!!!!!
-    // **************************************************
+
+
+
     do {
         printf("Waiting on poll...\n");
         result = poll(poll_fds, (nfds_t) nfds, POLL_TIMEOUT_5M);
@@ -52,32 +51,17 @@ void run(void)
         for (i = 0; i < active_nfds; i++)
         {
             info->current_id = poll_fds[i].fd;
-            /* -------------------------------------------------- */
-            /* No event on current socket, go back to top of loop */
-            /* -------------------------------------------------- */
             if ( poll_fds[i].revents == 0 ) { continue; }
 
-
-            // ==============================================================================================
-
-            /* ------------------------------------ */
-            /* Unexpected event causing fatal error */
-            /* ------------------------------------ */
             if ( !(is_revent_POLLIN(i)) )
             {
                 printf("Unexpected event: %d\n", poll_fds[i].revents);
                 is_fatal_error = true; break;
             }
 
-            // ==============================================================================================
-
-            /* ------------------------------------------------ */
-            /* Event on listener socket, new connection arrived */
-            /* ------------------------------------------------ */
             if ( poll_fds[i].fd == GCFD )
             {
                 printf("  New connections found...\n");
-                printf("Checking queued login attempts...\n");
                 do
                 { /* Check accept backlog for login attempts */
                     result = login_event(info);
@@ -87,34 +71,30 @@ void run(void)
                         poll_fds[nfds].events = POLLIN;
                         nfds++;
                     }
-                } while ( result != FAILURE );
-            }
-
-            // ==============================================================================================
+                } while ( result != FAILURE ); }
 
             /* ----------------------------------------------- */
             /* handle all events from existing connected users */
             /* ----------------------------------------------- */
-            else
-            {
+            else {
                 do {
                     if ( is_revent_POLLIN(i) )
-                    {   /* Receive incoming data from sockets */
-                        close_conn = false; // !
+                    {
+                        close_conn = false;
                         info->current_id = poll_fds[i].fd;
 
-                        CptRequest * req;
-                        ssize_t req_size;
+                        /* Receive the incoming data */
+                        CptRequest * req; ssize_t req_size;
                         uint8_t req_buf[LG_BUFF_SIZE] = {0};
                         req_size = tcp_server_recv(info->current_id, req_buf);
                         req = cpt_parse_request(req_buf, (size_t) req_size);
 
+                        /* Handle the request */
                         if ( req->command == LOGOUT )
                         {
                             logout_event(info);
                             cpt_request_destroy(req);
                             close_conn = true; break;
-
                         } else { handle_event(info, req); }
 
                         if ( req_size < 0 )
@@ -133,38 +113,59 @@ void run(void)
                         }
                         break;
                     }
-                } while ( true );
+
+                } while ( true );  /* END OF REQUEST LOOP */
 
                 if ( close_conn )
-                { /* handle close connection flag if set */
-                    close(poll_fds[i].fd);
-                    poll_fds[i].fd = -1; // setting fd to -1 will cause poll() to ignore this fd index
-                    compress_array = true;
-                }
+                { close_connections(); }
             }
         }
 
         if ( compress_array )
         { compress_fds(); }
 
-    } while ( !is_fatal_error );
 
+    } while ( !is_fatal_error );
     cpt_server_info_destroy(info);
 }
 
-void compress_fds()
+
+void handle_event(ServerInfo * info, CptRequest * req)
 {
-    compress_array = false;
-    for (i = 0; i < nfds; i++)
+
+    if ( req->command == SEND )
     {
-        if ( poll_fds[i].fd == -1 )
-        {
-            for ( j = i; j < nfds; j++)
-            {
-                poll_fds[j].fd = poll_fds[j + 1].fd;
-            }
-            i--; nfds--;
-        }
+        puts("  SEND event");
+        send_event(info, (char *) req->msg, req->channel_id);
+        cpt_request_destroy(req);
+    }
+
+    if ( req->command == GET_USERS )
+    {
+        puts("  GET_USERS event");
+        get_users_event(info, req->channel_id);
+        cpt_request_destroy(req);
+    }
+
+    if ( req->command == CREATE_CHANNEL )
+    {
+        puts("  CREATE_CHANNEL event");
+        create_channel_event(info, (char *) req->msg);
+        cpt_request_destroy(req);
+    }
+
+    if ( req->command == LEAVE_CHANNEL )
+    {
+        puts("  LEAVE_CHANNEL event");
+        leave_channel_event(info, req->channel_id);
+        cpt_request_destroy(req);
+    }
+
+    if ( req->command == JOIN_CHANNEL )
+    {
+        puts("  JOIN_CHANNEL event");
+        join_channel_event(info, req->channel_id);
+        cpt_request_destroy(req);
     }
 }
 
@@ -445,41 +446,26 @@ bool should_end_event_loop(int poll_result)
 }
 
 
-void handle_event(ServerInfo * info, CptRequest * req)
+void close_connections()
 {
+    close(poll_fds[i].fd);
+    poll_fds[i].fd = -1;
+    compress_array = true;
+}
 
-    if ( req->command == SEND )
-    {
-    puts("  SEND event");
-    send_event(info, (char *) req->msg, req->channel_id);
-    cpt_request_destroy(req);
-    }
 
-    if ( req->command == GET_USERS )
+void compress_fds()
+{
+    compress_array = false;
+    for (i = 0; i < nfds; i++)
     {
-    puts("  GET_USERS event");
-    get_users_event(info, req->channel_id);
-    cpt_request_destroy(req);
-    }
-
-    if ( req->command == CREATE_CHANNEL )
-    {
-    puts("  CREATE_CHANNEL event");
-    create_channel_event(info, (char *) req->msg);
-    cpt_request_destroy(req);
-    }
-
-    if ( req->command == LEAVE_CHANNEL )
-    {
-    puts("  LEAVE_CHANNEL event");
-    leave_channel_event(info, req->channel_id);
-    cpt_request_destroy(req);
-    }
-
-    if ( req->command == JOIN_CHANNEL )
-    {
-    puts("  JOIN_CHANNEL event");
-    join_channel_event(info, req->channel_id);
-    cpt_request_destroy(req);
+        if ( poll_fds[i].fd == -1 )
+        {
+            for ( j = i; j < nfds; j++)
+            {
+                poll_fds[j].fd = poll_fds[j + 1].fd;
+            }
+            i--; nfds--;
+        }
     }
 }
