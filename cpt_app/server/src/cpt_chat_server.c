@@ -35,11 +35,6 @@ void run(void)
 
     listen_socket_init( gc );
     // ============================================ //
-    //       I N I T I A L    S E T U P             //
-    // ============================================ //
-
-
-
 
     do {
         printf("Waiting on poll...\n");
@@ -130,105 +125,62 @@ void run(void)
 }
 
 
-void handle_event(ServerInfo * info, CptRequest * req)
+bool is_revent_POLLIN(int index)
 {
-
-    if ( req->command == SEND )
-    {
-        puts("  SEND event");
-        send_event(info, (char *) req->msg, req->channel_id);
-        cpt_request_destroy(req);
-    }
-
-    if ( req->command == GET_USERS )
-    {
-        puts("  GET_USERS event");
-        get_users_event(info, req->channel_id);
-        cpt_request_destroy(req);
-    }
-
-    if ( req->command == CREATE_CHANNEL )
-    {
-        puts("  CREATE_CHANNEL event");
-        create_channel_event(info, (char *) req->msg);
-        cpt_request_destroy(req);
-    }
-
-    if ( req->command == LEAVE_CHANNEL )
-    {
-        puts("  LEAVE_CHANNEL event");
-        leave_channel_event(info, req->channel_id);
-        cpt_request_destroy(req);
-    }
-
-    if ( req->command == JOIN_CHANNEL )
-    {
-        puts("  JOIN_CHANNEL event");
-        join_channel_event(info, req->channel_id);
-        cpt_request_destroy(req);
-    }
+    return (
+        poll_fds[index].revents ==
+        ( ((uint16_t) poll_fds[index].revents) & POLLIN )
+    );
 }
 
 
-void join_channel_event(ServerInfo *info, uint16_t channel_id)
+void listen_socket_init(Channel * gc)
 {
-    char * msg;
-    int join_res;
-    size_t res_size;
-    CptResponse * res;
-    uint8_t res_buf[MD_BUFF_SIZE] = {0};
-
-    join_res = cpt_join_channel_response(info, channel_id);
-    res = cpt_response_init();
-    if ( join_res == SUCCESS )
-    { /* Send back confirmation if successful */
-        res->code = (uint8_t) JOIN_CHANNEL;
-        res->data_size = sizeof(channel_id);
-        res->data = (uint8_t *) &channel_id;
-    }
-    else
+    memset(poll_fds, 0 , sizeof(poll_fds));
+    if ((GCFD = tcp_server_init(IP_LOCAL_LB, PORT_8080)) != SYS_CALL_FAIL)
     {
-        msg = "Failed to join channel";
-        res->code = (uint8_t) FAILURE;
-        res->data_size = (uint16_t) strlen(msg);
-        res->data = (uint8_t *) msg;
+        gc->fd = GCFD;
+        poll_fds[CHANNEL_ZERO].fd = gc->fd;
+        poll_fds[CHANNEL_ZERO].events = POLLIN;
     }
-
-    res_size = cpt_serialize_response(res, res_buf);
-    tcp_server_send(info->current_id, res_buf, res_size);
-    cpt_response_destroy(res);
+    else { exit( SERV_FATAL ); }
 }
 
 
-void leave_channel_event(ServerInfo * info, uint16_t channel_id)
+int handle_new_accept(void)
 {
-    int lc_res;
-    char * res_msg;
-    size_t res_size;
-    CptResponse * res;
-    uint8_t res_buf[MD_BUFF_SIZE] = {0};
-    char res_msg_buf[SM_BUFF_SIZE] = {0};
-
-    lc_res = cpt_leave_channel_response(info, channel_id);
-    res = cpt_response_init();
-    if ( lc_res == SUCCESS )
-    { /* Send back confirmation if successful */
-        sprintf(res_msg_buf,
-            "Successfully left channel %d", channel_id);
-        res_msg = strdup(res_msg_buf);
-        res->code = LEAVE_CHANNEL;
-    }
-    else
+    int new_fd;
+    struct sockaddr_storage client_addr;
+    new_fd = tcp_server_accept(&client_addr, poll_fds[CHANNEL_ZERO].fd);
+    if ( new_fd < 0 ) /* Accept will fail safely with EWOULDBLOCK */
     {
-        res_msg = strdup("Failed to leave channel");
-        res->code = FAILURE;
+        if (errno != EWOULDBLOCK) /* if errno is not EWOULDBLOCK, fatal error occurred */
+        {
+            perror("  accept()");
+        }
+    }
+    return new_fd;
+}
+
+
+bool should_end_event_loop(int poll_result)
+{
+    bool end_event_loop;
+
+    end_event_loop = false;
+    if ( poll_result < 0 ) /* check if poll() failed */
+    {
+        perror("poll()");
+        end_event_loop = true;
     }
 
-    res->data_size = (uint16_t) strlen(res_msg);
-    res->data = (uint8_t *) res_msg;
-    res_size = cpt_serialize_response(res, res_buf);
-    tcp_server_send(info->current_id, res_buf, res_size);
-    cpt_response_destroy(res);
+    if ( poll_result == 0 ) /* poll returns 0 if it timed out */
+    {
+        printf("Poll timed out...");
+        end_event_loop = true;
+    }
+
+    return end_event_loop;
 }
 
 
@@ -278,171 +230,6 @@ int login_event(ServerInfo * info)
     }
 
     return (new_fd != SYS_CALL_FAIL) ? SUCCESS : FAILURE;
-}
-
-
-void logout_event(ServerInfo * info)
-{
-    int lo_res;
-    lo_res = cpt_logout_response(info);
-
-    if ( lo_res == SUCCESS )
-    {
-        printf("  User with ID %d logged out...\n", info->current_id);
-    }
-}
-
-
-void create_channel_event(ServerInfo * info, char * id_list)
-{
-    char * msg;
-    int cc_res;
-    uint16_t ncid;
-    size_t res_size;
-    CptResponse * res;
-    uint8_t res_buf[MD_BUFF_SIZE] = {0};
-
-    cc_res = cpt_create_channel_response(info, id_list);
-    res = cpt_response_init();
-
-    ncid = ((uint16_t) (info->dir->length - 1));
-
-    if ( cc_res == SUCCESS )
-    {
-        res->data = (uint8_t *) &ncid;
-        res->data_size = sizeof(ncid);
-        res->code = (uint8_t) CREATE_CHANNEL;
-    }
-    else
-    {
-        msg = strdup("Failed to create channel...");
-        res->data = (uint8_t *) msg;
-        res->data_size = sizeof(msg);
-        res->code = (uint8_t) FAILURE;
-    }
-
-    res_size = cpt_serialize_response(res, res_buf);
-    tcp_server_send(info->current_id, res_buf, res_size);
-    cpt_response_destroy(res);
-}
-
-
-void get_users_event(ServerInfo * info, int chan_id)
-{
-    int gu_res;
-    size_t res_size;
-    uint8_t res_buf[LG_BUFF_SIZE] = {0};
-
-    info->res = cpt_response_init();
-    gu_res = cpt_get_users_response(info, (uint16_t) chan_id);
-
-    if ( gu_res == SUCCESS )
-    {
-        printf("GET_USERS event occurred successfully...\n");
-    }
-
-    res_size = cpt_serialize_response(info->res, res_buf);
-    tcp_server_send(info->current_id, res_buf, res_size);
-    cpt_response_destroy(info->res);
-}
-
-
-void send_event(ServerInfo * info, char * msg, int channel_id)
-{
-    User * user;
-    size_t res_size;
-    uint16_t dest_id;
-    Channel * channel;
-    UserNode * user_node;
-    uint8_t res_buf[LG_BUFF_SIZE] = {0};
-
-    channel = find_channel(info->dir, (uint16_t) channel_id);
-    if ( channel )
-    {
-        user_node = get_head_user(channel->users);
-        if ( user_node )
-        {
-            info->res = cpt_response_init();
-            info->res->code = (uint8_t) SEND;
-            info->res->data_size = (uint16_t) strlen(msg);
-            info->res->data = (uint8_t *) strdup(msg);
-            res_size = cpt_serialize_response(info->res, res_buf);
-
-            while ( user_node )
-            {
-                user = user_node->user;
-                dest_id = user->id;
-                if ( dest_id != GC_ROOT_USR_ID )
-                {
-                    if ( dest_id != info->current_id )
-                    {
-                        tcp_server_send(dest_id, res_buf, res_size);
-                    }
-                }
-                user_node = user_node->next_user;
-            }
-        }
-    }
-    cpt_response_destroy(info->res);
-}
-
-
-bool is_revent_POLLIN(int index)
-{
-    return (
-        poll_fds[index].revents ==
-        ( ((uint16_t) poll_fds[index].revents) & POLLIN )
-    );
-}
-
-
-int handle_new_accept(void)
-{
-    int new_fd;
-    struct sockaddr_storage client_addr;
-    new_fd = tcp_server_accept(&client_addr, poll_fds[CHANNEL_ZERO].fd);
-    if ( new_fd < 0 ) /* Accept will fail safely with EWOULDBLOCK */
-    {
-        if (errno != EWOULDBLOCK) /* if errno is not EWOULDBLOCK, fatal error occurred */
-        {
-            perror("  accept()");
-        }
-    }
-    return new_fd;
-}
-
-
-void listen_socket_init(Channel * gc)
-{
-    memset(poll_fds, 0 , sizeof(poll_fds));
-    if ((GCFD = tcp_server_init(IP_LOCAL_LB, PORT_8080)) != SYS_CALL_FAIL)
-    {
-        gc->fd = GCFD;
-        poll_fds[CHANNEL_ZERO].fd = gc->fd;
-        poll_fds[CHANNEL_ZERO].events = POLLIN;
-    }
-    else { exit( SERV_FATAL ); }
-}
-
-
-bool should_end_event_loop(int poll_result)
-{
-    bool end_event_loop;
-
-    end_event_loop = false;
-    if ( poll_result < 0 ) /* check if poll() failed */
-    {
-        perror("poll()");
-        end_event_loop = true;
-    }
-
-    if ( poll_result == 0 ) /* poll returns 0 if it timed out */
-    {
-        printf("Poll timed out...");
-        end_event_loop = true;
-    }
-
-    return end_event_loop;
 }
 
 
