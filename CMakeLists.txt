@@ -50,20 +50,23 @@ add_executable(cpt_chat_client
         ${CHAT_CLIENT_TARGET}
         ${CPT_API_CLIENT_TGT}
         ${CLI_INTERFACE_TARGET}
-        ${NETWORK_CLIENT_TARGET}
-        ${VOICE_TARGET})
+        ${NETWORK_CLIENT_TARGET})
 
 add_executable(cpt_messenger
         ${CPT_COMMON_TARGET}
         ${MESSAGE_TARGET}
         ${MESSAGE_SOURCE})
 
+add_executable(voice_player
+        ${CPT_COMMON_TARGET}
+        ${NETWORK_CLIENT_TARGET}
+        ${VOICE_TARGET})
+
 
 # ==============================================================================
 #    Directory inclusion for SERVER executable
 # ==============================================================================
 # Tell the compiler to check these dirs for any header files
-target_include_directories(cpt_chat_server PRIVATE ./include)
 target_include_directories(cpt_chat_server PRIVATE /usr/include)
 target_include_directories(cpt_chat_server PRIVATE /usr/local/include)
 
@@ -92,7 +95,6 @@ target_link_directories(cpt_chat_server PRIVATE cpt_app/server/src/)
 #    Directory inclusion for CLIENT executable
 # ====================================================================
 # Tell the compiler to check these dirs for any header files
-target_include_directories(cpt_chat_client PRIVATE ./include)
 target_include_directories(cpt_chat_client PRIVATE /usr/include)
 target_include_directories(cpt_chat_client PRIVATE /usr/local/include)
 
@@ -101,7 +103,7 @@ target_link_directories(cpt_chat_client PRIVATE /usr/lib)
 target_link_directories(cpt_chat_client PRIVATE /usr/local/lib)
 
 # tell the compiler where local header files are
-target_include_directories(cpt_chat_client PRIVATE voice/)
+#target_include_directories(cpt_chat_client PRIVATE voice/)
 target_include_directories(cpt_chat_client PRIVATE messenger/)
 target_include_directories(cpt_chat_client PRIVATE common/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_api/include/)
@@ -114,7 +116,7 @@ target_include_directories(cpt_chat_client PRIVATE interface/ncurses/include/)
 target_include_directories(cpt_chat_client PRIVATE interface/interface/include/)
 
 # link the local source files
-target_link_directories(cpt_chat_client PRIVATE voice/)
+#target_link_directories(cpt_chat_client PRIVATE voice/)
 target_link_directories(cpt_chat_client PRIVATE messenger/)
 target_link_directories(cpt_chat_client PRIVATE common/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_api/src/)
@@ -143,6 +145,23 @@ target_link_directories(cpt_messenger PRIVATE /usr/lib)
 target_link_directories(cpt_messenger PRIVATE /usr/local/lib)
 
 
+# ========================================================================
+# Directory inclusion for VOICE_PLAYER executable
+# ========================================================================
+# Tell the compiler to check these dirs for any header files
+target_include_directories(voice_player PRIVATE /usr/include)
+target_include_directories(voice_player PRIVATE /usr/local/include)
+target_include_directories(voice_player PRIVATE voice/)
+target_include_directories(voice_player PRIVATE common/include/)
+target_include_directories(voice_player PRIVATE networking/tcp/include/)
+target_include_directories(voice_player PRIVATE networking/udp/include/)
+
+# Tell the compiler to check here for 3rd party source files
+target_link_directories(voice_player PRIVATE voice/)
+target_link_directories(voice_player PRIVATE /usr/lib)
+target_link_directories(voice_player PRIVATE /usr/local/lib)
+target_link_directories(voice_player PRIVATE networking/tcp/src/)
+target_link_directories(voice_player PRIVATE networking/udp/src/)
 
 
 # =========================================

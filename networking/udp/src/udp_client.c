@@ -82,7 +82,7 @@ int udp_client_init(const char * host, const char * port)
         }
     }
 
-    return conn_res;
+    return ( conn_res == SYS_CALL_FAIL ) ? conn_res : udp_fd;
 }
 
 

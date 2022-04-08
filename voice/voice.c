@@ -3,7 +3,6 @@
 //
 
 #include "voice.h"
-
 #include "common.h"
 
 void record(int fd)
@@ -12,7 +11,7 @@ void record(int fd)
     char buf[256];
     FILE *fp = popen(cmd, "r");
 
-    while(true)
+    while (true)
     {
         size_t result;
 
