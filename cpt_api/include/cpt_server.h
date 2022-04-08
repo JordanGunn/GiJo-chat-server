@@ -7,6 +7,7 @@
 
 #include "server_info.h"
 #include "tcp_server.h"
+#include "cpt_voice_server.h"
 
 
 /**

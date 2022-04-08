@@ -4,8 +4,6 @@
 
 #include "cpt_packet_builder.h"
 
-
-
 // ========================================
 //  C P T   R E Q U E S T   P A C K E T
 // ========================================
@@ -36,7 +34,7 @@ void cpt_request_destroy(CptRequest * req)
 
 void cpt_request_cmd(CptRequest * cpt, uint8_t cmd)
 {
-    if ( (cmd >= SEND) && (cmd <= LOGIN) )
+    if ( (cmd >= SEND) && (cmd <= CREATE_VCHAN) )
     {
         cpt->command = cmd;
     } else { printf("Bad CMD code assigned to packet\n"); }

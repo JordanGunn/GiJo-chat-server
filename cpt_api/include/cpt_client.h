@@ -12,6 +12,7 @@
 #include "client_info.h"
 #include "cpt_serialize.h"
 #include "cpt_definitions.h"
+#include "cpt_voice_client.h"
 
 
 /**

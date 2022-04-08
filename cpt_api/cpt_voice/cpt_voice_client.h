@@ -2,21 +2,14 @@
 // Created by jordan on 2022-04-07.
 //
 
-#ifndef CPT_CPT_VOICE_H
-#define CPT_CPT_VOICE_H
+#ifndef CPT_CPT_VOICE_CLIENT_H
+#define CPT_CPT_VOICE_CLIENT_H
 
-#include "cpt_parse.h"
 #include "tcp_client.h"
 #include "client_info.h"
+#include "cpt_packet_builder.h"
 #include "cpt_serialize.h"
-
-#define CPT_VCHAN_MIN 32768
-#define CPT_VCHAN_MAX 65535
-
-
-enum voice_commands {
-    CREATE_VCHAN = 8,
-};
+#include "cpt_voice_definitions.h"
 
 
 /**
@@ -39,4 +32,4 @@ enum voice_commands {
 */
 size_t cpt_create_vchannel(void * client_info, uint8_t * serial_buf, char * user_list);
 
-#endif //CPT_CPT_VOICE_H
+#endif //CPT_CPT_VOICE_CLIENT_H

@@ -174,6 +174,26 @@ void send_handler(UserState * ustate)
 }
 
 
+void create_vchannel_handler(UserState * ustate)
+{
+
+    int result;
+    size_t req_size;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
+
+    req_size = cpt_create_vchannel(
+            ustate->client_info, req_buf, ustate->cmd->args);
+
+    result = tcp_client_send(
+            ustate->client_info->fd, req_buf, req_size);
+
+    if ( result == SYS_CALL_FAIL )
+    {
+        printf("Failed to create voice channel\n");
+    }
+}
+
+
 void recv_handler(UserState * ustate, const CptResponse * res)
 {
     uint16_t cid;
@@ -213,12 +233,13 @@ void recv_handler(UserState * ustate, const CptResponse * res)
 
 void cmd_handler(UserState * ustate)
 {
-    if ( is_cmd(ustate->cmd, cli_cmds[MENU_CMD]           )) { menu();                         }
-    if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]         )) { logout_handler(ustate);         }
-    if ( is_cmd(ustate->cmd, cli_cmds[GET_USERS_CMD]      )) { get_users_handler(ustate);      }
-    if ( is_cmd(ustate->cmd, cli_cmds[CREATE_CHANNEL_CMD] )) { create_channel_handler(ustate); }
-    if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL_CMD]   )) { join_channel_handler(ustate);   }
-    if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL_CMD]  )) { leave_channel_handler(ustate);  }
+    if ( is_cmd(ustate->cmd, cli_cmds[MENU_CMD]            )) { menu();                          }
+    if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]          )) { logout_handler(ustate);          }
+    if ( is_cmd(ustate->cmd, cli_cmds[GET_USERS_CMD]       )) { get_users_handler(ustate);       }
+    if ( is_cmd(ustate->cmd, cli_cmds[CREATE_CHANNEL_CMD]  )) { create_channel_handler(ustate);  }
+    if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL_CMD]    )) { join_channel_handler(ustate);    }
+    if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL_CMD]   )) { leave_channel_handler(ustate);   }
+    if ( is_cmd(ustate->cmd, cli_cmds[CREATE_VCHANNEL_CMD] )) { create_vchannel_handler(ustate); }
 }
 
 

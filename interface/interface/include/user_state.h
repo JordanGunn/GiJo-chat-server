@@ -7,7 +7,7 @@
 
 #include "common.h"
 #include "command.h"
-#include "cpt_voice.h"
+#include "cpt_voice_client.h"
 #include "cpt_client.h"
 /**
  * UserState object.

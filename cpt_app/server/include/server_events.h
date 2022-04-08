@@ -44,6 +44,14 @@ void create_channel_event(ServerInfo * info, char * id_list);
 /**
  *
  * @param info
+ * @param id_list
+ */
+void create_vchannel_event(ServerInfo * info, char * id_list);
+
+
+/**
+ *
+ * @param info
  * @param channel_id
  */
 void join_channel_event(ServerInfo *info, uint16_t channel_id);

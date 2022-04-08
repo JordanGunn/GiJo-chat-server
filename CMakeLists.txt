@@ -80,6 +80,7 @@ target_include_directories(cpt_chat_server PRIVATE cpt_api/include/)
 target_include_directories(cpt_chat_server PRIVATE networking/tcp/include/)
 target_include_directories(cpt_chat_server PRIVATE networking/udp/include/)
 target_include_directories(cpt_chat_server PRIVATE cpt_app/server/include/)
+target_include_directories(cpt_chat_server PRIVATE cpt_api/cpt_voice/)
 
 
 # link the local source files
@@ -88,6 +89,7 @@ target_link_directories(cpt_chat_server PRIVATE cpt_api/src/)
 target_link_directories(cpt_chat_server PRIVATE networking/tcp/src/)
 target_link_directories(cpt_chat_server PRIVATE networking/udp/src/)
 target_link_directories(cpt_chat_server PRIVATE cpt_app/server/src/)
+target_link_directories(cpt_chat_server PRIVATE cpt_api/cpt_voice/)
 
 
 
@@ -112,7 +114,7 @@ target_include_directories(cpt_chat_client PRIVATE interface/cli/include/)
 target_include_directories(cpt_chat_client PRIVATE networking/tcp/include/)
 target_include_directories(cpt_chat_client PRIVATE networking/udp/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_app/client/include/)
-target_include_directories(cpt_chat_client PRIVATE cpt_api/cpt_voice/include/)
+target_include_directories(cpt_chat_client PRIVATE cpt_api/cpt_voice/)
 target_include_directories(cpt_chat_client PRIVATE interface/ncurses/include/)
 target_include_directories(cpt_chat_client PRIVATE interface/interface/include/)
 
@@ -126,7 +128,7 @@ target_link_directories(cpt_chat_client PRIVATE cpt_app/client/src/)
 target_link_directories(cpt_chat_client PRIVATE networking/tcp/src/)
 target_link_directories(cpt_chat_client PRIVATE networking/udp/src/)
 target_link_directories(cpt_chat_client PRIVATE interface/ncurses/src/)
-target_link_directories(cpt_chat_client PRIVATE cpt_api/cpt_voice/src/)
+target_link_directories(cpt_chat_client PRIVATE cpt_api/cpt_voice/)
 target_link_directories(cpt_chat_client PRIVATE interface/interface/src/)
 
 

@@ -39,12 +39,11 @@ void get_users_handler(UserState * ustate);
 void join_channel_handler(UserState * ustate);
 
 
-
 /**
  *
  * @param ustate
  */
-void join_voice_handler(UserState * ustate);
+void create_vchannel_handler(UserState * ustate);
 
 
 /**

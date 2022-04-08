@@ -29,6 +29,13 @@ void handle_event(ServerInfo * info, CptRequest * req)
         cpt_request_destroy(req);
     }
 
+    if ( req->command == CREATE_VCHAN )
+    {
+        puts("  CREATE_VOICE_CHANNEL EVENT");
+        create_vchannel_event(info, (char *) req->msg);
+        cpt_request_destroy(req);
+    }
+
     if ( req->command == LEAVE_CHANNEL )
     {
         puts("  LEAVE_CHANNEL event");
@@ -138,6 +145,40 @@ void create_channel_event(ServerInfo * info, char * id_list)
         res->data = (uint8_t *) &ncid;
         res->data_size = sizeof(ncid);
         res->code = (uint8_t) CREATE_CHANNEL;
+    }
+    else
+    {
+        msg = strdup("Failed to create channel...");
+        res->data = (uint8_t *) msg;
+        res->data_size = sizeof(msg);
+        res->code = (uint8_t) FAILURE;
+    }
+
+    res_size = cpt_serialize_response(res, res_buf);
+    tcp_server_send(info->current_id, res_buf, res_size);
+    cpt_response_destroy(res);
+}
+
+
+void create_vchannel_event(ServerInfo * info, char * id_list)
+{
+    char * msg;
+    int cc_res;
+    uint16_t ncid;
+    size_t res_size;
+    CptResponse * res;
+    uint8_t res_buf[MD_BUFF_SIZE] = {0};
+
+    cc_res = cpt_create_vchannel_response(info, id_list);
+    res = cpt_response_init();
+
+    ncid = ((uint16_t) (info->dir->length - 1));
+
+    if ( cc_res == SUCCESS )
+    {
+        res->data = (uint16_t *) &ncid;
+        res->data_size = sizeof(ncid);
+        res->code = (uint8_t) CREATE_VCHAN;
     }
     else
     {

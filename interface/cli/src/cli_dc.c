@@ -12,7 +12,6 @@ bool is_receiving = false;
 
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
-    int pid;
     int pipe_fds[2];
     UserState * ustate;
     char * host, * port, * login;

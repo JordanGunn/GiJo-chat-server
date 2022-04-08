@@ -10,6 +10,7 @@
 #include "serialize.h"
 #include "linked_list.h"
 #include "cpt_definitions.h"
+#include "cpt_voice_definitions.h"
 
 // ==================================
 // C P T   C L I E N T   P A C K E T
