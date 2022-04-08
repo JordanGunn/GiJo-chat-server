@@ -59,7 +59,7 @@ struct channels
  *
  * @return Pointer to GlobalChannel object.
  */
-Channel * init_global_channel();
+Channel * init_global_channel(void);
 
 
 /**

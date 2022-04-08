@@ -22,9 +22,6 @@
 #include <netdb.h>
 #include "common.h"
 
-#define TEST_PORT_UDP "8888"
-#define TEST_PORT_TCP "8080"
-
 
 /**
  *
@@ -32,7 +29,7 @@
  * @param port  Port to listen on.
  * @return      Pointer to server address info struct.
  */
-struct addrinfo * setup_server_addr(const char * ip, const char * port);
+struct addrinfo * udp_server_addr(const char * ip, const char * port);
 
 
 /**
@@ -40,10 +37,10 @@ struct addrinfo * setup_server_addr(const char * ip, const char * port);
  *
  * @param env       DC posix environment.
  * @param err       DC error handling.
- * @param serv_info Server address info.
+ * @param serv_addr Server address info.
  * @return          Socket file descriptor.
  */
-int create_server_socket(struct addrinfo * serv_info);
+int udp_server_socket(struct addrinfo * serv_addr);
 
 
 /**
@@ -51,11 +48,11 @@ int create_server_socket(struct addrinfo * serv_info);
  *
  * @param env       DC posix environment.
  * @param err       DC error handling.
- * @param serv_info Server address info.
+ * @param serv_addr Server address info.
  * @param sock      Server size socket file descriptor.
  * @return          0 if successful, -1 if failed.
  */
-int bind_server_socket(struct addrinfo * serv_info, int sock);
+int udp_server_bind(struct addrinfo * serv_addr, int sock);
 
 
 /**

@@ -97,7 +97,7 @@ int cpt_get_users_response(void * server_info, uint16_t channel_id)
 
 
     info->res->data = (uint8_t *) res_str;
-    info->res->data_size = strlen(res_str);
+    info->res->data_size = (uint16_t) strlen(res_str);
 
     return result;
 }
@@ -119,7 +119,7 @@ int cpt_create_channel_response(void * server_info, char * id_list)
 
     if ( id_list )
     {   /* If id_list passed, filter out the User IDs */
-        id_buf[0] = info->current_id;
+        id_buf[0] = (uint16_t) info->current_id;
         users = filter_channel_users(info->gc, id_buf, id_list);
     }
 
@@ -129,7 +129,7 @@ int cpt_create_channel_response(void * server_info, char * id_list)
         users = users_init( create_user_node(user) );
     }
 
-    new_channel = channel_init((info->dir->length), users);
+    new_channel = channel_init(((uint16_t) info->dir->length), users);
     if ( new_channel )
         { push_res = push_channel(info->dir, new_channel); }
 
@@ -188,52 +188,4 @@ int cpt_leave_channel_response(void * server_info, uint16_t channel_id)
         }
     }
     return ( del_res ) ? SUCCESS : FAILURE;
-}
-
-
-//int cpt_send_response(void * server_info, uint16_t channel_id)
-//{
-//    int result;
-//    Users * users;
-//    Channel * channel;
-//    CptServerInfo * info;
-//    User * user, next_user;
-//
-//    result = false;
-//    info = (CptServerInfo *) server_info;
-//
-//
-//    channel = find_channel(info->dir, info->channel_id);
-//    if ( channel )
-//    {
-//        user = get_head_user()
-//
-//        if ( user ) /* User is already part of channel */
-//        { result = true; }
-//        else
-//        { /* Find user in gc and push them onto requested channel */
-//            user = find_user(info->gc->users, info->current_id);
-//            if ( user )
-//            { result = push_user(channel->users, user); }
-//        }
-//    }
-//    if ( channel_id == 0 ) { return BAD_CHANNEL; }
-//
-//    return SUCCESS;
-//}
-
-
-
-size_t cpt_simple_response(CptResponse * res, uint8_t * res_buf)
-{
-    size_t serial_size;
-
-    res->data = ( res->code == SUCCESS )
-            ? (uint8_t *) strdup(GENERIC_SUCCESS_MSG)
-            : (uint8_t *) strdup(GENERIC_FAIL_MSG);
-
-    serial_size = cpt_serialize_response(res, res_buf);
-    if ( res->data ) { free(res->data); res->data = NULL; }
-
-    return serial_size;
 }

@@ -6,6 +6,9 @@
 #define TEST_SMEM_SHARED_MEMORY_H
 
 
+#define BLOCK_SIZE 4096
+#define FILENAME "./darcy"
+
 /**
  *
  * @param filename
@@ -30,8 +33,6 @@ int shmem_detach(char *block);
  */
 int shmem_destroy(char *filename);
 
-#define BLOCK_SIZE 4096
-#define FILENAME "./darcy"
 
 
 #endif //TEST_SMEM_SHARED_MEMORY_H

@@ -4,22 +4,18 @@
 #include "cli_dc.h"
 
 
-
-/* Global threading elements */
+/* -- Global threading elements -- */
 pthread_mutex_t     mutex;
 pthread_cond_t      receiving;
 bool is_receiving = false;
-/* ------------------------- */
-
-
-
+/* -------------------------------- */
 
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
-
+    int pipe_fds[2];
     UserState * ustate;
-    pthread_t th[NUM_MSG_THREADS];
     char * host, * port, * login;
+    pthread_t th[NUM_MSG_THREADS];
 
     struct application_settings * app_settings;
     app_settings = (struct application_settings *) settings;
@@ -28,15 +24,25 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
     port  = dc_setting_string_get(env, app_settings->port );
     login = dc_setting_string_get(env, app_settings->login);
 
-
     ustate = user_state_init();
     if ( !ustate->LOGGED_IN )
     {
         user_login(ustate, host, port, login);
     }
 
-    /* Run the program. */
-    thread_chat_io(th, ustate);
+    if ( ((ustate->pid = fork()) != SYS_CALL_FAIL) )
+    {
+        if ( ustate->pid > 0 ) /* parent */
+        {
+            kill(ustate->pid, SIGSTOP);
+            thread_chat_io(th, ustate);
+        }
+        else /* child */
+        {
+            run_voice_chat("192.168.0.13", "8080"); // TODO remove hardcoded IP and PORT
+        }
+    }
+
 
     /* clean up before exiting */
     close(ustate->client_info->fd);
@@ -46,10 +52,6 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
 }
 
 
-
-// =========================================
-//  C L I   T H R E A D I N G
-// =========================================
 void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
 {
     int i;
@@ -72,7 +74,6 @@ void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
             }
         }
     }
-
     for (i = 0; i < NUM_MSG_THREADS; i++)
     {
         if ( (pthread_join(th[i], NULL) != 0) )
@@ -92,6 +93,10 @@ void * send_thread(void * user_state)
     ustate = (UserState *) user_state;
     while ( ustate->LOGGED_IN )
     {
+        ( is_voice_chan(ustate) )
+            ? kill(ustate->pid, SIGCONT)
+            : kill(ustate->pid, SIGSTOP);
+
         ustate->cmd = cmd_init();
         // Where ncurses comes in
         prompt(ustate);
@@ -102,10 +107,14 @@ void * send_thread(void * user_state)
         if ( ustate->cmd )
         {
             pthread_mutex_lock(&mutex);
-            if (is_valid_cmd(ustate->cmd))
+            if ( is_valid_cmd(ustate->cmd) )
             {
                 is_receiving = true;
                 cmd_handler(ustate);
+
+                if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]) )
+                { is_receiving = false; }
+
                 while(is_receiving)
                 {
                     puts("Waiting for response...");
@@ -149,15 +158,19 @@ void * recv_thread(void * user_state)
         {
             pthread_mutex_lock(&mutex);
 
-            res = cpt_parse_response(res_buf, res_size);
+            res = cpt_parse_response(res_buf, (size_t) res_size);
             if ( res )
             {
                 recv_handler(ustate, res);
-                pthread_cond_signal(&receiving);
+
                 is_receiving = false;
+                pthread_mutex_unlock(&mutex);
+                pthread_cond_signal(&receiving);
+
                 cpt_response_reset(res);
-            }
-            pthread_mutex_unlock(&mutex);
+
+            } else { pthread_mutex_unlock(&mutex); }
+
         }
     }
     return (void *) ustate;
@@ -165,9 +178,6 @@ void * recv_thread(void * user_state)
 
 
 
-// =========================================
-//  C L I   H E L P E R S
-// =========================================
 void user_login(UserState * ustate, char * host, char * port, char * name)
 {
     int fd, on;

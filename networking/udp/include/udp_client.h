@@ -14,43 +14,65 @@
  * @param port  Port of target destination.
  * @return      Pointer to addrinfo struct or NULL if failure.
  */
-struct addrinfo * setup_client_addr(const char * host, const char * port);
+struct addrinfo * udp_client_addr(const char * host, const char * port);
 
 
 /**
  * @brief Create a socket to write to server.
  *
- * @param serv_info Result returned from setup_client_addr().
+ * @param client_addr Result returned from setup_client_addr().
  * @return          Socket file descriptor.
  */
-int create_client_socket(struct addrinfo * serv_info);
+int udp_client_socket(struct addrinfo * client_addr);
 
 
 /**
  * @brief Send bytes to server.
  *
- * @param serv_info Result returned from setup_client_addr().
+ * @param client_addr Result returned from setup_client_addr().
  * @param sock      Socket file descriptor.
  * @param msg       Message to be sent.
  */
-void send_bytes(struct addrinfo * serv_info, int sock, char * msg);
+void udp_client_sendto(struct addrinfo * client_addr, int sock, char * msg);
 
 
 /**
- * Wait until some moment in time.
  *
- * @param time_point The current time in seconds.
+ *
+ * @param sock_fd
+ * @param data
+ * @param data_size
+ * @return
  */
-void countdown(long time_point);
+int udp_client_send(int sock_fd, uint8_t * data, size_t data_size);
 
 
 /**
- * Convert time in format HH:MM to Seconds.
  *
- * @param client_time   Time passed through client init params (format HH:MM)
- * @return              Client time in seconds.
+ * @param sock_fd
+ * @param buf
+ * @return
  */
-long time_in_sec(char * client_time);
+ssize_t udp_client_recv(int sock_fd, uint8_t * buf);
+
+
+/**
+ * Create a UDP connection.
+ *
+ * @param udp_fd
+ * @param client_addr
+ * @return
+ */
+int udp_client_connect(int udp_fd, struct addrinfo * client_addr);
+
+
+/**
+ *
+ * @param host
+ * @param port
+ * @return
+ */
+int udp_client_init(const char * host, const char * port);
 
 
 /**

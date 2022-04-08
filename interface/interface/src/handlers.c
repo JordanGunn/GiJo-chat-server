@@ -10,20 +10,20 @@ int login_handler(UserState * ustate, char * name)
 {
     int result;
     CptResponse * res;
-    size_t res_size, req_size;
+    ssize_t res_size, req_size;
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
     uint8_t req_buf[LG_BUFF_SIZE] = {0};
 
     // send data to server
-    req_size = cpt_login(ustate->client_info, req_buf, name);
-    result = tcp_client_send(ustate->client_info->fd, req_buf, req_size);
+    req_size = (ssize_t) cpt_login(ustate->client_info, req_buf, name);
+    result = tcp_client_send(ustate->client_info->fd, req_buf, (size_t) req_size);
     ustate->client_info->channel = CHANNEL_ZERO;
     ustate->client_info->name = strdup(name);
 
     if (result != SYS_CALL_FAIL)
     {
-        res_size = tcp_client_recv(ustate->client_info->fd, res_buf);
-        res = cpt_parse_response(res_buf, res_size);
+        res_size = (ssize_t) tcp_client_recv(ustate->client_info->fd, res_buf);
+        res = cpt_parse_response(res_buf, (size_t) res_size);
         if ( res )
         {
             if (res->code == (uint8_t) LOGIN)
@@ -116,16 +116,17 @@ void leave_channel_handler(UserState * ustate)
     {
         printf("Failed to send LEAVE_CHANNEL request\n");
     }
+
+
 }
 
 
-
-void join_channel_handler(UserState * ustate) {
-
+void join_channel_handler(UserState * ustate)
+{
     int result;
     char * args_end;
-    uint16_t channel_id;
     size_t req_size;
+    uint16_t channel_id;
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
 
     channel_id = (uint16_t) strtol(ustate->cmd->args, &args_end, 10);
@@ -147,7 +148,7 @@ void send_handler(UserState * ustate)
 {
     int result;
     char * block;
-    size_t req_size;
+    ssize_t req_size;
     uint16_t channel_id;
     char * msg_prefix, * name;
     char msg_buf[SM_BUFF_SIZE] = {0};
@@ -157,7 +158,7 @@ void send_handler(UserState * ustate)
             ustate->client_info, req_buf, ustate->cmd->input);
 
     result = tcp_client_send(
-            ustate->client_info->fd, req_buf, req_size);
+            ustate->client_info->fd, req_buf, (size_t) req_size);
 
     if ( result != SYS_CALL_FAIL )
     {
@@ -175,9 +176,29 @@ void send_handler(UserState * ustate)
 }
 
 
+void create_vchannel_handler(UserState * ustate)
+{
+
+    int result;
+    size_t req_size;
+    uint8_t req_buf[MD_BUFF_SIZE] = {0};
+
+    req_size = cpt_create_vchannel(
+            ustate->client_info, req_buf, ustate->cmd->args);
+
+    result = tcp_client_send(
+            ustate->client_info->fd, req_buf, req_size);
+
+    if ( result == SYS_CALL_FAIL )
+    {
+        printf("Failed to create voice channel\n");
+    }
+}
+
+
 void recv_handler(UserState * ustate, const CptResponse * res)
 {
-    int cid;
+    uint16_t cid;
     char * block;
 
     if ( res->code == (uint8_t) GET_USERS )
@@ -188,6 +209,13 @@ void recv_handler(UserState * ustate, const CptResponse * res)
     if ( res->code == (uint8_t) CREATE_CHANNEL )
     {
         cid = (uint16_t) ( *(res->data) ); // new channel id is in response
+        ustate->channel = cid;
+        printf("\nSuccessfully created channel %d\n", cid);
+    }
+
+    if ( res->code == (uint8_t) CREATE_CHANNEL )
+    {
+        cid = (uint16_t) unpacku16(res->data); // new channel id is in response
         ustate->channel = cid;
         printf("\nSuccessfully created channel %d\n", cid);
     }
@@ -214,16 +242,49 @@ void recv_handler(UserState * ustate, const CptResponse * res)
 
 void cmd_handler(UserState * ustate)
 {
-    if ( is_cmd(ustate->cmd, cli_cmds[MENU_CMD]           )) { menu();                         }
-    if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]         )) { logout_handler(ustate);         }
-    if ( is_cmd(ustate->cmd, cli_cmds[GET_USERS_CMD]      )) { get_users_handler(ustate);      }
-    if ( is_cmd(ustate->cmd, cli_cmds[CREATE_CHANNEL_CMD] )) { create_channel_handler(ustate); }
-    if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL_CMD]   )) { join_channel_handler(ustate);   }
-    if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL_CMD]  )) { leave_channel_handler(ustate);  }
+    if ( is_cmd(ustate->cmd, cli_cmds[MENU_CMD]            )) { menu();                          }
+    if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]          )) { logout_handler(ustate);          }
+    if ( is_cmd(ustate->cmd, cli_cmds[GET_USERS_CMD]       )) { get_users_handler(ustate);       }
+    if ( is_cmd(ustate->cmd, cli_cmds[CREATE_CHANNEL_CMD]  )) { create_channel_handler(ustate);  }
+    if ( is_cmd(ustate->cmd, cli_cmds[JOIN_CHANNEL_CMD]    )) { join_channel_handler(ustate);    }
+    if ( is_cmd(ustate->cmd, cli_cmds[LEAVE_CHANNEL_CMD]   )) { leave_channel_handler(ustate);   }
+    if ( is_cmd(ustate->cmd, cli_cmds[CREATE_VCHANNEL_CMD] )) { create_vchannel_handler(ustate); }
 }
 
 
+bool is_voice_compat(UserState * ustate)
+{
+    CptRequest * req;
+    uint8_t ver_major;
+
+    req = ustate->client_info->packet;
+    ver_major = (req->version & ( MASK_8BIT_MSIG4 )) >> SHIFT4;
+
+    return (ver_major >= VER_MAJ_2);
+}
 
 
+bool is_voice_chan(UserState * ustate)
+{
+    CptRequest * req;
+    bool vchan_lbound, vchan_ubound;
 
+    req = ustate->client_info->packet;
+
+    vchan_lbound = (req->channel_id >= CPT_VCHAN_MIN);
+    vchan_ubound = (req->channel_id <= CPT_VCHAN_MIN);
+
+    return (vchan_lbound && vchan_ubound);
+}
+
+
+bool is_voice(UserState * ustate)
+{
+    bool is_vchan, is_vcompat;
+
+    is_vchan = is_voice_chan(ustate);
+    is_vcompat = is_voice_compat(ustate);
+
+    return (is_vchan && is_vcompat);
+}
 

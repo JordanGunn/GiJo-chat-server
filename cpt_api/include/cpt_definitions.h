@@ -20,8 +20,9 @@
 #define MAX_ID_NUM 65535
 #define MAX_NAME_SIZE 12
 #define CHANNEL_ZERO 0
-#define VER_MAJ_LAT 1
-#define VER_MIN_LAT 1
+#define VER_MAJ_LAT 2
+#define VER_MIN_LAT 0
+#define VER_MAJ_2 2
 /* ============================== */
 
 

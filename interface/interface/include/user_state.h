@@ -5,15 +5,17 @@
 #ifndef CPT_USER_STATE_H
 #define CPT_USER_STATE_H
 
+#include "common.h"
 #include "command.h"
+#include "cpt_voice_client.h"
 #include "cpt_client.h"
-
 /**
  * UserState object.
  */
 typedef struct user_state UserState;
 struct user_state
 {
+    int pid;
     Command * cmd;
     uint16_t channel;
     ClientInfo * client_info;
@@ -31,7 +33,7 @@ struct user_state
  *
  * @return Pointer to a UserSState object.
  */
-UserState * user_state_init();
+UserState * user_state_init(void);
 
 
 /**

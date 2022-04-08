@@ -4,7 +4,7 @@
 
 #include "udp_client.h"
 
-struct addrinfo * setup_client_addr(const char * host, const char * port)
+struct addrinfo * udp_client_addr(const char * host, const char * port)
 {
     struct addrinfo hints, * serv_info;
 
@@ -25,14 +25,14 @@ struct addrinfo * setup_client_addr(const char * host, const char * port)
 }
 
 
-int create_client_socket(struct addrinfo * serv_info)
+int udp_client_socket(struct addrinfo * client_addr)
 {
     int client_sock_fd;
 
     client_sock_fd = socket(
-            serv_info->ai_family,
-            serv_info->ai_socktype,
-            serv_info->ai_protocol);
+            client_addr->ai_family,
+            client_addr->ai_socktype,
+            client_addr->ai_protocol);
 
     if ( client_sock_fd < 0 )
     {
@@ -45,12 +45,97 @@ int create_client_socket(struct addrinfo * serv_info)
 }
 
 
-void send_bytes(struct addrinfo * serv_info, int sock, char * msg)
+int udp_client_connect(int udp_fd, struct addrinfo * client_addr)
+{
+    int result;
+
+    result = connect(udp_fd, client_addr->ai_addr, client_addr->ai_addrlen);
+
+    if ( result < 0)
+    {
+        if (errno != EWOULDBLOCK)
+        {
+            const char * msg = "Failed to connect to server...\n";
+            write(STDERR_FILENO, msg, strlen(msg));
+            return -1;
+        }
+    }
+
+    freeaddrinfo(client_addr);
+    return result;
+}
+
+
+int udp_client_init(const char * host, const char * port)
+{
+    int udp_fd, conn_res;
+    struct addrinfo * client_addr;
+
+    client_addr = udp_client_addr(host, port);
+
+    conn_res = -1;
+    if ( client_addr )
+    {
+        if ( ((udp_fd = udp_client_socket(client_addr)) != SYS_CALL_FAIL) )
+        {
+            conn_res = udp_client_connect(udp_fd, client_addr);
+        }
+    }
+
+    return ( conn_res == SYS_CALL_FAIL ) ? conn_res : udp_fd;
+}
+
+
+int udp_client_send(int sock_fd, uint8_t * data, size_t data_size)
+{
+    ssize_t bytes_sent, bytes_left;
+
+    bytes_left = (ssize_t) data_size;
+    while ( bytes_left > 0 )
+    {
+        bytes_sent = send(sock_fd, data, data_size, 0);
+        if ( bytes_sent < 0 )
+        { break; }
+        else
+        {  bytes_left -= bytes_sent; }
+    }
+
+    if (bytes_sent < 0)
+    {
+        const char * err_msg = "Failed to send bytes to server...\n";
+        write(STDERR_FILENO, err_msg, strlen(err_msg));
+    }
+
+    return (int) bytes_sent;
+}
+
+
+ssize_t udp_client_recv(int sock_fd, uint8_t * buf)
+{
+    ssize_t bytes_received;
+
+    bytes_received = recv(sock_fd, buf, MD_BUFF_SIZE, 0);
+    if ( bytes_received < 0 )
+    {
+        if (errno != EWOULDBLOCK || errno != EAGAIN)
+        {
+            const char * msg = "Failed to receive data from server...\n";
+            printf("  ERROR: %s\n", strerror(errno));
+            write(STDERR_FILENO, msg, strlen(msg));
+        }
+    }
+
+    return bytes_received;
+}
+
+
+
+void udp_client_sendto(struct addrinfo * client_addr, int sock, char * msg)
 {
     ssize_t bytes_sent;
 
     bytes_sent = sendto(sock, msg, strlen(msg), 0,
-                           serv_info->ai_addr, serv_info->ai_addrlen);
+                        client_addr->ai_addr, client_addr->ai_addrlen);
 
     if ( bytes_sent < 0 )
     {
