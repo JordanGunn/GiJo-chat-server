@@ -86,6 +86,8 @@ void recv_handler(UserState *ustate, const CptResponse * res);
 void cmd_handler(UserState * ustate);
 
 
+
+
 /**
  * Check if protocol version in packet is voice compatible.
  *

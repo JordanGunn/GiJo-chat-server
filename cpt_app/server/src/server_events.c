@@ -167,16 +167,17 @@ void create_vchannel_event(ServerInfo * info, char * id_list)
     uint16_t ncid;
     size_t res_size;
     CptResponse * res;
+    uint8_t cid_buf[B2_BUFF_SIZE] = {0};
     uint8_t res_buf[MD_BUFF_SIZE] = {0};
 
     cc_res = cpt_create_vchannel_response(info, id_list);
     res = cpt_response_init();
 
     ncid = ((uint16_t) (info->dir->length - 1));
-
     if ( cc_res == SUCCESS )
     {
-        res->data = (uint16_t *) &ncid;
+        packi16(cid_buf, ncid);
+        res->data = (uint8_t *) cid_buf;
         res->data_size = sizeof(ncid);
         res->code = (uint8_t) CREATE_VCHAN;
     }

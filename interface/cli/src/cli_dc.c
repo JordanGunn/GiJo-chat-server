@@ -4,11 +4,11 @@
 #include "cli_dc.h"
 
 
-/* Global threading elements */
+/* -- Global threading elements -- */
 pthread_mutex_t     mutex;
 pthread_cond_t      receiving;
 bool is_receiving = false;
-/* ------------------------- */
+/* -------------------------------- */
 
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
@@ -30,19 +30,16 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
         user_login(ustate, host, port, login);
     }
 
-    if (  pipe(pipe_fds) != -1  )
+    if ( ((ustate->pid = fork()) != SYS_CALL_FAIL) )
     {
-        if ( ((ustate->pid = fork()) != SYS_CALL_FAIL) )
+        if ( ustate->pid > 0 ) /* parent */
         {
-            if ( ustate->pid > 0 ) /* parent */
-            {
-                kill(ustate->pid, SIGSTOP);
-                thread_chat_io(th, ustate);
-            }
-            else /* child */
-            {
-                run_voice_chat("192.168.0.13", "8080");
-            }
+            kill(ustate->pid, SIGSTOP);
+            thread_chat_io(th, ustate);
+        }
+        else /* child */
+        {
+            run_voice_chat("192.168.0.13", "8080"); // TODO remove hardcoded IP and PORT
         }
     }
 
@@ -55,10 +52,6 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
 }
 
 
-
-// =========================================
-//  C L I   T H R E A D I N G
-// =========================================
 void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
 {
     int i;
@@ -81,7 +74,6 @@ void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
             }
         }
     }
-
     for (i = 0; i < NUM_MSG_THREADS; i++)
     {
         if ( (pthread_join(th[i], NULL) != 0) )
@@ -114,7 +106,7 @@ void * send_thread(void * user_state)
         if ( ustate->cmd )
         {
             pthread_mutex_lock(&mutex);
-            if (is_valid_cmd(ustate->cmd))
+            if ( is_valid_cmd(ustate->cmd) )
             {
                 is_receiving = true;
                 cmd_handler(ustate);
@@ -185,9 +177,6 @@ void * recv_thread(void * user_state)
 
 
 
-// =========================================
-//  C L I   H E L P E R S
-// =========================================
 void user_login(UserState * ustate, char * host, char * port, char * name)
 {
     int fd, on;
