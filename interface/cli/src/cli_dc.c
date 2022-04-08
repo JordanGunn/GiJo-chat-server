@@ -12,10 +12,11 @@ bool is_receiving = false;
 
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
-
+    int pid;
+    int pipe_fds[2];
     UserState * ustate;
-    pthread_t th[NUM_MSG_THREADS];
     char * host, * port, * login;
+    pthread_t th[NUM_MSG_THREADS];
 
     struct application_settings * app_settings;
     app_settings = (struct application_settings *) settings;
@@ -24,15 +25,28 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
     port  = dc_setting_string_get(env, app_settings->port );
     login = dc_setting_string_get(env, app_settings->login);
 
-
     ustate = user_state_init();
     if ( !ustate->LOGGED_IN )
     {
         user_login(ustate, host, port, login);
     }
 
-    /* Run the program. */
-    thread_chat_io(th, ustate);
+    if (  pipe(pipe_fds) != -1  )
+    {
+        if ( ((ustate->pid = fork()) != SYS_CALL_FAIL) )
+        {
+            if ( ustate->pid > 0 ) /* parent */
+            {
+                kill(ustate->pid, SIGSTOP);
+                thread_chat_io(th, ustate);
+            }
+            else /* child */
+            {
+                run_voice_chat("192.168.0.13", "8080");
+            }
+        }
+    }
+
 
     /* clean up before exiting */
     close(ustate->client_info->fd);
@@ -88,6 +102,10 @@ void * send_thread(void * user_state)
     ustate = (UserState *) user_state;
     while ( ustate->LOGGED_IN )
     {
+        ( is_voice_chan(ustate) )
+            ? kill(ustate->pid, SIGCONT)
+            : kill(ustate->pid, SIGSTOP);
+
         ustate->cmd = cmd_init();
         prompt(ustate);
 

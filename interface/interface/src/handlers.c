@@ -116,18 +116,17 @@ void leave_channel_handler(UserState * ustate)
     {
         printf("Failed to send LEAVE_CHANNEL request\n");
     }
+
+
 }
 
 
 void join_channel_handler(UserState * ustate)
 {
-    ssize_t n_sent;
-    bool some_condition;
-
+    int result;
+    char * args_end;
     size_t req_size;
-    int result, udp_fd;
     uint16_t channel_id;
-    char * args_end, * host, * port;
     uint8_t req_buf[MD_BUFF_SIZE] = {0};
 
     channel_id = (uint16_t) strtol(ustate->cmd->args, &args_end, 10);
@@ -141,22 +140,6 @@ void join_channel_handler(UserState * ustate)
     if ( result == SYS_CALL_FAIL )
     {
         printf("Failed to send JOIN_CHANNEL request\n");
-    }
-
-    host = ustate->client_info->ip;
-    port = ustate->client_info->port;
-
-    // TODO: VOICE FUNCTIONALITY GOES HERE.
-    if ( is_voice(ustate) )
-    {
-        some_condition = true;
-        udp_fd = udp_client_init(host, port);
-        while ( some_condition )
-        {  /* WE CAN INSERT ARECORD/APLAY RIGHT HERE */
-            char * msg = "LOOK AT ALL THIS DATA";
-            n_sent = udp_client_send(udp_fd, (uint8_t *) msg, strlen(msg));
-            if ( n_sent < 0 ) { some_condition = false; }
-        }
     }
 }
 

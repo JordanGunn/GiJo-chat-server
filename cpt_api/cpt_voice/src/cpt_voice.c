@@ -13,7 +13,7 @@ size_t cpt_create_vchannel(void * cpt, uint8_t * serial_buf, char * user_list)
     client_info->packet = cpt_request_init();
     cpt_request_chan(client_info->packet, (uint16_t) CHANNEL_ZERO);
     cpt_request_version(client_info->packet, VER_MAJ_LAT, VER_MIN_LAT);
-    cpt_request_cmd(client_info->packet, (uint8_t) CREATE_CHANNEL);
+    cpt_request_cmd(client_info->packet, (uint8_t) CREATE_VCHAN);
 
     if ( user_list )
     {

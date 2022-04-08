@@ -15,6 +15,7 @@
 typedef struct user_state UserState;
 struct user_state
 {
+    int pid;
     Command * cmd;
     uint16_t channel;
     ClientInfo * client_info;

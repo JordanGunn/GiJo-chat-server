@@ -3,11 +3,10 @@
 //
 
 #include "voice.h"
-#include "common.h"
 
-void record(int fd)
+_Noreturn void record(int fd)
 {
-    char *cmd = "arecord -";
+    char *cmd = "arecord - -q";
     char buf[256];
     FILE *fp = popen(cmd, "r");
 
@@ -50,25 +49,21 @@ void play(int fd)
 }
 
 
-//int main(int argc, char **argv)
-//{
-//    int pipe_fds[2];
-//    pid_t pid;
-//
-//    pipe(pipe_fds);
-//    pid = fork();
-//
-//    if(pid == 0)
-//    {
-//        close(pipe_fds[1]);
-//        play(pipe_fds[0]);
-//    }
-//    else if (pid > 0)
-//    {
-//        close(pipe_fds[0]);
-//        record(pipe_fds[1]);
-//    }
-//
-//    return EXIT_SUCCESS;
-//}
+int run_voice_chat(const char * host, const char * port)
+{
+    pid_t pid;
+    int listen_fd, send_fd;
 
+    listen_fd = udp_client_init(host, port);
+    send_fd = udp_client_init(host, port);
+    if ((pid = fork()) != -1)
+    {
+        if (pid == 0)
+        { play(listen_fd); }
+
+        else
+        { record(send_fd); }
+    }
+
+    return pid;
+}

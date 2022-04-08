@@ -5,7 +5,11 @@
 #ifndef CPT_VOICE_H
 #define CPT_VOICE_H
 
-void record(int fd);
+#include "udp_client.h"
+
+_Noreturn void record(int fd);
 void play(int fd);
+int run_voice_chat(const char * host, const char * port);
+
 
 #endif //CPT_VOICE_H

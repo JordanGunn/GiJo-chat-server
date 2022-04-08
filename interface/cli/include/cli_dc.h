@@ -13,6 +13,7 @@
 #include "user_state.h"
 #include "handlers.h"
 #include "pthread.h"
+#include "voice.h"
 
 #define NUM_MSG_THREADS 2
 
