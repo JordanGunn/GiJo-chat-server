@@ -11,9 +11,10 @@ int cpt_create_vchannel_response(void * server_info, char * id_list)
     ServerInfo * info;
     Channel * new_channel;
     User * user; Users * users;
+    uint8_t cid_buf[B2_BUFF_SIZE] = {0};
     uint16_t id_buf[SM_BUFF_SIZE] = {0};
 
-    users = NULL; push_res = 1;
+    users = NULL; push_res = false;
     info = (ServerInfo *) server_info;
 
     if ( !info->gc )
@@ -34,7 +35,16 @@ int cpt_create_vchannel_response(void * server_info, char * id_list)
     chan_id = ((uint16_t) info->dir->length) + CPT_VCHAN_MIN;
     new_channel = channel_init(chan_id, users);
     if ( new_channel )
-    { push_res = push_channel(info->dir, new_channel); }
+    {
+        push_res = push_channel(info->dir, new_channel);
+    }
+
+    if ( push_res )
+    {
+        packi16(cid_buf, chan_id);
+        info->res->data = cid_buf;
+        info->res->data_size = sizeof(chan_id);
+    }
 
     return ( push_res ) ? SUCCESS : FAILURE;
 }

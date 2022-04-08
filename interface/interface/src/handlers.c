@@ -211,7 +211,7 @@ void recv_handler(UserState * ustate, const CptResponse * res)
         printf("\nSuccessfully created channel %d\n", cid);
     }
 
-    if ( res->code == (uint8_t) CREATE_CHANNEL )
+    if ( res->code == (uint8_t) CREATE_VCHAN )
     {
         cid = (uint16_t) unpacku16(res->data); // new channel id is in response
         ustate->channel = cid;
