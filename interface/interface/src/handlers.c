@@ -157,7 +157,6 @@ void join_channel_handler(UserState * ustate)
             n_sent = udp_client_send(udp_fd, (uint8_t *) msg, strlen(msg));
             if ( n_sent < 0 ) { some_condition = false; }
         }
-
     }
 }
 
@@ -264,6 +263,7 @@ bool is_voice_chan(UserState * ustate)
 
     return (vchan_lbound && vchan_ubound);
 }
+
 
 bool is_voice(UserState * ustate)
 {

@@ -25,6 +25,7 @@ ENDIF()
 # ==============================================================================
 #     Add all relevant subdirectories with other CMakeList files
 # ==============================================================================
+add_subdirectory(voice/)
 add_subdirectory(common/)
 add_subdirectory(cpt_api/)
 add_subdirectory(cpt_app/)
@@ -49,7 +50,8 @@ add_executable(cpt_chat_client
         ${CHAT_CLIENT_TARGET}
         ${CPT_API_CLIENT_TGT}
         ${CLI_INTERFACE_TARGET}
-        ${NETWORK_CLIENT_TARGET})
+        ${NETWORK_CLIENT_TARGET}
+        ${VOICE_TARGET})
 
 add_executable(cpt_messenger
         ${CPT_COMMON_TARGET}
@@ -99,6 +101,7 @@ target_link_directories(cpt_chat_client PRIVATE /usr/lib)
 target_link_directories(cpt_chat_client PRIVATE /usr/local/lib)
 
 # tell the compiler where local header files are
+target_include_directories(cpt_chat_client PRIVATE voice/)
 target_include_directories(cpt_chat_client PRIVATE messenger/)
 target_include_directories(cpt_chat_client PRIVATE common/include/)
 target_include_directories(cpt_chat_client PRIVATE cpt_api/include/)
@@ -111,6 +114,7 @@ target_include_directories(cpt_chat_client PRIVATE interface/ncurses/include/)
 target_include_directories(cpt_chat_client PRIVATE interface/interface/include/)
 
 # link the local source files
+target_link_directories(cpt_chat_client PRIVATE voice/)
 target_link_directories(cpt_chat_client PRIVATE messenger/)
 target_link_directories(cpt_chat_client PRIVATE common/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_api/src/)

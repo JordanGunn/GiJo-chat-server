@@ -20,20 +20,20 @@ struct addrinfo * udp_client_addr(const char * host, const char * port);
 /**
  * @brief Create a socket to write to server.
  *
- * @param serv_info Result returned from setup_client_addr().
+ * @param client_addr Result returned from setup_client_addr().
  * @return          Socket file descriptor.
  */
-int udp_client_socket(struct addrinfo * serv_info);
+int udp_client_socket(struct addrinfo * client_addr);
 
 
 /**
  * @brief Send bytes to server.
  *
- * @param serv_info Result returned from setup_client_addr().
+ * @param client_addr Result returned from setup_client_addr().
  * @param sock      Socket file descriptor.
  * @param msg       Message to be sent.
  */
-void udp_client_sendto(struct addrinfo * serv_info, int sock, char * msg);
+void udp_client_sendto(struct addrinfo * client_addr, int sock, char * msg);
 
 
 /**
@@ -60,10 +60,10 @@ ssize_t udp_client_recv(int sock_fd, uint8_t * buf);
  * Create a UDP connection.
  *
  * @param udp_fd
- * @param serv_info
+ * @param client_addr
  * @return
  */
-int udp_client_connect(int udp_fd, struct addrinfo * serv_info);
+int udp_client_connect(int udp_fd, struct addrinfo * client_addr);
 
 
 /**

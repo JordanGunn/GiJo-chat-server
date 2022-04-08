@@ -25,14 +25,14 @@ struct addrinfo * udp_client_addr(const char * host, const char * port)
 }
 
 
-int udp_client_socket(struct addrinfo * serv_info)
+int udp_client_socket(struct addrinfo * client_addr)
 {
     int client_sock_fd;
 
     client_sock_fd = socket(
-            serv_info->ai_family,
-            serv_info->ai_socktype,
-            serv_info->ai_protocol);
+            client_addr->ai_family,
+            client_addr->ai_socktype,
+            client_addr->ai_protocol);
 
     if ( client_sock_fd < 0 )
     {
@@ -45,11 +45,11 @@ int udp_client_socket(struct addrinfo * serv_info)
 }
 
 
-int udp_client_connect(int udp_fd, struct addrinfo * serv_info)
+int udp_client_connect(int udp_fd, struct addrinfo * client_addr)
 {
     int result;
 
-    result = connect(udp_fd, serv_info->ai_addr, serv_info->ai_addrlen);
+    result = connect(udp_fd, client_addr->ai_addr, client_addr->ai_addrlen);
 
     if ( result < 0)
     {
@@ -61,7 +61,7 @@ int udp_client_connect(int udp_fd, struct addrinfo * serv_info)
         }
     }
 
-    freeaddrinfo(serv_info);
+    freeaddrinfo(client_addr);
     return result;
 }
 
@@ -130,12 +130,12 @@ ssize_t udp_client_recv(int sock_fd, uint8_t * buf)
 
 
 
-void udp_client_sendto(struct addrinfo * serv_info, int sock, char * msg)
+void udp_client_sendto(struct addrinfo * client_addr, int sock, char * msg)
 {
     ssize_t bytes_sent;
 
     bytes_sent = sendto(sock, msg, strlen(msg), 0,
-                           serv_info->ai_addr, serv_info->ai_addrlen);
+                        client_addr->ai_addr, client_addr->ai_addrlen);
 
     if ( bytes_sent < 0 )
     {
