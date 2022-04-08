@@ -112,7 +112,7 @@ target_link_directories(cpt_chat_client PRIVATE interface/cli/src/)
 target_link_directories(cpt_chat_client PRIVATE cpt_app/client/src/)
 target_link_directories(cpt_chat_client PRIVATE networking/tcp/src/)
 target_link_directories(cpt_chat_client PRIVATE networking/udp/src/)
-target_link_directories(cpt_chat_client PRIVATE interface/interface/src/)
+target_link_directories(cpt_chat_client PRIVATE interface/ncurses/src/)
 
 
 # ========================================================================
@@ -141,9 +141,12 @@ target_include_directories(cpt_messenger PRIVATE common/include/)
 #
 ##
 ### tell the compiler to check here for 3rd party source files
+find_package(Curses REQUIRED)
+include_directories(${CURSES_INCLUDE_DIR})
 target_link_directories(cpt_messenger PRIVATE messenger/)
 target_link_directories(cpt_messenger PRIVATE /usr/lib)
 target_link_directories(cpt_messenger PRIVATE /usr/local/lib)
+target_link_libraries(cpt_chat_client PRIVATE ${CURSES_LIBRARIES})
 
 # =========================================
 # Additional compile options for server
@@ -188,6 +191,7 @@ target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_POSIX})
 target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_UTIL})
 target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_FSM})
 target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_APPLICATION})
+
 
 
 

@@ -65,10 +65,20 @@ void parse_cmd(Command * cmd)
     char * cmd_start, * cmd_end;
 
     cmd_start = cmd->input;
+
     if ( !(cmd_end = strchr(cmd->input, ' ')) )
     {
         cmd_end = strchr(cmd->input, '\n');
-        memcpy(cmd_buf, cmd_start, cmd_end - cmd_start);
+
+        if(!cmd_end)
+        {
+            memcpy(cmd_buf, cmd_start, strlen(cmd_start + 1));
+        }
+        else
+        {
+            memcpy(cmd_buf, cmd_start, cmd_end - cmd_start);
+        }
+
         cmd->p_input = NULL;
     }
     else

@@ -4,6 +4,15 @@
 
 #include "command.h"
 
+//Command * cmd2;
+//cmd2 = cmd_init();
+//cmd2->input = cmd_get_input();
+//parse_cmd_input(cmd2);
+
+//UserState * user_state;
+//user_state = user_state_init();
+//user_state->cmd = cmd2;
+
 
 void parse_cmd_input(Command * cmd)
 {

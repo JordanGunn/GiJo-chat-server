@@ -93,6 +93,7 @@ void * send_thread(void * user_state)
     while ( ustate->LOGGED_IN )
     {
         ustate->cmd = cmd_init();
+        // Where ncurses comes in
         prompt(ustate);
 
         ustate->cmd->input = cmd_get_input();

@@ -164,11 +164,13 @@ void send_handler(UserState * ustate)
         name = ustate->client_info->name;
         channel_id = ustate->channel;
         sprintf(msg_buf, "[ %s | (channel %hu) ]: ", name, channel_id);
-        block = shmem_attach(FILENAME, BLOCK_SIZE);
+
+
+
         strncat(msg_buf, ustate->cmd->input, strlen(ustate->cmd->input));
         msg_prefix = strdup(msg_buf);
-        strncpy(block, msg_prefix, strlen(msg_prefix));
-        shmem_detach(block);
+
+        update_msg_history(msg_prefix, msg_history, msg_count);
     }
 }
 
