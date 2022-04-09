@@ -10,7 +10,7 @@
 #define LG_BUFF_SIZE 1024
 #define XL_BUFF_SIZE 2048
 
-#define SYS_CALL_FAIL -1
+#define SYS_CALL_FAIL (-1)
 
 #include <stdio.h>
 #include <stdlib.h>

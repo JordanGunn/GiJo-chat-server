@@ -9,7 +9,7 @@ int login_handler(UserState * ustate, char * name)
 {
     int result;
     CptResponse * res;
-    ssize_t res_size, req_size;
+    ssize_t req_size;
     uint8_t res_buf[LG_BUFF_SIZE] = {0};
     uint8_t req_buf[LG_BUFF_SIZE] = {0};
 
@@ -21,8 +21,8 @@ int login_handler(UserState * ustate, char * name)
 
     if (result != SYS_CALL_FAIL)
     {
-        res_size = (ssize_t) tcp_client_recv(ustate->client_info->fd, res_buf);
-        res = cpt_parse_response(res_buf, (size_t) res_size);
+        tcp_client_recv(ustate->client_info->fd, res_buf);
+        res = cpt_parse_response(res_buf);
         if ( res )
         {
             if (res->code == (uint8_t) LOGIN)

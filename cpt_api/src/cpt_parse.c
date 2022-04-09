@@ -4,27 +4,26 @@
 
 #include "cpt_parse.h"
 
-CptResponse * cpt_parse_response(uint8_t * data, size_t data_size)
+CptResponse * cpt_parse_response(uint8_t * data)
 {
-    uint8_t code;
-    uint16_t data_len;
-    CptResponse * res;
     uint8_t data_buf[MD_BUFF_SIZE] = {0};
+    CptResponse * res = NULL;
+    uint16_t data_size = 0;
+    uint8_t code = 0;
 
     parse(data, PARSE_RES_FMT,
-            &code, &data_len, data_buf);
+          &code, &data_size, data_buf);
 
     res = cpt_response_init();
     if ( res )
     {
-        res->data = malloc(data_len);
+        res->data = malloc(data_size);
         if ( res->data )
         {
-            memmove(res->data, data_buf, data_len);
+            memmove(res->data, data_buf, data_size);
         }
-
         res->code = code;
-        res->data_size = data_len;
+        res->data_size = data_size;
     }
 
     return res;

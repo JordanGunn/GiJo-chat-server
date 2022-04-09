@@ -18,7 +18,7 @@
  * @param buffer    Serialized response from server.
  * @return Pointer to filled CptResponse.
  */
-CptResponse * cpt_parse_response(uint8_t * data, size_t data_size);
+CptResponse * cpt_parse_response(uint8_t * data);
 
 
 /**

@@ -43,7 +43,6 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
         }
     }
 
-
     /* clean up before exiting */
     close(ustate->client_info->fd);
     user_state_destroy(ustate);
@@ -157,7 +156,7 @@ void * recv_thread(void * user_state)
         {
             pthread_mutex_lock(&mutex);
 
-            res = cpt_parse_response(res_buf, (size_t) res_size);
+            res = cpt_parse_response(res_buf);
             if ( res )
             {
                 recv_handler(ustate, res);
