@@ -1,6 +1,7 @@
 //
 // Created by jordan on 2022-02-10.
 //
+#include <signal.h>
 #include "cli_dc.h"
 
 

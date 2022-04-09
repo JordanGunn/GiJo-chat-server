@@ -65,7 +65,7 @@ void run(void)
                     if ( result == SUCCESS )
                     {
                         poll_fds[nfds].fd = info->current_id;
-                        poll_fds[nfds].events = POLLIN;
+                        poll_fds[nfds].events = POLLIN | POLLHUP;
                         nfds++;
                     }
                 } while ( result != FAILURE );
@@ -129,10 +129,8 @@ void run(void)
 
 bool is_revent_POLLIN(int index)
 {
-    return (
-        poll_fds[index].revents ==
-        ( ((uint16_t) poll_fds[index].revents) & POLLIN )
-    );
+    return
+        ( ((uint16_t) poll_fds[index].revents) & POLLIN );
 }
 
 
