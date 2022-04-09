@@ -71,4 +71,10 @@ void * send_thread(void * user_state);
 void prompt(UserState * ustate);
 
 
+/**
+ * Print the menu to out stream.
+ */
+void menu(void);
+
+
 #endif //CPT_CLI_DC_H

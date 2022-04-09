@@ -38,7 +38,7 @@ CptRequest * cpt_parse_request(uint8_t * req_buf, size_t req_size)
     uint8_t buf[MD_BUFF_SIZE] = {0};
     memset(req, 0, sizeof(struct cpt_request));
 
-    parse( // !
+    parse(
         req_buf, PARSE_REQ_FMT,
         &req->version, &req->command,
         &req->channel_id, &req->msg_len, buf

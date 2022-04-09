@@ -12,7 +12,6 @@ bool is_receiving = false;
 
 int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_application_settings *settings)
 {
-    int pipe_fds[2];
     UserState * ustate;
     char * host, * port, * login;
     pthread_t th[NUM_MSG_THREADS];
@@ -206,6 +205,36 @@ void user_login(UserState * ustate, char * host, char * port, char * name)
         printf("User not logged in!\n");
         exit(EXIT_FAILURE);
     }
+}
+
+
+void menu(void)
+{
+    is_receiving = false;
+    char menu_buf[XL_BUFF_SIZE] = {0};
+    static char * logout, * get_users, * create_channel, * join_channel, * create_vchannel;
+    static char * title, * div, * leave_channel, * menu;
+
+    div = "==================================================";
+    title = "Choose from the following options...\n\n";
+    get_users       = "  [1] @get-users <chan_id>\n";
+    create_channel  = "  [2] @create-channel \"<uid-1> <uid-2>.. <uid-n>\"\n";
+    create_vchannel = "  [3] @create-vchannel \"<uid-1> <uid-2>.. <uid-n>\"\n";
+    join_channel    = "  [4] @join-channel <chan_id>\n";
+    leave_channel   = "  [5] @leave-channel <chan_id>\n";
+    logout          = "  [6] @logout <name>\n";
+    menu            = "  [7] @menu\n";
+
+    sprintf(menu_buf, "%s\n%s%s%s%s%s%s%s%s%s\n",
+            div,
+            title, get_users, create_channel, create_vchannel,
+            join_channel, leave_channel, logout, menu,
+            div
+    );
+
+    printf("%s", menu_buf);
+    printf("\n");
+    fflush(stdout);
 }
 
 

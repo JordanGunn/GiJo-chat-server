@@ -5,7 +5,9 @@
 #ifndef CPT_HANDLERS_H
 #define CPT_HANDLERS_H
 
+#include "shared_memory.h"
 #include "user_state.h"
+#include "cli_dc.h"
 
 
 /**

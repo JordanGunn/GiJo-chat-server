@@ -9,13 +9,13 @@
 
 #define NUM_CMD 7
 
-#define CREATE_VCHANNEL_CMD 5
-#define CREATE_CHANNEL_CMD 2
-#define LEAVE_CHANNEL_CMD 4
-#define JOIN_CHANNEL_CMD 3
-#define GET_USERS_CMD 1
-#define LOGOUT_CMD 6
-#define MENU_CMD 7
+#define CREATE_VCHANNEL_CMD 4
+#define CREATE_CHANNEL_CMD 1
+#define LEAVE_CHANNEL_CMD 3
+#define JOIN_CHANNEL_CMD 2
+#define GET_USERS_CMD 0
+#define LOGOUT_CMD 5
+#define MENU_CMD 6
 
 
 /**
@@ -23,14 +23,13 @@
  */
 static char * cli_cmds[] =
 {
-        "@send",
-        "@get-users",
-        "@create-channel",
-        "@join-channel",
-        "@leave-channel",
-        "@create-vchannel",
-        "@logout",
-        "@menu"
+    "@get-users",
+    "@create-channel",
+    "@join-channel",
+    "@leave-channel",
+    "@create-vchannel",
+    "@logout",
+    "@menu"
 };
 
 /**
@@ -122,12 +121,6 @@ bool is_cmd(Command * command, char * cli_cmd);
  * @return Input from user as char pointer.
  */
 char * cmd_get_input(void);
-
-
-/**
- * Print the menu to out stream.
- */
-void menu(void);
 
 
 #endif //CPT_COMMAND_H

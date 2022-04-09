@@ -3,7 +3,6 @@
 //
 
 #include "handlers.h"
-#include "shared_memory.h"
 
 
 int login_handler(UserState * ustate, char * name)
@@ -229,6 +228,7 @@ void recv_handler(UserState * ustate, const CptResponse * res)
         printf("%s\n", (char *)res->data);
         ustate->channel = CHANNEL_ZERO;
     }
+
     if ( res->code == (uint8_t) SEND )
     {
         block = shmem_attach(FILENAME, BLOCK_SIZE);
