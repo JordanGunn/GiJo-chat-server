@@ -30,11 +30,11 @@
  * Valid parsing/serialization formats.
  */
 /* ============================ */
-#define SERIAL_RES_FMT "CHs"
-#define PARSE_RES_FMT "CH512s"
-#define SERIAL_REQ_FMT "CCHHs"
+#define SERIAL_RES_FMT "Cs"
+#define PARSE_RES_FMT "C512s"
+#define SERIAL_REQ_FMT "CCHs"
 #define SERIAL_MSG_RES_FMT "HHHs"
-#define PARSE_REQ_FMT "CCHH512s"
+#define PARSE_REQ_FMT "CCH512s"
 #define PARSE_MSG_RES_FMT "HHH512s"
 /* ============================ */
 

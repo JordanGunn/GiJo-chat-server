@@ -12,11 +12,12 @@ CptResponse * cpt_parse_response(uint8_t * data)
     uint8_t code = 0;
 
     parse(data, PARSE_RES_FMT,
-          &code, &data_size, data_buf);
+          &code, data_buf);
 
     res = cpt_response_init();
     if ( res )
     {
+        data_size = (uint16_t) strlen((char *) data_buf);
         res->data = malloc(data_size);
         if ( res->data )
         {
@@ -40,7 +41,7 @@ CptRequest * cpt_parse_request(uint8_t * req_buf, size_t req_size)
     parse(
         req_buf, PARSE_REQ_FMT,
         &req->version, &req->command,
-        &req->channel_id, &req->msg_len, buf
+        &req->channel_id, buf
     );
 
     req->msg = malloc(req_size);

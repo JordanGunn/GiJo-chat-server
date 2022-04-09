@@ -83,8 +83,8 @@ void get_users_handler(UserState * ustate)
 
     info = ustate->client_info;
     channel_id = ( ustate->cmd->args )
-                 ? (uint16_t) strtol( ustate->cmd->args, &args_end, 10)
-                 : ustate->channel;
+         ? (uint16_t) strtol( ustate->cmd->args, &args_end, 10)
+         : ustate->channel;
 
     req_size = cpt_get_users(
             info, req_buf, channel_id);

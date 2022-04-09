@@ -25,7 +25,7 @@ ENDIF()
 # ==============================================================================
 #     Add all relevant subdirectories with other CMakeList files
 # ==============================================================================
-add_subdirectory(voice/)
+
 add_subdirectory(common/)
 add_subdirectory(cpt_api/)
 add_subdirectory(cpt_app/)
