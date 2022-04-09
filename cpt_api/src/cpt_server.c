@@ -34,7 +34,7 @@ int cpt_logout_response(void * server_info)
     int lo_res;
     Channel * chan;
     ServerInfo * info;
-    ChannelNode * chan_iter;
+    ChannelNode * chan_iter, * next_chan;
 
     info = (ServerInfo *) server_info;
     if ( !info->gc )  { return BAD_CHANNEL; }
@@ -49,14 +49,17 @@ int cpt_logout_response(void * server_info)
         lo_res = false;
         while ( chan_iter ) /* Remove User from all channels */
         {
-            chan = chan_iter->chan;
-            if (chan->id != CHANNEL_ZERO )
+            next_chan = chan_iter->next_chan;
+            if (chan_iter->chan->id != CHANNEL_ZERO )
             {
-                user_delete(chan->users, info->current_id);
-                if (chan->users->length == 0 )
-                    { channel_delete(info->dir, chan->id); }
+                user_delete(chan_iter->chan->users, info->current_id);
+                if (chan_iter->chan->users->length == 0 )
+                {
+                    channel_delete(info->dir, chan_iter->chan->id);
+
+                }
             }
-            chan_iter = chan_iter->next_chan;
+            chan_iter = next_chan;
         }
         lo_res = user_delete(info->gc->users, info->current_id);
     }

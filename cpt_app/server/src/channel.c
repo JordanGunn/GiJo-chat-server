@@ -179,9 +179,9 @@ int channel_delete(Channels * channels, int channel_id)
 
 char * channel_to_string(Channel * channel)
 {
-    User * user;
-    char * user_str;
-    UserNode * user_iterator;
+    User * user = NULL;
+    char * user_str = NULL;
+    UserNode * user_iterator = NULL;
     char buffer[LG_BUFF_SIZE] = {0};
 
     user_iterator = (UserNode *) get_head_node((LinkedList *) channel->users);

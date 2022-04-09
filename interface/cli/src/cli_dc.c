@@ -129,9 +129,10 @@ void * send_thread(void * user_state)
                     }
                 }
             }
-            cmd_destroy(ustate->cmd);
             pthread_mutex_unlock(&mutex);
         }
+        cmd_destroy(ustate->cmd);
+        ustate->cmd = NULL;
     }
 
     return (void *) ustate;
