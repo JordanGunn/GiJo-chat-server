@@ -103,6 +103,11 @@ User * find_user(Users * users, int id)
     return ( user_node ) ? user_node->user : NULL;
 }
 
+void for_each_user(Users * users, Consumer consumer) {
+
+    for_each((LinkedList *) users, consumer);
+
+}
 
 int user_delete(Users * users, int id)
 {

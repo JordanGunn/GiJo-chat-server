@@ -5,7 +5,6 @@
 #ifndef CPT_SANDBOX_H
 #define CPT_SANDBOX_H
 #include "linked_list.h"
-#include "../cpt_api/include/cpt_packet.h"
 
 // ==================================
 // T E S T I N G    F U N C T I O N S

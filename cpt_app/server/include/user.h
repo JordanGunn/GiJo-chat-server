@@ -24,6 +24,7 @@ struct user_struct
 {
     uint8_t id;
     uint8_t fd;
+    uint8_t voice_fd;
     char *  name;
 };
 
@@ -104,6 +105,7 @@ void push_user_node(Users * users, UserNode * user_node);
 UserNode * create_user_node(User * user);
 
 
+
 /**
  *
  * @param users
@@ -147,6 +149,13 @@ void users_destroy(Users * users);
  */
 int push_user(Users * users, User * user);
 
+/**
+ * Performs consumer function on each user on a users.
+ *
+ * @param users Pointer to a linked list of User objects.
+ * @param consumer A pointer to a function to be executed on each user.
+ */
+void for_each_user(Users * users, Consumer consumer);
 
 /**
  * Create a string from CptUser object.
@@ -176,6 +185,7 @@ bool filter_user_name(User * user, FilterQuery * filter_query);
  * @param channel The target channel.
  */
 void print_user(User * user);
+
 
 
 
