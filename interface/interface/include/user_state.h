@@ -9,6 +9,8 @@
 #include "command.h"
 #include "cpt_voice_client.h"
 #include "cpt_client.h"
+#include "ncurses_state.h"
+
 /**
  * UserState object.
  */
@@ -19,6 +21,7 @@ struct user_state
     Command * cmd;
     uint16_t channel;
     ClientInfo * client_info;
+    NcursesState * ncurses_state;
 
     bool LOGGED_IN;
 };

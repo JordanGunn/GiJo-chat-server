@@ -13,6 +13,7 @@ UserState * user_state_init(void)
     ustate->client_info = NULL;
     ustate->cmd = NULL;
     ustate->channel = 0;
+    ustate->ncurses_state = NULL;
 
     return ustate;
 }
@@ -30,6 +31,11 @@ void user_state_destroy(UserState * ustate)
         if (ustate->client_info)
         {
             cpt_destroy_client_info(ustate->client_info);
+        }
+
+        if (ustate->ncurses_state)
+        {
+            ncurses_state_destroy(ustate->ncurses_state);
         }
 
         free(ustate);

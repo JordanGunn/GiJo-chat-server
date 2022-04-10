@@ -130,7 +130,7 @@ int push_node(LinkedList * list, Node * node);
  * @param num_params The number of params in params.
  * @return A LinkedList or NULL.
  */
-LinkedList * filter(LinkedList * list, Comparator comparator, void * params, size_t num_params);
+LinkedList * filter_list(LinkedList * list, Comparator comparator, void * params, size_t num_params);
 
 
 /**

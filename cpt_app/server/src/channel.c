@@ -115,7 +115,7 @@ Users * filter_channel_users(Channel * channel, uint16_t * id_buf, char * id_lis
     if ( channel )
     {
         list = (LinkedList *) channel->users;
-        users = (Users *) filter(list, filter_user_id, &idq, idq.num_params);
+        users = (Users *) filter_list(list, filter_user_id, &idq, idq.num_params);
     }
 
     if (idq.params)

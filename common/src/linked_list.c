@@ -180,7 +180,7 @@ int push_node(LinkedList * list, Node * node)
 }
 
 
-LinkedList * filter(LinkedList * list, Comparator comparator, void * params, size_t num_params)
+LinkedList * filter_list(LinkedList * list, Comparator comparator, void * params, size_t num_params)
 {
     size_t passes, found;
     Node * node_iterator;

@@ -166,12 +166,10 @@ void send_handler(UserState * ustate)
         channel_id = ustate->channel;
         sprintf(msg_buf, "[ %s | (channel %hu) ]: ", name, channel_id);
 
-
-
         strncat(msg_buf, ustate->cmd->input, strlen(ustate->cmd->input));
         msg_prefix = strdup(msg_buf);
 
-        update_msg_history(msg_prefix, msg_history, msg_count);
+//        update_msg_history(msg_prefix, msg_history, msg_count);
     }
 }
 

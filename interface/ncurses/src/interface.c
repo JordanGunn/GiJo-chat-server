@@ -3,16 +3,13 @@
 #include <stdlib.h>
 #include "command.h"
 #include "user_state.h"
+#include "handlers.h"
 
-/* Global threading elements */
-pthread_mutex_t     mutex;
-pthread_cond_t      receiving;
-bool is_receiving = false;
-/* ------------------------- */
 
 #define SLASH '/'
 #define EXIT_KEY '0'
 #define BUFF_SIZE 1024
+#define MSG_HISTORY_SIZE 100
 
 #define GAME_WINDOW "Game Window:"
 #define CHAT_WINDOW "Chat Input Window:"
@@ -113,55 +110,44 @@ void update_msg_history(char msg[], char **msg_history, int *msg_count)
     *msg_count = *msg_count + 1;
 }
 
-void process_input(WINDOW * chat_input_window, WINDOW * chat_dialogue_window, char msg[], char **msg_history, int *msg_count, Command *cmd, UserState * ustate)
+void process_input(char msg[], UserState * ustate)
 {
-    wmove(chat_input_window, 2, 1);
-    wrefresh(chat_input_window);
+    wmove(ustate->ncurses_state->chat_input_window, 2, 1);
+    wrefresh(ustate->ncurses_state->chat_input_window);
 
     echo();
     while (1)
     {
-        wgetstr(chat_input_window, msg);
+        wgetstr(ustate->ncurses_state->chat_input_window, msg);
         noecho();
 
         if(strcmp(msg, "exit") == 0)
         {
-            clear_window(chat_input_window, CHAT_WINDOW);
+            clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
             break;
         }
 
-        cmd->input = strdup(msg);
-        parse_cmd_input(cmd);
-        ustate->cmd = cmd;
+        ustate->cmd->input = strdup(msg);
+        parse_cmd_input(ustate->cmd);
+
+        update_msg_history(msg, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
 
 //        if (is_valid_cmd(ustate->cmd))
 //        {
-//            is_receiving = true;
 //            cmd_handler(ustate);
-//            while(is_receiving)
-//            {
-//                puts("Waiting for response...");
-//                pthread_cond_wait(&receiving, &mutex);
-//            }
 //        }
 //        else
 //        {
-//            if ( ustate->cmd->input )
-//            {
-//                if ( strlen(ustate->cmd->input) )
-//                {
-//                    send_handler(ustate);
-//                }
-//            }
+//            send_handler(ustate);
 //        }
 //        mvwprintw(chat_dialogue_window, 2, 1, "%d", *msg_count);
 //        wrefresh(chat_dialogue_window);
 
-        display_input(chat_dialogue_window, msg_history, msg_count);
+        display_input(ustate->ncurses_state->chat_dialogue_window, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
 
-        clear_window(chat_input_window, CHAT_WINDOW);
-        wmove(chat_input_window, 2, 1);
-        wrefresh(chat_input_window);
+        clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+        wmove(ustate->ncurses_state->chat_input_window, 2, 1);
+        wrefresh(ustate->ncurses_state->chat_input_window);
         echo();
     }
 
@@ -188,31 +174,39 @@ void run_chat_ncurses()
     WINDOW * chat_dialogue_window = build_dialogue_component();
     return_to_game_window(game_window);
 
+    // Auto scroll-down in chat dialogue window
     scrollok(chat_dialogue_window, TRUE);
 
-    // waits for user input, returns int of key pressed
+    // Initializes Command object
+    Command *cmd;
+    cmd = cmd_init();
+
+    // Initializes NcursesState object and assigns WINDOWs to NcursesState
+    NcursesState * ncurses_state;
+    ncurses_state = ncurses_state_init();
+    ncurses_state->msg_history = malloc(MSG_HISTORY_SIZE * sizeof(ncurses_state->msg_history));
+    ncurses_state->game_window = game_window;
+    ncurses_state->chat_input_window = chat_input_window;
+    ncurses_state->chat_dialogue_window = chat_dialogue_window;
+
+    // Initializes UserState object and assigns Command and NcursesState object to UserState
+    UserState * user_state;
+    user_state = user_state_init();
+    user_state->cmd = cmd;
+    user_state->ncurses_state = ncurses_state;
+
+    // Variables for main ncurses loop
     int input;
     int exit_flag = 0;
     char msg[BUFF_SIZE];
 
-    char **msg_history;
-    int msg_count;
-
-    msg_history = malloc(10 * sizeof(msg_history));
-    msg_count = 0;
-
-    Command *cmd;
-    cmd = cmd_init();
-
-    UserState * user_state;
-    user_state = user_state_init();
-
+    // Main ncurses loop
     while ((input = getch()) != ERR) {
         switch(input)
         {
             case SLASH:
                 //send cursor to chat input window
-                process_input(chat_input_window, chat_dialogue_window, msg, msg_history, &msg_count, cmd, user_state);
+                process_input(msg, user_state);
                 return_to_game_window(game_window);
                 break;
             case EXIT_KEY:
@@ -221,13 +215,11 @@ void run_chat_ncurses()
             default:
                 continue;
         }
-
         if (exit_flag)
         {
             break;
         }
     }
-
     //ends ncurses window and deallocates memory for the ncurses window
     endwin();
 

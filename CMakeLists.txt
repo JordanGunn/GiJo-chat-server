@@ -51,7 +51,8 @@ add_executable(cpt_chat_client
         ${CHAT_CLIENT_TARGET}
         ${CPT_API_CLIENT_TGT}
         ${CLI_INTERFACE_TARGET}
-        ${NETWORK_CLIENT_TARGET})
+        ${NETWORK_CLIENT_TARGET}
+        ${NCURSES_INTERFACE_TARGET})
 
 add_executable(cpt_messenger
         ${MESSAGE_TARGET}
