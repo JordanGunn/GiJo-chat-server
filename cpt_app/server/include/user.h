@@ -22,10 +22,10 @@ typedef struct user_node UserNode;
  */
 struct user_struct
 {
-    uint8_t id;
-    uint8_t fd;
-    uint8_t voice_fd;
+    uint16_t id;
     char *  name;
+    uint16_t udp_fd_s;
+    uint16_t udp_fd_r;
 };
 
 

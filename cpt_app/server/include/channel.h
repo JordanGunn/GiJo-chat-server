@@ -147,7 +147,7 @@ ChannelNode * create_channel_node(Channel * channel);
  * @param channel   Pointer to a Channel object.
  * @param user      Pointer to a User object.
  */
-void push_channel_user(Channel * channel, User * user);
+int push_channel_user(Channel * channel, User * user);
 
 
 

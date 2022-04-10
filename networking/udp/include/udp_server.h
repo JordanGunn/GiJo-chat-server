@@ -1,23 +1,5 @@
-#ifndef DC_SHELL_INPUT_H
-#define DC_SHELL_INPUT_H
-
-/*
- * This file is part of dc_shell.
- *
- *  dc_shell is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Foobar is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with dc_shell.  If not, see <https://www.gnu.org/licenses/>.
- */
-
+#ifndef CPT_UDP_SERVER_H
+#define CPT_UDP_SERVER_H
 
 #include <netdb.h>
 #include "common.h"
@@ -46,13 +28,11 @@ int udp_server_socket(struct addrinfo * serv_addr);
 /**
  * @brief Bind to server socket to port.
  *
- * @param env       DC posix environment.
- * @param err       DC error handling.
  * @param serv_addr Server address info.
  * @param sock      Server size socket file descriptor.
  * @return          0 if successful, -1 if failed.
  */
-int udp_server_bind(struct addrinfo * serv_addr, int sock);
+int udp_server_bind(int sock, struct addrinfo * serv_addr);
 
 
 /**
@@ -62,18 +42,68 @@ int udp_server_bind(struct addrinfo * serv_addr, int sock);
  * @param err   DC error handling.
  * @param sock  Server size socket file descriptor.
  */
-int recv_bytes(int sock, FILE * stream);
+ssize_t udp_server_recv(int sock_fd, uint8_t * buf);
 
 
 /**
- * Write UDP message results to stream.
  *
- * @param client_port   The incoming port number.
- * @param bytes_recvd   Number of bytes received.
- * @param buffer        Received UDP message.
- * @param ip_buffer     Received IP address.
- * @param stream        Stream to write to.
+ * @param sock
+ * @param stream
+ * @return
  */
-void write_result(in_port_t client_port, ssize_t bytes_recvd, const char *buffer, const char *ip_buffer, FILE *stream);
+int udp_server_recvfrom(int sock, FILE * stream);
 
-#endif // DC_SHELL_INPUT_H
+
+/**
+ *
+ * @param sock_fd
+ * @param data
+ * @param data_size
+ * @return
+ */
+int udp_server_send(int sock_fd, uint8_t * data, size_t data_size);
+
+
+/**
+ *
+ * @param fd
+ */
+void udp_get_remote_info(int fd, char * port_buf, char * ip_buf);
+
+
+/**
+ *
+ * @param host
+ * @param port
+ * @return
+ */
+int udp_server_sock_init(const char * host, const char * port);
+
+
+/**
+ *
+ * @param udp_fd
+ * @param client_addr
+ * @return
+ */
+int udp_server_connect(int udp_fd, struct addrinfo * client_addr);
+
+
+/**
+ *
+ * @param host
+ * @param port
+ * @return
+ */
+int udp_server_sock_r(const char * host, const char * port);
+
+
+/**
+ *
+ * @param host
+ * @param port
+ * @return
+ */
+int udp_server_sock_s(const char * host, const char * port);
+
+#endif // CPT_UDP_SERVER_H

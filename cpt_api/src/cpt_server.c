@@ -6,24 +6,15 @@
 
 int cpt_login_response(void * server_info, char * name)
 {
-    int id;
-    User * user;
     ServerInfo * info;
 
     info = (ServerInfo *) server_info;
 
-    id = info->current_id;
     if ( !info->gc ) { return BAD_CHANNEL; }
     if ( (info->gc->id != CHANNEL_ZERO) ) { return BAD_CHANNEL; }
 
     name = ( name ) ? name : DEFAULT_USERNAME;
     if ( strlen(name) > MAX_NAME_SIZE ) { return NAME_TOO_LONG; }
-
-    if ( info->gc->users )
-    {
-        user = user_init(id, id, name ); // Set ID same as file descriptor.
-        push_channel_user(info->gc, user);
-    }
 
     return SUCCESS;
 }

@@ -6,15 +6,23 @@
 
 static int GCFD;
 static int nfds;
-static struct pollfd poll_fds[MAX_SERVER_FDS];
 
 static int result, active_nfds, i, j;
-static bool is_fatal_error, close_conn, compress_array;
+static bool close_conn, compress_array;
 
+extern pthread_mutex_t mutex;
+extern pthread_cond_t cond_queue;
+extern int voice_udp_fds_r[VOICE_MAX_CHAN];
+extern bool active_voice_chan[VOICE_MAX_CHAN];
+
+bool is_fatal_error;
+struct pollfd poll_fds[MAX_SERVER_FDS];
 
 int main(void)
 {
-    run();
+    voice_pool(run);
+//    run();
+
     return 0;
 }
 
@@ -32,6 +40,8 @@ void run(void)
     gc = init_global_channel();
     dir = init_channel_directory(gc);
     info = cpt_server_info_init(gc, dir);
+    memset(voice_udp_fds_r, -1, VOICE_MAX_CHAN);
+    memset(active_voice_chan, 0, VOICE_MAX_CHAN);
 
     listen_socket_init( gc );
     // ============================================ //
@@ -147,22 +157,6 @@ void listen_socket_init(Channel * gc)
 }
 
 
-int handle_new_accept(void)
-{
-    int new_fd;
-    struct sockaddr_storage client_addr;
-    new_fd = tcp_server_accept(&client_addr, poll_fds[CHANNEL_ZERO].fd);
-    if ( new_fd < 0 ) /* Accept will fail safely with EWOULDBLOCK */
-    {
-        if (errno != EWOULDBLOCK) /* if errno is not EWOULDBLOCK, fatal error occurred */
-        {
-            perror("  accept()");
-        }
-    }
-    return new_fd;
-}
-
-
 bool should_end_event_loop(int poll_result)
 {
     bool end_event_loop;
@@ -181,55 +175,6 @@ bool should_end_event_loop(int poll_result)
     }
 
     return end_event_loop;
-}
-
-
-int login_event(ServerInfo * info)
-{
-    char * msg;
-    CptRequest * req;
-    CptResponse * res;
-    int login_res, new_fd;
-    size_t res_size, req_size;
-    uint8_t res_buf[MD_BUFF_SIZE] = {0};
-    uint8_t req_buf[MD_BUFF_SIZE] = {0};
-
-    if ( ((new_fd = handle_new_accept()) != SYS_CALL_FAIL) )
-    {   /* If accept system call succeeds, attempt to add user */
-        res = cpt_response_init();
-        info->current_id = new_fd;
-        req_size = (size_t) tcp_server_recv(new_fd, req_buf);
-        req = cpt_parse_request(req_buf, req_size);
-        login_res = cpt_login_response(info, (char *) req->msg);
-
-        if (login_res == SUCCESS)
-        { /* If login succeeded, add file desc and set the events */
-            msg = strdup("Success!");
-            res->code = (uint8_t) LOGIN;
-        }
-        else
-        {
-            msg = strdup("Failure");
-            res->code = (uint8_t) FAILURE;
-        }
-        res->data_size = (uint16_t) strlen(msg);
-        res->data = (uint8_t *) msg;
-
-        res_size = cpt_serialize_response(res, res_buf);
-        tcp_server_send(new_fd, res_buf, res_size);
-        cpt_response_destroy(res);
-        cpt_request_destroy(req);
-    }
-    else
-    {
-        if (errno != EWOULDBLOCK)
-        {
-            perror("  accept() failed");
-            is_fatal_error = true;
-        }
-    }
-
-    return (new_fd != SYS_CALL_FAIL) ? SUCCESS : FAILURE;
 }
 
 

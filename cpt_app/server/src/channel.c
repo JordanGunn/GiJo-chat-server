@@ -221,11 +221,15 @@ Channels * channels_init(ChannelNode * channel_node)
 }
 
 
-void push_channel_user(Channel * channel, User * user)
+int push_channel_user(Channel * channel, User * user)
 {
+    int push_res;
+
     UserNode * user_node;
     user_node = create_user_node(user);
-    push_node( (LinkedList *)channel->users, (Node *) user_node);
+    push_res = push_node( (LinkedList *)channel->users, (Node *) user_node);
+
+    return push_res;
 }
 
 

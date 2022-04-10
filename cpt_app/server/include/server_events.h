@@ -6,8 +6,18 @@
 #define CPT_SERVER_EVENTS_H
 
 #include "server_config.h"
+#include "server_global.h"
+#include "server_voice.h"
 #include "tcp_server.h"
 #include "cpt_server.h"
+
+
+/**
+ *
+ * @param info
+ * @return
+ */
+int login_event(ServerInfo * info);
 
 
 /**
@@ -72,6 +82,30 @@ void send_event(ServerInfo * info, char * msg, int channel_id);
  * @param info
  */
 void handle_event(ServerInfo * info, CptRequest * req);
+
+
+/**
+ *
+ * @param udp_fd
+ * @param channel
+ * @return
+ */
+VoiceTask * create_voice_task(ServerInfo * info, uint16_t channel_id);
+
+
+/**
+ *
+ * @return
+ */
+int handle_new_accept(void);
+
+
+/**
+ *
+ * @param user
+ * @param new_fd
+ */
+void user_udp_setup(User *user, int new_fd);
 
 
 

@@ -25,7 +25,7 @@ ENDIF()
 # ==============================================================================
 #     Add all relevant subdirectories with other CMakeList files
 # ==============================================================================
-
+add_subdirectory(voice/)
 add_subdirectory(common/)
 add_subdirectory(cpt_api/)
 add_subdirectory(cpt_app/)
@@ -226,7 +226,7 @@ target_link_libraries(cpt_chat_client PRIVATE ${LIBDC_APPLICATION})
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 target_link_libraries(cpt_chat_client PRIVATE Threads::Threads)
-target_link_libraries(cpt_messenger PRIVATE Threads::Threads)
+target_link_libraries(cpt_chat_server PRIVATE Threads::Threads)
 
 
 

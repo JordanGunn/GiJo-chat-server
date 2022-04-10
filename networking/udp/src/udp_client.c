@@ -129,7 +129,6 @@ ssize_t udp_client_recv(int sock_fd, uint8_t * buf)
 }
 
 
-
 void udp_client_sendto(struct addrinfo * client_addr, int sock, char * msg)
 {
     ssize_t bytes_sent;

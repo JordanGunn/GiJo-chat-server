@@ -6,7 +6,7 @@
 
 _Noreturn void record(int fd)
 {
-    char *cmd = "arecord - -q";
+    char *cmd = "arecord -";
     char buf[256];
     FILE *fp = popen(cmd, "r");
 

@@ -22,8 +22,7 @@ User * user_init(int id, int fd, char * name)
     }
 
     memset(user, 0, sizeof(struct user_struct));
-    user->fd = fd;
-    user->id = id;
+    user->id = (uint8_t) id;
     user->name = strdup(name);
 
     return user;
