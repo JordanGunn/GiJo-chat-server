@@ -7,8 +7,20 @@
 
  int main()
 {
-    int flag;
     char * block;
+    int flag;
+    const char * div;
+    const char * title;
+    block = shmem_attach(FILENAME, BLOCK_SIZE);
+    div = "****************************************************************\n";
+    title = "***************** C H A T    M E S S E N G E R *****************\n";
+
+    strncat(block, div, strlen(div));
+    strncat(block, title, strlen(title));
+    strncat(block, div, strlen(div));
+    shmem_detach(block);
+
+
 
     flag = 0;
     while ( !flag )
@@ -22,10 +34,10 @@
             }
         } else { flag = 1; }
 
-        memset(block, 0, BLOCK_SIZE);
+
         shmem_detach(block);
     }
-
+    memset(block, 0, BLOCK_SIZE);
     shmem_destroy(FILENAME);
     return 0;
 }

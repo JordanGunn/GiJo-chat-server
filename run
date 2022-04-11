@@ -1,0 +1,17 @@
+while getopts l:h:p: flag
+do
+    case "${flag}" in
+        l) name=${OPTARG};;
+        h) host=${OPTARG};;
+        p) port=${OPTARG};;
+    esac
+done
+echo "Username: $name";
+echo "Port: $port";
+echo "IP: $host";
+
+touch ./cmake-build-debug/darcy
+gnome-terminal -- bash -c "./cmake-build-debug/cpt_chat_client --LOGIN $name --host $host --port $port; exec bash"
+gnome-terminal -- bash -c "./cmake-build-debug/cpt_messenger; exec bash"
+
+
