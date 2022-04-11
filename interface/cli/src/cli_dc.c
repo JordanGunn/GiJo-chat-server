@@ -31,20 +31,6 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
     }
     thread_chat_io(th, ustate);
 
-    if ( ((ustate->pid = fork()) != SYS_CALL_FAIL) )
-    {
-        if ( ustate->pid > 0 ) /* parent */
-        {
-            kill(ustate->pid, SIGSTOP);
-            thread_chat_io(th, ustate);
-        }
-        else /* child */
-        {
-            run_voice_chat("192.168.0.13", "8080"); // TODO remove hardcoded IP and PORT
-        }
-    }
-
-
     /* clean up before exiting */
     close(ustate->client_info->fd);
     user_state_destroy(ustate);
@@ -90,19 +76,30 @@ void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
 void * send_thread(void * user_state)
 {
     UserState * ustate;
+    char msg[1024];
 
     ustate = (UserState *) user_state;
     while ( ustate->LOGGED_IN )
     {
-        ( is_voice_chan(ustate) )
-            ? kill(ustate->pid, SIGCONT)
-            : kill(ustate->pid, SIGSTOP);
-
         ustate->cmd = cmd_init();
-        // Where ncurses comes in
-        prompt(ustate);
 
-        ustate->cmd->input = cmd_get_input();
+        // Where ncurses comes in
+        wgetstr(ustate->ncurses_state->chat_input_window, msg);
+//        noecho();
+
+        if(strcmp(msg, "exit") == 0)
+        {
+            clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+            break;
+        }
+
+//        char send_msg[BUFF_SIZE];
+//        sprintf(send_msg, "[Channel %d] %s: %s", ustate->client_info->channel, ustate->client_info->name, msg);
+//
+        update_msg_history(msg, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
+        display_input(ustate->ncurses_state->chat_dialogue_window, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
+
+        ustate->cmd->input = strdup(msg);
         parse_cmd_input(ustate->cmd);
 
         if ( ustate->cmd )
@@ -135,6 +132,11 @@ void * send_thread(void * user_state)
             cmd_destroy(ustate->cmd);
             pthread_mutex_unlock(&mutex);
         }
+
+        clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+        wmove(ustate->ncurses_state->chat_input_window, 2, 1);
+        wrefresh(ustate->ncurses_state->chat_input_window);
+//        echo();
     }
 
     return (void *) ustate;

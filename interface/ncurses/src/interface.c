@@ -4,6 +4,7 @@
 #include "command.h"
 #include "user_state.h"
 #include "handlers.h"
+#include "cli_dc.h"
 
 #define SLASH '/'
 #define EXIT_KEY '0'
@@ -13,6 +14,7 @@
 #define GAME_WINDOW "Game Window:"
 #define CHAT_WINDOW "Chat Input Window:"
 #define DIALOGUE_WINDOW "Chat Dialogue Window:"
+
 
 const int const_chat_dialogue_height = 40;
 const int const_chat_dialogue_width = 40 - 1;
@@ -39,36 +41,6 @@ struct Message_Node_Deployer *init_msg_display(uint8_t max_num_msg) {
     return mnd;
 }
 
-void user_login(UserState * ustate, char * host, char * port, char * name)
-{
-    int fd, on;
-
-    on = 1;
-    if ( name )
-    {
-        ustate->client_info = cpt_init_client_info(port, host);
-        fd = tcp_init_client(host, port);
-        ustate->client_info->fd = fd;
-
-        if (login_handler(ustate, name) < 0 )
-        {
-            printf("Failed to login to chat...\n");
-            exit(EXIT_FAILURE);
-        }
-        else
-        {
-            ustate->LOGGED_IN = true;
-            ustate->client_info->name = strdup(name);
-            ustate->channel = CHANNEL_ZERO;
-            ioctl(ustate->client_info->fd, FIONBIO, (char *)&on);
-        }
-    }
-    else
-    {
-        printf("User not logged in!\n");
-        exit(EXIT_FAILURE);
-    }
-}
 
 void add_msg_node(struct Message_Node_Deployer* mnd, char* msg) {
     //if current is 0, then the head node is empty.
@@ -101,7 +73,6 @@ void add_msg_node(struct Message_Node_Deployer* mnd, char* msg) {
         mnd->head = new_head;
     }
 }
-
 
 
 void print_all_messages(WINDOW * win, struct Message_Node_Deployer* mnd, int x_pos, int y_pos) {
@@ -149,21 +120,6 @@ void parse_message(struct Message_Node_Deployer* mnd, char* msg, int max_line_le
     }
 }
 
-void clear_window(WINDOW *window, char *label)
-{
-    wclear(window);
-    box(window, 0, 0);
-    mvwprintw(window, 1, 1, label);
-    wrefresh(window);
-}
-
-void update_window(WINDOW *window, char *label)
-{
-    box(window, 0, 0);
-    mvwprintw(window, 1, 1, label);
-    wrefresh(window);
-}
-
 WINDOW * build_game_component()
 {
     // Chat input window size
@@ -200,7 +156,6 @@ WINDOW * build_chat_component()
     return chat_input_window;
 }
 
-
 WINDOW * build_dialogue_component()
 {
     // Chat input window size
@@ -219,30 +174,6 @@ WINDOW * build_dialogue_component()
     return chat_dialogue_window;
 }
 
-void display_input(WINDOW * chat_dialogue_input, char **msg_history, const int *msg_count)
-{
-    clear_window(chat_dialogue_input, DIALOGUE_WINDOW);
-
-    char *buffer = malloc(BUFF_SIZE);
-
-    for (int i = 0; i <= *msg_count  - 1; i++)
-    {
-        strncat(buffer, msg_history[i], strlen(msg_history[i]));
-        strcat(buffer, "\n ");
-    }
-    mvwprintw(chat_dialogue_input, 2, 1, "%s", buffer);
-    update_window(chat_dialogue_input, DIALOGUE_WINDOW);
-    wrefresh(chat_dialogue_input);
-}
-
-void update_msg_history(char msg[], char **msg_history, int *msg_count)
-{
-    msg_history[*msg_count] = malloc(strlen(msg) * sizeof(char));
-    strcpy(msg_history[*msg_count], msg);
-
-    *msg_count = *msg_count + 1;
-}
-
 int is_user_logged_in(UserState *ustate)
 {
     if(*ustate->ncurses_state->is_logged_in == 0)
@@ -252,9 +183,9 @@ int is_user_logged_in(UserState *ustate)
         char *buffer = malloc(BUFF_SIZE);
         strcat(buffer, "Please Log-in (eg. @login Charlie)\n ");
 
-        mvwprintw(ustate->ncurses_state->chat_dialogue_window, 2, 1, "%s", buffer);
-        update_window(ustate->ncurses_state->chat_dialogue_window, DIALOGUE_WINDOW);
-        wrefresh(ustate->ncurses_state->chat_dialogue_window);
+        update_msg_history(buffer, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
+        display_input(ustate->ncurses_state->chat_dialogue_window, ustate->ncurses_state->msg_history,
+                                      &ustate->ncurses_state->msg_count);
 
         clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
         wmove(ustate->ncurses_state->chat_input_window, 2, 1);
@@ -273,100 +204,130 @@ int is_user_logged_in(UserState *ustate)
 
 void process_input(char msg[], UserState * ustate, struct Message_Node_Deployer *mnd)
 {
+    pthread_t th[2];
+
     wmove(ustate->ncurses_state->chat_input_window, 2, 1);
     wrefresh(ustate->ncurses_state->chat_input_window);
 
     echo();
+
     while (1)
     {
-        wgetstr(ustate->ncurses_state->chat_input_window, msg);
-        noecho();
+//        wgetstr(ustate->ncurses_state->chat_input_window, msg);
+//        noecho();
+//
+//        if(strcmp(msg, "exit") == 0)
+//        {
+//            clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+//            break;
+//        }
 
-        if(strcmp(msg, "exit") == 0)
+//        if (is_user_logged_in(ustate) == 0)
+        if (*ustate->ncurses_state->is_logged_in == 0)
         {
-            clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
-            break;
-        }
+            while (1) {
+                wgetstr(ustate->ncurses_state->chat_input_window, msg);
+                noecho();
 
-        if (is_user_logged_in(ustate) == 0)
-        {
-            if(strncmp(msg, "@login", strlen("@login")) == 0)
-            {
-                char name[BUFF_SIZE];
-
-                strncpy(name, msg + strlen("@login") + 1, strlen(msg + strlen("@login")));
-
-                user_login(ustate, "127.0.0.1", "8080", name);
-
-                if(ustate->LOGGED_IN)
+                if(strcmp(msg, "exit") == 0)
                 {
-                    clear_window(ustate->ncurses_state->chat_dialogue_window, DIALOGUE_WINDOW);
-                    mvwprintw(ustate->ncurses_state->chat_dialogue_window, 2, 1, "Logged-In: %s", name);
-                    wrefresh(ustate->ncurses_state->chat_dialogue_window);
-                    *ustate->ncurses_state->is_logged_in = 1;
+                    clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+                    break;
+                }
+
+                if (strncmp(msg, "@login", strlen("@login")) == 0) {
+                    char name[BUFF_SIZE];
+
+                    strncpy(name, msg + strlen("@login") + 1, strlen(msg + strlen("@login")));
+
+                    user_login(ustate, "127.0.0.1", "8080", name);
+
+                    if (ustate->LOGGED_IN) {
+                        char log_in_msg[BUFF_SIZE];
+                        sprintf(log_in_msg, "Logged-In: %s", name);
+
+//                        update_msg_history(log_in_msg, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
+//                        display_input(ustate->ncurses_state->chat_dialogue_window, ustate->ncurses_state->msg_history,
+//                                      &ustate->ncurses_state->msg_count);
+                        clear_window(ustate->ncurses_state->chat_dialogue_window, DIALOGUE_WINDOW);
+                        mvwprintw(ustate->ncurses_state->chat_dialogue_window, 2, 1, "Logged-In: %s", name);
+                        wrefresh(ustate->ncurses_state->chat_dialogue_window);
+
+                        clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+                        wmove(ustate->ncurses_state->chat_input_window, 2, 1);
+                        wrefresh(ustate->ncurses_state->chat_input_window);
+                        echo();
+
+                        *ustate->ncurses_state->is_logged_in = 1;
+                        break;
+                    } else {
+                        char log_in_msg[BUFF_SIZE];
+                        sprintf(log_in_msg, "%s Failed to Logged-In.", name);
+
+//                        update_msg_history(log_in_msg, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
+//                        display_input(ustate->ncurses_state->chat_dialogue_window, ustate->ncurses_state->msg_history,
+//                                      &ustate->ncurses_state->msg_count);
+                        clear_window(ustate->ncurses_state->chat_dialogue_window, DIALOGUE_WINDOW);
+                        mvwprintw(ustate->ncurses_state->chat_dialogue_window, 2, 1, "%s Failed to Logged-In.", name);
+                        wrefresh(ustate->ncurses_state->chat_dialogue_window);
+
+                        clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+                        wmove(ustate->ncurses_state->chat_input_window, 2, 1);
+                        wrefresh(ustate->ncurses_state->chat_input_window);
+                        echo();
+                    }
                 }
                 else
                 {
                     clear_window(ustate->ncurses_state->chat_dialogue_window, DIALOGUE_WINDOW);
-                    mvwprintw(ustate->ncurses_state->chat_dialogue_window, 2, 1, "%s Failed to Logged-In.", name);
+
+                    char *buffer = malloc(BUFF_SIZE);
+                    strcat(buffer, "Please Log-in (eg. @login Charlie)\n ");
+
+                    clear_window(ustate->ncurses_state->chat_dialogue_window, DIALOGUE_WINDOW);
+                    mvwprintw(ustate->ncurses_state->chat_dialogue_window, 2, 1, "%s", buffer);
                     wrefresh(ustate->ncurses_state->chat_dialogue_window);
-                }
 
-                ustate->cmd->input = strdup(msg);
-                parse_cmd_input(ustate->cmd);
+//                    update_msg_history(buffer, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
+//                    display_input(ustate->ncurses_state->chat_dialogue_window, ustate->ncurses_state->msg_history,
+//                                  &ustate->ncurses_state->msg_count);
 
-                if (is_valid_cmd(ustate->cmd))
-                {
-                    cmd_handler(ustate);
-                }
-                else
-                {
-                    send_handler(ustate);
+                    clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+                    wmove(ustate->ncurses_state->chat_input_window, 2, 1);
+                    wrefresh(ustate->ncurses_state->chat_input_window);
+                    echo();
                 }
             }
         }
         else
         {
-            ustate->cmd->input = strdup(msg);
-            parse_cmd_input(ustate->cmd);
-
-            if (is_valid_cmd(ustate->cmd))
-            {
-
-                cmd_handler(ustate);
-            }
-            else
-            {
-                send_handler(ustate);
-            }
-
-            clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
-            wmove(ustate->ncurses_state->chat_input_window, 2, 1);
-            wrefresh(ustate->ncurses_state->chat_input_window);
-            echo();
+            thread_chat_io(th, ustate);
+//            clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+//            wmove(ustate->ncurses_state->chat_input_window, 2, 1);
+//            wrefresh(ustate->ncurses_state->chat_input_window);
+//            echo();
         }
 
 //        ustate->cmd->input = strdup(msg);
 //        parse_cmd_input(ustate->cmd);
 
 //        update_msg_history(msg, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
-
-
+//        display_input(ustate->ncurses_state->chat_dialogue_window, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
 
 //        mvwprintw(ustate->ncurses_state->chat_dialogue_window, 2, 1, msg);
 //        wrefresh(ustate->ncurses_state->chat_dialogue_window);
 
-//        display_input(ustate->ncurses_state->chat_dialogue_window, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
+
 
 // Uncomment
 //        parse_message(mnd, msg, const_chat_dialogue_width);
 //        print_all_messages(ustate->ncurses_state->chat_dialogue_window, mnd, 1, 2);
 //        wrefresh(ustate->ncurses_state->chat_dialogue_window);
 
-        clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
-        wmove(ustate->ncurses_state->chat_input_window, 2, 1);
-        wrefresh(ustate->ncurses_state->chat_input_window);
-        echo();
+//        clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+//        wmove(ustate->ncurses_state->chat_input_window, 2, 1);
+//        wrefresh(ustate->ncurses_state->chat_input_window);
+//        echo();
     }
 
 }

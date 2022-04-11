@@ -7,6 +7,17 @@
 
 #include "user_state.h"
 
+#define BUFF_SIZE 1024
+#define MSG_HISTORY_SIZE 100
+
+#define GAME_WINDOW "Game Window:"
+#define CHAT_WINDOW "Chat Input Window:"
+#define DIALOGUE_WINDOW "Chat Dialogue Window:"
+
+void update_msg_history(char msg[], char **msg_history, int *msg_count);
+void clear_window(WINDOW *window, char *label);
+void display_input(WINDOW * chat_dialogue_input, char **msg_history, const int *msg_count);
+void update_window(WINDOW *window, char *label);
 
 /**
  *

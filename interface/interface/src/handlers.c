@@ -201,7 +201,12 @@ void recv_handler(UserState * ustate, const CptResponse * res)
 
     if ( res->code == (uint8_t) GET_USERS )
     {
-        printf("%s\n", (char *)res->data);
+//        mvwprintw(ustate->ncurses_state->chat_dialogue_window, 2, 1, "%s", (char *)res->data);
+//        wrefresh(ustate->ncurses_state->chat_dialogue_window);
+
+        update_msg_history((char *)res->data, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
+        display_input(ustate->ncurses_state->chat_dialogue_window, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
+//        printf("%s\n", (char *)res->data);
     }
 
     if ( res->code == (uint8_t) CREATE_CHANNEL )
@@ -231,16 +236,64 @@ void recv_handler(UserState * ustate, const CptResponse * res)
     }
     if ( res->code == (uint8_t) SEND )
     {
-        block = shmem_attach(FILENAME, BLOCK_SIZE);
-        strncpy(block, (char *) res->data, BLOCK_SIZE);
-        shmem_detach(block);
+//        block = shmem_attach(FILENAME, BLOCK_SIZE);
+//        strncpy(block, (char *) res->data, BLOCK_SIZE);
+//        shmem_detach(block);
+//        char send_msg[BUFF_SIZE];
+//        sprintf(send_msg, "[Channel %d] %s: %s", ustate->, ustate->client_info->name, (char *)res->data);
+
+        update_msg_history((char *)res->data, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
+        display_input(ustate->ncurses_state->chat_dialogue_window, ustate->ncurses_state->msg_history, &ustate->ncurses_state->msg_count);
     }
+
+    clear_window(ustate->ncurses_state->chat_input_window, CHAT_WINDOW);
+    wmove(ustate->ncurses_state->chat_input_window, 2, 1);
+    wrefresh(ustate->ncurses_state->chat_input_window);
+//    echo();
 }
 
+void display_input(WINDOW * chat_dialogue_input, char **msg_history, const int *msg_count)
+{
+    clear_window(chat_dialogue_input, DIALOGUE_WINDOW);
+
+    char *buffer = malloc(BUFF_SIZE);
+
+    for (int i = 0; i <= *msg_count  - 1; i++)
+    {
+        strncat(buffer, msg_history[i], strlen(msg_history[i]));
+        strcat(buffer, "\n ");
+    }
+    mvwprintw(chat_dialogue_input, 2, 1, "%s", buffer);
+    update_window(chat_dialogue_input, DIALOGUE_WINDOW);
+    wrefresh(chat_dialogue_input);
+}
+
+void update_window(WINDOW *window, char *label)
+{
+    box(window, 0, 0);
+    mvwprintw(window, 1, 1, label);
+    wrefresh(window);
+}
+
+void clear_window(WINDOW *window, char *label)
+{
+    wclear(window);
+    box(window, 0, 0);
+    mvwprintw(window, 1, 1, label);
+    wrefresh(window);
+}
+
+void update_msg_history(char msg[], char **msg_history, int *msg_count)
+{
+    msg_history[*msg_count] = malloc(strlen(msg) * sizeof(char));
+    strcpy(msg_history[*msg_count], msg);
+
+    *msg_count = *msg_count + 1;
+}
 
 void cmd_handler(UserState * ustate)
 {
-    if ( is_cmd(ustate->cmd, cli_cmds[MENU_CMD]            )) { menu();                          }
+//    if ( is_cmd(ustate->cmd, cli_cmds[MENU_CMD]            )) { menu();                          }
     if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]          )) { logout_handler(ustate);          }
     if ( is_cmd(ustate->cmd, cli_cmds[GET_USERS_CMD]       )) { get_users_handler(ustate);       }
     if ( is_cmd(ustate->cmd, cli_cmds[CREATE_CHANNEL_CMD]  )) { create_channel_handler(ustate);  }
