@@ -20,9 +20,10 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
     struct application_settings * app_settings;
     app_settings = (struct application_settings *) settings;
 
+    login = dc_setting_string_get(env, app_settings->login);
     host  = dc_setting_string_get(env, app_settings->host );
     port  = dc_setting_string_get(env, app_settings->port );
-    login = dc_setting_string_get(env, app_settings->login);
+
 
     ustate = user_state_init();
     if ( !ustate->LOGGED_IN )
