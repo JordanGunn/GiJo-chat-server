@@ -36,10 +36,10 @@ void play(int fd)
     {
         ssize_t nread;
 
-        nread = read(fd, buf, sizeof(buf));
+//        nread = read(fd, buf, sizeof(buf));
 
 
-//        nread = recv(fd, buf, sizeof(buf), 0); //TODO changed
+        nread = udp_server_recv(fd, (uint8_t *)buf);
         printf("%zu\n", nread);
         printf("%s\n", buf);
 
@@ -51,6 +51,7 @@ void play(int fd)
         }
         else
         {
+            fwrite("nothin", 1, strlen("nothin") + 1, file);
             break;
         }
     }
@@ -65,18 +66,23 @@ int run_voice_chat(const char * host, const char * port)
     pid_t pid;
     int listen_fd, send_fd;
 
-
-
-    listen_fd = udp_server_sock_r("192.168.1.106", PORT_8080);
-    send_fd = udp_server_sock_s(host, port);
-
+    FILE * file2;
     if ( (pid = fork()) != -1 )
     {
-        if (pid == 0)
-        { play(listen_fd); }
+        file2 = fopen("./file_outer.txt", "a+");
+        if (pid > 0)
+        {
+            listen_fd = udp_server_sock_r("192.168.1.106", PORT_8888);
+            play(listen_fd);
+        }
 
         else
-        { record(send_fd); }
+        {
+            send_fd = udp_server_sock_s(host, port);
+            record(send_fd);
+        }
+        wait(NULL);
+        fclose(file2);
     }
 
     return pid;

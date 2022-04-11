@@ -30,11 +30,25 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
         user_login(ustate, host, port, login);
     }
 
+    Command * cmd_temp;
+    cmd_temp = cmd_init();
+    cmd_temp->input = "@create-vchannel \"3 4 5 6\"\n";
+    parse_cmd_input(cmd_temp);
+    ustate->cmd = cmd_temp;
+    cmd_handler(ustate);
+    uint8_t res_buf[LG_BUFF_SIZE] = {0};
+    CptResponse * res;
+    ssize_t res_size = tcp_client_recv(
+            ustate->client_info->fd, res_buf);
+
+    res = cpt_parse_response(res_buf);
+    recv_handler(ustate, res);
+
     if ( ((ustate->pid = fork()) != SYS_CALL_FAIL) )
     {
         if ( ustate->pid > 0 ) /* parent */
         {
-//            kill(ustate->pid, SIGSTOP);
+            kill(ustate->pid, SIGSTOP);
             thread_chat_io(th, ustate);
         }
         else /* child */
