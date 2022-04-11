@@ -129,9 +129,9 @@ int udp_server_recvfrom(int sock, FILE * stream)
 }
 
 
-int udp_server_sock_r(const char * host, const char * port)
+int udp_server_sock_init(const char * host, const char * port)
 {
-    int udp_fd, bind_res;
+    int udp_fd;
     char * ip_copy, * port_copy;
     struct addrinfo * server_addr;
 
@@ -140,19 +140,15 @@ int udp_server_sock_r(const char * host, const char * port)
 
     server_addr = udp_server_addr(ip_copy, port_copy);
 
-    bind_res = -1;
     if ( server_addr )
     {
-        if ( ((udp_fd = udp_server_socket(server_addr)) != SYS_CALL_FAIL) )
-        {
-            bind_res = udp_server_bind(udp_fd, server_addr);
-        }
+        udp_fd = udp_server_socket(server_addr);
     }
 
 
     free(ip_copy); ip_copy = NULL;
     free(port_copy); port_copy = NULL;
-    return (bind_res == SYS_CALL_FAIL ) ? bind_res : udp_fd;
+    return ( server_addr ) ? udp_fd : SYS_CALL_FAIL;
 }
 
 

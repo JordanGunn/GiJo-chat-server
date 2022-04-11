@@ -8,8 +8,8 @@
 //TODO voice stuff here !!!
 
 int task_count;
-pthread_cond_t cond_queue;
 pthread_mutex_t mutex;
+pthread_cond_t cond_queue;
 VoiceTask * voice_task_queue[1024];
 int voice_udp_fds_r[VOICE_MAX_CHAN];
 bool active_voice_chan[VOICE_MAX_CHAN];
@@ -59,13 +59,15 @@ _Noreturn void * start_thread(void * T)
     while ( true )
     {
         pthread_mutex_lock(&mutex);
-        while (task_count == 0) {
+        while (task_count == 0)
+        {
             pthread_cond_wait(&cond_queue, &mutex);
         }
 
         task = voice_task_queue[0];
 
-        for (ind = 0; ind < task_count - 1; ind++) {
+        for (ind = 0; ind < task_count - 1; ind++)
+        {
             voice_task_queue[ind] = voice_task_queue[ind + 1];
         }
         task_count--;
@@ -90,8 +92,10 @@ int voice_pool(void (run) (void))
     pthread_t th[NUM_VTHREADS];
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond_queue, NULL);
-    for (ind = 0; ind < NUM_VTHREADS; ind++) {
-        if (pthread_create(&th[ind], NULL, &start_thread, NULL) != 0) {
+    for (ind = 0; ind < NUM_VTHREADS; ind++)
+    {
+        if (pthread_create(&th[ind], NULL, &start_thread, NULL) != 0)
+        {
             perror("Failed to create the thread");
         }
     }

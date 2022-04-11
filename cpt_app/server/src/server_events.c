@@ -178,8 +178,6 @@ void leave_channel_event(ServerInfo * info, uint16_t channel_id)
         if ( channel_id >= CPT_VCHAN_MIN )
         { //TODO voice stuff here !!!
             toggle_user_vchan(info->current_id);
-            task = create_voice_task(info, channel_id);
-            submit_task(task);
         }
     }
     else
@@ -262,6 +260,7 @@ void create_vchannel_event(ServerInfo * info, char * id_list)
         channel_id = (uint16_t) unpacku16(data_crawler);
         toggle_user_vchan(info->current_id);
         task = create_voice_task(info, channel_id);
+        packi16(info->res->data, channel_id);
         submit_task(task);
     }
     else
@@ -352,6 +351,7 @@ VoiceTask * create_voice_task(ServerInfo * info, uint16_t channel_id)
         {
             voice_task->channel = chan;
             voice_task->udp_fd = get_user_vchan(info->current_id);
+            voice_task->uid = info->current_id;
         }
     }
 
@@ -361,17 +361,21 @@ VoiceTask * create_voice_task(ServerInfo * info, uint16_t channel_id)
 
 void user_udp_setup(User * user, int new_fd)
 {   //TODO voice stuff here !!!
+
+    struct addrinfo * remote_addr;
     char ip_buf[SM_BUFF_SIZE] = {0};
     char port_buf[SM_BUFF_SIZE] = {0};
 
     user->udp_fd_r = (uint16_t)
-            udp_server_sock_r(IP_LOCAL_LB, PORT_8080);
+            udp_server_sock_init(IP_LOCAL_LB, PORT_8080);
     set_user_vchan(user->id, user->udp_fd_r);
 
     udp_get_remote_info(new_fd, port_buf, ip_buf);
+    remote_addr = udp_server_addr(ip_buf, port_buf);
 
     user->udp_fd_s = (uint16_t)
-            udp_server_sock_s(ip_buf, port_buf);
+            udp_server_sock_init(ip_buf, port_buf);
+    udp_server_connect(user->udp_fd_s, remote_addr);
 }
 
 

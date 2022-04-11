@@ -272,7 +272,7 @@ bool is_voice_chan(UserState * ustate)
     req = ustate->client_info->packet;
 
     vchan_lbound = (req->channel_id >= CPT_VCHAN_MIN);
-    vchan_ubound = (req->channel_id <= CPT_VCHAN_MIN);
+    vchan_ubound = (req->channel_id <= CPT_VCHAN_MAX);
 
     return (vchan_lbound && vchan_ubound);
 }

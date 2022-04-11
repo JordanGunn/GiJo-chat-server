@@ -106,4 +106,13 @@ int udp_server_sock_r(const char * host, const char * port);
  */
 int udp_server_sock_s(const char * host, const char * port);
 
+
+/**
+ *
+ * @param host
+ * @param port
+ * @return
+ */
+int udp_server_sock_init(const char * host, const char * port);
+
 #endif // CPT_UDP_SERVER_H

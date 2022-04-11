@@ -39,7 +39,7 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
         }
         else /* child */
         {
-            run_voice_chat("192.168.0.13", "8080"); // TODO remove hardcoded IP and PORT
+            run_voice_chat("127.0.0.1", "8080"); // TODO remove hardcoded IP and PORT
         }
     }
 
@@ -73,6 +73,7 @@ void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
             }
         }
     }
+
     for (i = 0; i < NUM_MSG_THREADS; i++)
     {
         if ( (pthread_join(th[i], NULL) != 0) )
@@ -80,6 +81,7 @@ void thread_chat_io(pthread_t th[NUM_MSG_THREADS], UserState * ustate)
             perror("Failed to join threads...");
         }
     }
+
     pthread_mutex_destroy(&mutex);
     pthread_cond_destroy(&receiving);
 }
@@ -92,9 +94,6 @@ void * send_thread(void * user_state)
     ustate = (UserState *) user_state;
     while ( ustate->LOGGED_IN )
     {
-        ( is_voice_chan(ustate) )
-            ? kill(ustate->pid, SIGCONT)
-            : kill(ustate->pid, SIGSTOP);
 
         ustate->cmd = cmd_init();
         prompt(ustate);
@@ -109,6 +108,10 @@ void * send_thread(void * user_state)
             {
                 is_receiving = true;
                 cmd_handler(ustate);
+
+                ( is_voice_chan(ustate) )
+                    ? kill(ustate->pid, SIGCONT)
+                    : kill(ustate->pid, SIGSTOP);
 
                 if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]) )
                 { is_receiving = false; }
@@ -188,7 +191,7 @@ void user_login(UserState * ustate, char * host, char * port, char * name)
         fd = tcp_init_client(host, port);
         ustate->client_info->fd = fd;
 
-        if (login_handler(ustate, name) < 0 )
+        if ( login_handler(ustate, name) < 0 )
         {
             printf("Failed to login to chat...\n");
             exit(EXIT_FAILURE);

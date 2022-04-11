@@ -127,6 +127,7 @@ Task* create_voice_task(ServerInfo *info, Channel *channel)
     ct = channel_task_init();
     user = find_user(channel->users, info->current_id);
     ct->my_fd = user->voice_fd;
+    ct->uid = info->current_id;
     ct->users = channel->users;
     return ct;
 }
