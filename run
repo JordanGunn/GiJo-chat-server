@@ -11,7 +11,6 @@ echo "Port: $port";
 echo "IP: $host";
 
 touch ./cmake-build-debug/darcy
-gnome-terminal -- bash -c "cmake-build-debug/cpt_chat_client --LOGIN $name --host $host --port $port; exec bash"
-gnome-terminal -- bash -c "cmake-build-debug/cpt_messenger; exec bash"
-
+gnome-terminal -- bash -xc "./cmake-build-debug/cpt_chat_client --LOGIN $name --host $host --port $port; exec bash"
+gnome-terminal -- bash -xc "./cmake-build-debug/cpt_messenger; exec bash"
 
