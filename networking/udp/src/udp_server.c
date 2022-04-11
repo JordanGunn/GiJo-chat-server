@@ -178,6 +178,32 @@ int udp_server_sock_s(const char * host, const char * port)
 }
 
 
+int udp_server_sock_r(const char * host, const char * port)
+{
+    int udp_fd, bind_res;
+    char * ip_copy, * port_copy;
+    struct addrinfo * server_addr;
+
+    ip_copy = strdup(host);
+    port_copy = strdup(port);
+
+    server_addr = udp_server_addr(ip_copy, port_copy);
+
+    bind_res = -1;
+    if ( server_addr )
+    {
+        if ( ((udp_fd = udp_server_socket(server_addr)) != SYS_CALL_FAIL) )
+        {
+            bind_res = udp_server_bind(udp_fd, server_addr);
+        }
+    }
+
+    free(ip_copy); ip_copy = NULL;
+    free(port_copy); port_copy = NULL;
+    return (bind_res == SYS_CALL_FAIL ) ? bind_res : udp_fd;
+}
+
+
 int udp_server_send(int sock_fd, uint8_t * data, size_t data_size)
 {
     ssize_t bytes_sent, bytes_left;

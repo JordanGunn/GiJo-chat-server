@@ -34,12 +34,13 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
     {
         if ( ustate->pid > 0 ) /* parent */
         {
-            kill(ustate->pid, SIGSTOP);
+//            kill(ustate->pid, SIGSTOP);
             thread_chat_io(th, ustate);
         }
         else /* child */
         {
-            run_voice_chat("127.0.0.1", "8080"); // TODO remove hardcoded IP and PORT
+            //TODO VOICE - CLIENT - STEP 1
+            run_voice_chat(IP_LOCAL_LB, PORT_8888); // TODO remove hardcoded IP and PORT
         }
     }
 
@@ -109,9 +110,9 @@ void * send_thread(void * user_state)
                 is_receiving = true;
                 cmd_handler(ustate);
 
-                ( is_voice_chan(ustate) )
-                    ? kill(ustate->pid, SIGCONT)
-                    : kill(ustate->pid, SIGSTOP);
+//                ( is_voice_chan(ustate) )
+//                    ? kill(ustate->pid, SIGCONT)
+//                    : kill(ustate->pid, SIGSTOP);
 
                 if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]) )
                 { is_receiving = false; }

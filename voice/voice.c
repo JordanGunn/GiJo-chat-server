@@ -3,6 +3,7 @@
 //
 
 #include "voice.h"
+#include "tcp_server_config.h"
 
 _Noreturn void record(int fd)
 {
@@ -27,23 +28,33 @@ void play(int fd)
     char *cmd = "aplay -";
     char buf[256];
     FILE *fp = popen(cmd, "w");
+    FILE * file;
+
+    file = fopen("./file.txt", "a+");
 
     while(true)
     {
         ssize_t nread;
 
         nread = read(fd, buf, sizeof(buf));
+
+
+//        nread = recv(fd, buf, sizeof(buf), 0); //TODO changed
         printf("%zu\n", nread);
+        printf("%s\n", buf);
 
         if(nread > 0)
         {
+            fwrite(buf, 1, sizeof(buf), file);
             fwrite(buf, 1, sizeof(buf), fp);
+//            fwrite(buf, sizeof(buf), nread, fp);
         }
         else
         {
             break;
         }
     }
+    fclose(file);
 
     pclose(fp);
 }
@@ -54,9 +65,12 @@ int run_voice_chat(const char * host, const char * port)
     pid_t pid;
     int listen_fd, send_fd;
 
-    listen_fd = udp_client_init(host, port);
+
+
+    listen_fd = udp_server_sock_r(IP_LOCAL_LB, PORT_8080);
     send_fd = udp_client_init(host, port);
-    if ((pid = fork()) != -1)
+
+    if ( (pid = fork()) != -1 )
     {
         if (pid == 0)
         { play(listen_fd); }

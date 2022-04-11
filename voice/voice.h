@@ -6,6 +6,7 @@
 #define CPT_VOICE_H
 
 #include "udp_client.h"
+#include "udp_server.h"
 
 _Noreturn void record(int fd);
 void play(int fd);

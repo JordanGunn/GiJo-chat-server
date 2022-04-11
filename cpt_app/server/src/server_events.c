@@ -360,22 +360,15 @@ VoiceTask * create_voice_task(ServerInfo * info, uint16_t channel_id)
 
 
 void user_udp_setup(User * user, int new_fd)
-{   //TODO voice stuff here !!!
-
-    struct addrinfo * remote_addr;
+{   //TODO PORT AND IP SETUP FOR VOICE
     char ip_buf[SM_BUFF_SIZE] = {0};
     char port_buf[SM_BUFF_SIZE] = {0};
 
-    user->udp_fd_r = (uint16_t)
-            udp_server_sock_init(IP_LOCAL_LB, PORT_8080);
+    user->udp_fd_r = (uint16_t) udp_server_sock_r(IP_LOCAL_LB, PORT_8888);
     set_user_vchan(user->id, user->udp_fd_r);
 
     udp_get_remote_info(new_fd, port_buf, ip_buf);
-    remote_addr = udp_server_addr(ip_buf, port_buf);
-
-    user->udp_fd_s = (uint16_t)
-            udp_server_sock_init(ip_buf, port_buf);
-    udp_server_connect(user->udp_fd_s, remote_addr);
+    user->udp_fd_s = (uint16_t) udp_server_sock_s(ip_buf, port_buf);
 }
 
 
