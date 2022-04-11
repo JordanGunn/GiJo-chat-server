@@ -39,7 +39,7 @@ void run(void)
 
     do {
         printf("Waiting on poll...\n");
-        result = poll(poll_fds, (nfds_t) nfds, POLL_TIMEOUT_5M);
+        result = poll(poll_fds, (nfds_t) nfds, POLL_TIMEOUT_30M);
 
         if ( should_end_event_loop(result) ) { break; }
 
