@@ -5,7 +5,6 @@
 #include "server_events.h"
 
 extern bool is_fatal_error;
-extern int voice_udp_fds_r[VOICE_MAX_CHAN];
 extern struct pollfd poll_fds[MAX_SERVER_FDS];
 
 void handle_event(ServerInfo * info, CptRequest * req)
@@ -29,13 +28,6 @@ void handle_event(ServerInfo * info, CptRequest * req)
     {
         puts("  CREATE_CHANNEL event");
         create_channel_event(info, (char *) req->msg);
-        cpt_request_destroy(req);
-    }
-
-    if ( req->command == CREATE_VCHAN )
-    {
-        puts("  CREATE_VOICE_CHANNEL EVENT");
-        create_vchannel_event(info, (char *) req->msg);
         cpt_request_destroy(req);
     }
 
@@ -72,7 +64,6 @@ int login_event(ServerInfo * info)
         info->current_id = new_fd;
         req_size = (size_t) tcp_server_recv(new_fd, req_buf);
         req = cpt_parse_request(req_buf, req_size);
-        /* If login succeeded, add file desc and set the events */
         if ( (cpt_login_response(info, (char *) req->msg)) == SUCCESS )
         {
             if ( info->gc->users )
@@ -80,7 +71,6 @@ int login_event(ServerInfo * info)
                 user = user_init(new_fd, new_fd, (char *) req->msg ); // Set ID same as file descriptor.
                 if ( user )
                 {
-                    user_udp_setup(user, new_fd); //TODO Voice functionality here
                     push_res = push_channel_user(info->gc, user);
                 }
             }
@@ -134,13 +124,6 @@ void join_channel_event(ServerInfo *info, uint16_t channel_id)
         res->code = (uint8_t) JOIN_CHANNEL;
         res->data_size = sizeof(channel_id);
         res->data = (uint8_t *) &channel_id;
-
-        if ( channel_id >= CPT_VCHAN_MIN )
-        { //TODO voice stuff here
-            toggle_user_vchan(info->current_id);
-            task = create_voice_task(info, channel_id);
-            submit_task(task);
-        }
     }
     else
     {
@@ -162,7 +145,6 @@ void leave_channel_event(ServerInfo * info, uint16_t channel_id)
     int lc_res;
     char * res_msg;
     size_t res_size;
-    VoiceTask * task;  //TODO voice stuff here!!!
     CptResponse * res;
     uint8_t res_buf[MD_BUFF_SIZE] = {0};
     char res_msg_buf[SM_BUFF_SIZE] = {0};
@@ -175,10 +157,6 @@ void leave_channel_event(ServerInfo * info, uint16_t channel_id)
                 "Successfully left channel %d", channel_id);
         res_msg = strdup(res_msg_buf);
         res->code = LEAVE_CHANNEL;
-        if ( channel_id >= CPT_VCHAN_MIN )
-        { //TODO voice stuff here !!!
-            toggle_user_vchan(info->current_id);
-        }
     }
     else
     {
@@ -240,42 +218,6 @@ void create_channel_event(ServerInfo * info, char * id_list)
 }
 
 
-void create_vchannel_event(ServerInfo * info, char * id_list)
-{
-    char * msg;
-    int cc_res;
-    size_t res_size;
-    VoiceTask * task;
-    uint16_t channel_id;
-    uint8_t * data_crawler;
-    uint8_t res_buf[MD_BUFF_SIZE] = {0};
-
-    info->res = cpt_response_init();
-    cc_res = cpt_create_vchannel_response(info, id_list);
-
-    if ( cc_res == SUCCESS )
-    {  //TODO voice stuff here!!!
-        data_crawler = info->res->data;
-        info->res->code = (uint8_t) CREATE_VCHAN;
-        channel_id = (uint16_t) unpacku16(data_crawler);
-        toggle_user_vchan(info->current_id);
-        task = create_voice_task(info, channel_id);
-        packi16(info->res->data, channel_id);
-        submit_task(task);
-    }
-    else
-    {
-        msg = strdup("Failed to create channel...");
-        info->res->data = (uint8_t *) msg;
-        info->res->code = (uint8_t) FAILURE;
-    }
-
-    res_size = cpt_serialize_response(info->res, res_buf);
-    tcp_server_send(info->current_id, res_buf, res_size);
-    cpt_response_destroy(info->res);
-}
-
-
 void get_users_event(ServerInfo * info, int chan_id)
 {
     int gu_res;
@@ -334,41 +276,6 @@ void send_event(ServerInfo * info, char * msg, int channel_id)
     }
 
     cpt_response_destroy(info->res);
-}
-
-
-VoiceTask * create_voice_task(ServerInfo * info, uint16_t channel_id)
-{   //TODO voice stuff here !!!
-    Channel * chan;
-    VoiceTask * voice_task;
-
-    voice_task = NULL;
-    voice_task = voice_task_init();
-    if ( voice_task )
-    {
-        chan = find_channel(info->dir, channel_id);
-        if ( chan )
-        {
-            voice_task->channel = chan;
-            voice_task->udp_fd = get_user_vchan(info->current_id);
-            voice_task->uid = info->current_id;
-        }
-    }
-
-    return voice_task;
-}
-
-
-void user_udp_setup(User * user, int new_fd)
-{   //TODO PORT AND IP SETUP FOR VOICE
-    char ip_buf[SM_BUFF_SIZE] = {0};
-    char port_buf[SM_BUFF_SIZE] = {0};
-
-    user->udp_fd_r = (uint16_t) udp_server_sock_r(IP_LOCAL_LB, PORT_8888);
-    set_user_vchan(user->id, user->udp_fd_r);
-
-    udp_get_remote_info(new_fd, port_buf, ip_buf);
-    user->udp_fd_s = (uint16_t) udp_server_sock_s(ip_buf, port_buf);
 }
 
 

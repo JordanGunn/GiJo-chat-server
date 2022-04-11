@@ -10,11 +10,6 @@ static int nfds;
 static int result, active_nfds, i, j;
 static bool close_conn, compress_array;
 
-extern pthread_mutex_t mutex;
-extern pthread_cond_t cond_queue;
-extern int voice_udp_fds_r[VOICE_MAX_CHAN];
-extern bool active_voice_chan[VOICE_MAX_CHAN];
-
 bool is_fatal_error;
 struct pollfd poll_fds[MAX_SERVER_FDS];
 
@@ -40,8 +35,6 @@ void run(void)
     gc = init_global_channel();
     dir = init_channel_directory(gc);
     info = cpt_server_info_init(gc, dir);
-    memset(voice_udp_fds_r, -1, VOICE_MAX_CHAN);
-    memset(active_voice_chan, 0, VOICE_MAX_CHAN);
 
     listen_socket_init( gc );
     // ============================================ //

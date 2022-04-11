@@ -7,7 +7,6 @@
 
 #include "server_config.h"
 #include "server_global.h"
-#include "server_voice.h"
 #include "tcp_server.h"
 #include "cpt_server.h"
 
@@ -51,13 +50,6 @@ void leave_channel_event(ServerInfo * info, uint16_t id);
 void create_channel_event(ServerInfo * info, char * id_list);
 
 
-/**
- *
- * @param info
- * @param id_list
- */
-void create_vchannel_event(ServerInfo * info, char * id_list);
-
 
 /**
  *
@@ -86,26 +78,9 @@ void handle_event(ServerInfo * info, CptRequest * req);
 
 /**
  *
- * @param udp_fd
- * @param channel
- * @return
- */
-VoiceTask * create_voice_task(ServerInfo * info, uint16_t channel_id);
-
-
-/**
- *
  * @return
  */
 int handle_new_accept(void);
-
-
-/**
- *
- * @param user
- * @param new_fd
- */
-void user_udp_setup(User *user, int new_fd);
 
 
 

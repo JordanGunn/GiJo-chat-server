@@ -30,33 +30,7 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
         user_login(ustate, host, port, login);
     }
 
-    Command * cmd_temp;
-    cmd_temp = cmd_init();
-    cmd_temp->input = "@create-vchannel \"3 4 5 6\"\n";
-    parse_cmd_input(cmd_temp);
-    ustate->cmd = cmd_temp;
-    cmd_handler(ustate);
-    uint8_t res_buf[LG_BUFF_SIZE] = {0};
-    CptResponse * res;
-    ssize_t res_size = tcp_client_recv(
-            ustate->client_info->fd, res_buf);
-
-    res = cpt_parse_response(res_buf);
-    recv_handler(ustate, res);
-
-    if ( ((ustate->pid = fork()) != SYS_CALL_FAIL) )
-    {
-        if ( ustate->pid > 0 ) /* parent */
-        {
-            kill(ustate->pid, SIGSTOP);
-            thread_chat_io(th, ustate);
-        }
-        else /* child */
-        {
-            //TODO VOICE - CLIENT - STEP 1
-            run_voice_chat("192.168.0.13", PORT_8888); // TODO remove hardcoded IP and PORT
-        }
-    }
+    thread_chat_io(th, ustate);
 
     /* clean up before exiting */
     close(ustate->client_info->fd);
@@ -198,9 +172,6 @@ void * recv_thread(void * user_state)
 void user_login(UserState * ustate, char * host, char * port, char * name)
 {
     int fd, on;
-    char * name_ip;
-    char name_ip_buf[SM_BUFF_SIZE] = {0};
-
 
     on = 1;
     if ( name )
@@ -209,12 +180,8 @@ void user_login(UserState * ustate, char * host, char * port, char * name)
         fd = tcp_init_client(host, port);
         ustate->client_info->fd = fd;
         ustate->client_info->name = strdup(name);
-        memcpy(name_ip_buf, name, strlen(name) + 1);
-        name_ip_buf[strlen(name_ip_buf)] = '@';
-        strncat(name_ip_buf, "192.168.1.106", strlen(ustate->client_info->ip) + 1);
-        name_ip = strdup(name_ip_buf);
 
-        if ( login_handler(ustate, name_ip) < 0 )
+        if ( login_handler(ustate, name) < 0 )
         {
             printf("Failed to login to chat...\n");
             exit(EXIT_FAILURE);
@@ -226,8 +193,6 @@ void user_login(UserState * ustate, char * host, char * port, char * name)
             ustate->channel = CHANNEL_ZERO;
             ioctl(ustate->client_info->fd, FIONBIO, (char *)&on);
         }
-        free(name_ip);
-        name_ip = NULL;
     }
     else
     {
