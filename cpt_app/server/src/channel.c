@@ -136,13 +136,20 @@ uint16_t parse_channel_query(char * id_list, uint16_t * id_buf)
     {
         id = strtol((char *)id_list, &id_str, 10);
         id_list = id_str;
-        if ( id != 0 )
+        if ( id_list == id_str )
         {
-            if ( id != id_buf[0] )
+            id_list++;
+        }
+        else
+        {
+            if ( id != 0 )
             {
-                id_buf[id_count] = id;
+                if ( id != id_buf[0] )
+                {
+                    id_buf[id_count] = id;
+                }
+                id_count++;
             }
-            id_count++;
         }
     }
 
