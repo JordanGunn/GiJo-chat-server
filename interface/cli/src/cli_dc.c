@@ -40,7 +40,7 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
         else /* child */
         {
             //TODO VOICE - CLIENT - STEP 1
-            run_voice_chat(IP_LOCAL_LB, PORT_8888); // TODO remove hardcoded IP and PORT
+            run_voice_chat("192.168.0.13", PORT_8888); // TODO remove hardcoded IP and PORT
         }
     }
 
@@ -184,6 +184,9 @@ void * recv_thread(void * user_state)
 void user_login(UserState * ustate, char * host, char * port, char * name)
 {
     int fd, on;
+    char * name_ip;
+    char name_ip_buf[SM_BUFF_SIZE] = {0};
+
 
     on = 1;
     if ( name )
@@ -191,8 +194,13 @@ void user_login(UserState * ustate, char * host, char * port, char * name)
         ustate->client_info = cpt_init_client_info(port, host);
         fd = tcp_init_client(host, port);
         ustate->client_info->fd = fd;
+        ustate->client_info->name = strdup(name);
+        memcpy(name_ip_buf, name, strlen(name) + 1);
+        name_ip_buf[strlen(name_ip_buf)] = '@';
+        strncat(name_ip_buf, "192.168.1.106", strlen(ustate->client_info->ip) + 1);
+        name_ip = strdup(name_ip_buf);
 
-        if ( login_handler(ustate, name) < 0 )
+        if ( login_handler(ustate, name_ip) < 0 )
         {
             printf("Failed to login to chat...\n");
             exit(EXIT_FAILURE);
@@ -204,6 +212,8 @@ void user_login(UserState * ustate, char * host, char * port, char * name)
             ustate->channel = CHANNEL_ZERO;
             ioctl(ustate->client_info->fd, FIONBIO, (char *)&on);
         }
+        free(name_ip);
+        name_ip = NULL;
     }
     else
     {

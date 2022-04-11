@@ -41,6 +41,9 @@ int udp_client_socket(struct addrinfo * client_addr)
         return -1;
     }
 
+    if ( (udp_client_sock_opt(client_sock_fd, SO_REUSEADDR)) == -1 )
+        { client_sock_fd = -1; }
+
     return client_sock_fd;
 }
 
@@ -162,4 +165,21 @@ char * build_msg(int id, size_t size)
     msg[size] = '\0';
 
     return msg;
+}
+
+
+int udp_client_sock_opt(int sock_fd, int sock_opt)
+{
+    int result, opt_len;
+
+    opt_len = 1;
+    result = setsockopt(sock_fd, SOL_SOCKET, sock_opt, &opt_len, sizeof(opt_len));
+
+    if (result < 0)
+    {
+        const char * msg = "Failed to set tcp socket option...\n";
+        write(STDERR_FILENO, msg, strlen(msg));
+    }
+
+    return result;
 }

@@ -82,6 +82,15 @@ int udp_server_sock_init(const char * host, const char * port);
 
 /**
  *
+ * @param sock_fd
+ * @param sock_opt
+ * @return
+ */
+int udp_server_sock_opt(int sock_fd, int sock_opt);
+
+
+/**
+ *
  * @param udp_fd
  * @param client_addr
  * @return

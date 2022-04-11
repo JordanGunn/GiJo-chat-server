@@ -122,6 +122,7 @@ void destroy_list(LinkedList * list)
 
     if ( (node_iterator = *(list->head)) )
     {
+        //TODO SEGFAULT ON TIMEOUT
         while ((next_iterator = node_iterator->next))
         {
             free(node_iterator);

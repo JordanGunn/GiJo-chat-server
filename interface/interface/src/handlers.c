@@ -28,7 +28,7 @@ int login_handler(UserState * ustate, char * name)
             if (res->code == (uint8_t) LOGIN)
             {
                 printf("\n\nLogged in to chat server as %s@%s:%s\n\n",
-                       name, ustate->client_info->ip, ustate->client_info->port);
+                       ustate->client_info->name, ustate->client_info->ip, ustate->client_info->port);
             }
             else
             {

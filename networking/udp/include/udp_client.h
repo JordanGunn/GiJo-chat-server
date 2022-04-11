@@ -84,4 +84,7 @@ int udp_client_init(const char * host, const char * port);
  */
 char * build_msg(int id, size_t size);
 
+
+int udp_client_sock_opt(int sock_fd, int sock_opt);
+
 #endif // DC_SHELL_SHELL_H

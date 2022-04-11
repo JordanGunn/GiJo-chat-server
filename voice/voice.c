@@ -67,8 +67,8 @@ int run_voice_chat(const char * host, const char * port)
 
 
 
-    listen_fd = udp_server_sock_r(IP_LOCAL_LB, PORT_8080);
-    send_fd = udp_client_init(host, port);
+    listen_fd = udp_server_sock_r("192.168.1.106", PORT_8080);
+    send_fd = udp_server_sock_s(host, port);
 
     if ( (pid = fork()) != -1 )
     {

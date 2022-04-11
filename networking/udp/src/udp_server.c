@@ -41,7 +41,27 @@ int udp_server_socket(struct addrinfo * serv_addr)
         return -1;
     }
 
+    if ( (udp_server_sock_opt(server_socket_fd, SO_REUSEADDR)) == -1 )
+    { server_socket_fd = -1; }
+
     return server_socket_fd;
+}
+
+
+int udp_server_sock_opt(int sock_fd, int sock_opt)
+{
+    int result, opt_len;
+
+    opt_len = 1;
+    result = setsockopt(sock_fd, SOL_SOCKET, sock_opt, &opt_len, sizeof(opt_len));
+
+    if (result < 0)
+    {
+        const char * msg = "Failed to set tcp socket option...\n";
+        write(STDERR_FILENO, msg, strlen(msg));
+    }
+
+    return result;
 }
 
 
@@ -53,6 +73,8 @@ int udp_server_bind(int sock, struct addrinfo * serv_addr)
     if ( result < 0 )
     {
         const char * msg = "Failed to bind socket...\n";
+        int error = errno;
+        printf("%s\n", strerror(errno));
         write(STDERR_FILENO, msg, strlen(msg));
         return -1;
     }
