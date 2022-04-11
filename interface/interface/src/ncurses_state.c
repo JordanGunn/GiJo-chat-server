@@ -18,6 +18,9 @@ NcursesState * ncurses_state_init(void)
     nstate->msg_history = NULL;
     nstate->msg_count = 0;
 
+    nstate->is_logged_in = malloc(sizeof(nstate->is_logged_in));
+    *nstate->is_logged_in = 0;
+
     return nstate;
 }
 

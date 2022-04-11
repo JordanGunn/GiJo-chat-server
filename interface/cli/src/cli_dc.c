@@ -29,6 +29,7 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
     {
         user_login(ustate, host, port, login);
     }
+    thread_chat_io(th, ustate);
 
     if ( ((ustate->pid = fork()) != SYS_CALL_FAIL) )
     {

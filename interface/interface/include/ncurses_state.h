@@ -18,6 +18,7 @@ struct ncurses_state
     WINDOW * chat_dialogue_window;
     char **msg_history;
     int msg_count;
+    int *is_logged_in;
 };
 
 
