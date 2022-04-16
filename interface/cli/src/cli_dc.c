@@ -31,7 +31,19 @@ int run(const struct dc_posix_env * env, struct dc_error * err, struct dc_applic
         user_login(ustate, host, port, login);
     }
 
-    thread_chat_io(th, ustate);
+    if ( ((ustate->pid = fork()) != SYS_CALL_FAIL) )
+    {
+        if ( ustate->pid > 0 ) /* parent */
+        {
+//            kill(ustate->pid, SIGSTOP);
+            thread_chat_io(th, ustate);
+        }
+        else /* child */
+        {
+            //TODO VOICE - CLIENT - STEP 1
+            run_voice_chat("192.168.1.133", PORT_8080); // TODO remove hardcoded IP and PORT
+        }
+    }
 
     /* clean up before exiting */
     close(ustate->client_info->fd);
@@ -99,9 +111,9 @@ void * send_thread(void * user_state)
                 is_receiving = true;
                 cmd_handler(ustate);
 
-//                ( is_voice_chan(ustate) )
-//                    ? kill(ustate->pid, SIGCONT)
-//                    : kill(ustate->pid, SIGSTOP);
+                ( is_voice_chan(ustate) )
+                    ? kill(ustate->pid, SIGCONT)
+                    : kill(ustate->pid, SIGSTOP);
 
                 if ( is_cmd(ustate->cmd, cli_cmds[LOGOUT_CMD]) )
                 { is_receiving = false; }
