@@ -13,17 +13,15 @@
 
 
 /**
- * Prepare a CREATE_CHANNEL request packet for the server.
+ * Prepare a CREATE_VCHAN request packet for the server.
  *
- * Prepares a CREATE_CHANNEL request to the server. If successful,
+ * Prepares a CREATE_VCHAN request to the server. If successful,
  * the resulting data in <serial_buf> will contain a CPT packet
  * with the necessary information to instruct the server to create
- * a new channel.
+ * a new voice channel.
  *
- *      > <user_list> may be optionally passed as user selection
- *        parameters for the new Channel.
- *      > If <members> is not NULL, it will be assigned to the
- *        MSG field of the packet.
+ *  <user_list> may be optionally passed as user selection
+ *  parameters for the new voice channel.
  *
  * @param cpt            CPT packet information and any other necessary data.
  * @param serial_buf     A buffer intended for storing the result.

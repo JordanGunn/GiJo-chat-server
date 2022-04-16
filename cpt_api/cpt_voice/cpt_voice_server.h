@@ -11,16 +11,16 @@
 
 
 /**
- * Handle a received 'CREATE_CHANNEL' protocol message.
+ * Handle a received 'CREATE_VCHAN' protocol message.
  *
  * Uses information in a received CptRequest to handle
- * a CREATE_CHANNEL protocol message from a connected client.
+ * a CREATE_VCHAN protocol message from a connected client.
  *
  * If a <user_list> was received in the MSG field of the packet,
  * function will also parse the <user_list> string and attempt
  * to add the requested user IDs to the channel.
  *
- * If <id_list> is NULL, function will create a new channel with
+ * If <id_list> is NULL, function will create a new voice channel with
  * only the requesting user within it.
  *
  * @param server_info   Server data structures and information.
