@@ -1,4 +1,4 @@
-# GiJo-chat-server
+# CPT Chat Client/Server Application
 A concurrent chat server program that implements a custom application layer protocol.
 
 ### Details:
